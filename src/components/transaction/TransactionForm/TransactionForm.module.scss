@@ -1,0 +1,57 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.transactionform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__date {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__quick {
+    display: flex;
+    gap: s.$gap-2;
+  }
+
+  &__chip {
+    height: 32px;
+    padding: 0 s.$gap-4;
+    color: var(--text-secondary);
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-full;
+    cursor: pointer;
+
+    @include t.label-small;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--selected {
+      color: var(--primary);
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+    }
+  }
+
+  // 모바일에서는 저장 버튼이 엄지에 닿는 자리에 고정된다.
+  &__submit {
+    position: sticky;
+    bottom: 0;
+    padding: s.$gap-4 0;
+    padding-bottom: calc(s.$gap-4 + env(safe-area-inset-bottom));
+    background-color: var(--surface-default);
+  }
+}

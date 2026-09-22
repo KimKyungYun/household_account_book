@@ -1,0 +1,9 @@
+@use "styles/tokens/spacing" as s;
+
+.confirmdialog {
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+}

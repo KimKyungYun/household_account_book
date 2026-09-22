@@ -1,0 +1,13 @@
+@use "styles/tokens/spacing" as s;
+
+.categoryformmodal {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+}

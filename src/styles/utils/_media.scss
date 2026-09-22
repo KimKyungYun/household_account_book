@@ -1,0 +1,57 @@
+// 반응형 브레이크포인트 (KRDS 기준값)
+//   Mobile  : 600px 이하
+//   Tablet  : 601px ~ 900px
+//   Desktop : 901px 이상
+// (기본값은 모바일)
+// 이 앱은 **모바일 우선**이다 — 가계부는 서 있을 때 폰으로 입력한다.
+// 기본 스타일을 모바일로 쓰고 `tablet-up` / `desktop-up` 으로 넓혀 나간다.
+// `mobile` / `tablet-down` (max-width) 은 넓은 화면의 규칙을 좁은 화면에서
+// 되돌려야 하는 예외에만 쓴다.
+
+$bp-mobile: 600px;
+$bp-tablet: 900px;
+
+// ── 넓혀 나가는 방향 (기본) ─────────────────────────────────────
+@mixin tablet-up {
+  @media (width > $bp-mobile) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (width > $bp-tablet) {
+    @content;
+  }
+}
+
+// ── 좁히는 방향 (예외 억제용) ───────────────────────────────────
+@mixin mobile {
+  @media (width <= $bp-mobile) {
+    @content;
+  }
+}
+
+@mixin tablet-down {
+  @media (width <= $bp-tablet) {
+    @content;
+  }
+}
+
+@mixin tablet-only {
+  @media (width > $bp-mobile) and (width <= $bp-tablet) {
+    @content;
+  }
+}
+
+// ── 기타 ────────────────────────────────────────────────────────
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+@mixin hover-supported {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}

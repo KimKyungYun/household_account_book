@@ -1,0 +1,68 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: s.$gap-3;
+
+  &__list {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__arrow,
+  &__page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 s.$gap-2;
+    color: var(--text-secondary);
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: s.$shape-sm;
+    cursor: pointer;
+
+    @include a.amount-small;
+
+    @include media.hover-supported {
+      &:hover:not(:disabled) {
+        color: var(--text-primary);
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.35;
+    }
+  }
+
+  &__page {
+    &--current {
+      color: var(--text-on-primary);
+      background-color: var(--primary);
+
+      @include media.hover-supported {
+        &:hover {
+          color: var(--text-on-primary);
+          background-color: var(--primary-hover);
+        }
+      }
+    }
+  }
+
+  &__gap {
+    padding: 0 s.$gap-2;
+    color: var(--text-tertiary);
+  }
+}

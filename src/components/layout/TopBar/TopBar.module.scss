@@ -1,0 +1,45 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.topbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$gap-4;
+  height: var(--header-height);
+  padding: 0 s.$gap-5;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  backdrop-filter: blur(8px);
+
+  @include media.desktop-up {
+    padding: 0 s.$gap-8;
+  }
+
+  &__title {
+    color: var(--text-primary);
+
+    @include t.heading-small;
+
+    @include media.desktop-up {
+      @include t.heading-medium;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  // 모바일에서는 하단탭 가운데의 등록 버튼이 이 역할을 한다.
+  &__cta {
+    display: none;
+
+    @include media.tablet-up {
+      display: inline-flex;
+    }
+  }
+}

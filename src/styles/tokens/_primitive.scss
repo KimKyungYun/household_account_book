@@ -1,0 +1,105 @@
+// Primitive Tokens
+// 원시 색상값(HEX). 컴포넌트는 직접 참조하지 말고 semantic 토큰을 통해 사용.
+
+// ─── KRDS 팔레트 (light 테마) ─────────────────────────────────────
+
+// Blue (Primary 계열)
+$blue-5: #f0f6ff;
+$blue-10: #d9e9ff;
+$blue-20: #b3d2ff;
+$blue-30: #80b3ff;
+$blue-40: #4d94ff;
+$blue-50: #1f6feb;
+$blue-60: #0f4c9f;
+$blue-70: #0a3a7c;
+$blue-80: #07295a;
+$blue-90: #051e44;
+
+// Gray (Neutral 계열)
+$gray-0: #ffffff;
+$gray-5: #f7f8fa;
+$gray-10: #eceef2;
+$gray-15: #f2f4f7;
+$gray-20: #d9dde4;
+$gray-30: #bcc2cc;
+$gray-40: #8d96a3;
+$gray-50: #6b7380;
+$gray-60: #4a5160;
+$gray-70: #343a45;
+$gray-80: #21252e;
+$gray-90: #161a22;
+$gray-95: #0d1017;
+$gray-100: #000000;
+
+// Status colors
+$red-5: #fef2f2;
+$red-10: #fee2e2;
+$red-50: #e0331b;
+$yellow-5: #fffbeb;
+$yellow-10: #fef9c3;
+$yellow-50: #f59e0b;
+$green-5: #f0fdf4;
+$green-10: #dcfce7;
+$green-50: #16a34a;
+$green-70: #15803d;
+$cyan-5: #ecfeff;
+$cyan-10: #cffafe;
+$cyan-50: #0ea5e9;
+$cyan-60: #0c84bb;
+
+// Amber (경고·예산 초과)
+$amber-5: #fffbeb;
+$amber-20: #fde68a;
+$amber-50: #f59e0b;
+$amber-60: #d97706;
+$amber-70: #b45309;
+$amber-90: #78350f;
+
+// ─── 다크 팔레트 ─────────────────────────────────────────────────
+
+// Navy (다크 배경 계열)
+$navy-950: #0d0f14;
+$navy-900: #12141b;
+$navy-850: #181b23;
+$navy-800: #1d212a;
+$navy-700: #272c37;
+$navy-600: #30363f;
+
+// Blue (다크 Primary)
+$dark-blue-20: #bcd4f0;
+$dark-blue-30: #9abde8;
+$dark-blue-40: #74a3de;
+$dark-blue-50: #5590d8;
+$dark-blue-60: #3f76c0;
+$dark-blue-90: #1a2c42;
+
+// Cyan (다크 링크·정보)
+$dark-cyan-40: #6fcfe0;
+$dark-cyan-50: #4bbdd6;
+$dark-cyan-60: #3a8ea3;
+
+// Steel (텍스트·보더 — 중립 계열)
+$steel-5: #eef1f5;
+$steel-20: #b0b6c0;
+$steel-30: #8b929c;
+$steel-40: #676d78;
+$steel-60: #3b444f;
+$steel-70: #2c333c;
+$steel-80: #20262e;
+
+// Status (다크)
+$dark-green-50: #00e08a;
+$dark-green-70: #0f5c40;
+$dark-green-90: #062b1e;
+$dark-red-50: #ff4d6d;
+$dark-red-70: #7a1f33;
+$dark-red-90: #33101a;
+$dark-yellow-50: #ffc933;
+$dark-yellow-70: #66500f;
+$dark-yellow-90: #33260a;
+
+// Amber (다크 경고·예산)
+$dark-amber-20: #ffd966;
+$dark-amber-30: #ffc933;
+$dark-amber-50: #ffb020;
+$dark-amber-90: #2b2008;

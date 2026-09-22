@@ -1,0 +1,47 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$gap-2;
+  height: 22px;
+  padding: 0 s.$gap-3;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: s.$shape-full;
+
+  @include t.label-small;
+
+  font-size: 11px;
+
+  &--neutral {
+    color: var(--text-secondary);
+    background-color: var(--surface-muted);
+  }
+
+  &--primary {
+    color: var(--primary);
+    background-color: var(--primary-subtle);
+  }
+
+  &--success {
+    color: var(--status-success);
+    background-color: var(--status-success-bg);
+  }
+
+  &--warning {
+    color: var(--status-warning);
+    background-color: var(--status-warning-bg);
+  }
+
+  &--error {
+    color: var(--status-error);
+    background-color: var(--status-error-bg);
+  }
+
+  // 색을 직접 받은 경우 배경은 투명하게 두고 테두리와 글자만 그 색을 쓴다.
+  &--custom {
+    background-color: transparent;
+  }
+}

@@ -1,0 +1,110 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.categoryboard {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__hint {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+  }
+
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+  }
+
+  &__group {
+    padding: s.$gap-4;
+    background-color: var(--surface-subtle);
+    border-radius: s.$shape-lg;
+  }
+
+  &__grouphead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__groupname {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__groupactions {
+    display: flex;
+    gap: s.$gap-2;
+    margin-left: auto;
+  }
+
+  &__count {
+    color: var(--text-tertiary);
+
+    @include a.amount-small;
+
+    &--child {
+      margin-left: auto;
+    }
+  }
+
+  &__children {
+    display: grid;
+    gap: 2px;
+    margin-top: s.$gap-3;
+
+    @include media.desktop-up {
+      grid-template-columns: 1fr 1fr;
+      column-gap: s.$gap-5;
+    }
+  }
+
+  &__child {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+    padding: s.$gap-2 s.$gap-3;
+    border-radius: s.$shape-sm;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+  }
+
+  &__childname {
+    color: var(--text-secondary);
+    text-align: left;
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    @include t.body-small;
+
+    &:focus-visible {
+      border-radius: s.$shape-sm;
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  &__nochild {
+    padding: s.$gap-2 s.$gap-3;
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

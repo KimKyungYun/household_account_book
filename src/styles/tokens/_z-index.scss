@@ -1,0 +1,16 @@
+// z-index 계층 토큰
+// 임의 z-index 사용 금지 → 본 변수만 사용.
+
+$z-base: 1;
+$z-raised: 10;
+$z-dropdown: 100;
+$z-sticky: 200;
+$z-header: 300;
+$z-popover: 400;
+$z-modal-backdrop: 1000;
+$z-modal: 1010;
+
+// 툴팁은 모달 내부에서 트리거되어도 가려지지 않도록 모달보다 위에 둔다.
+$z-tooltip: 1050;
+$z-skip-link: 1100;
+$z-toast: 1200;

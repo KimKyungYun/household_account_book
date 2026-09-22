@@ -1,0 +1,115 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-6;
+  height: 100%;
+  padding: s.$gap-5 s.$gap-3;
+  overflow-y: auto;
+  background-color: var(--surface-default);
+  border-right: 1px solid var(--border-subtle);
+
+  @include media.desktop-up {
+    padding: s.$gap-6 s.$gap-5;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-4;
+    padding: 0 s.$gap-3;
+    color: var(--text-primary);
+
+    &:focus-visible {
+      border-radius: s.$shape-sm;
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  &__mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--text-on-primary);
+    background-color: var(--primary);
+    border-radius: s.$shape-lg;
+
+    @include t.label-medium;
+  }
+
+  &__wordmark {
+    display: none;
+    white-space: nowrap;
+
+    @include t.label-large;
+
+    @include media.desktop-up {
+      display: inline;
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-4;
+    height: 44px;
+    padding: 0 s.$gap-3;
+    color: var(--text-secondary);
+    border-radius: s.$shape-md;
+
+    @include t.label-medium;
+
+    @include media.desktop-up {
+      padding: 0 s.$gap-4;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        color: var(--text-primary);
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--active {
+      color: var(--primary);
+      background-color: var(--primary-subtle);
+    }
+  }
+
+  &__label {
+    display: none;
+    white-space: nowrap;
+
+    @include media.desktop-up {
+      display: inline;
+    }
+  }
+
+  // 아이콘 레일(601~900px)에서는 분담 저울을 숨긴다 — 76px 폭에 들어갈 정보가 아니다.
+  &__footer {
+    display: none;
+    padding: s.$gap-4 s.$gap-3 0;
+    border-top: 1px solid var(--border-subtle);
+
+    @include media.desktop-up {
+      display: block;
+    }
+  }
+}

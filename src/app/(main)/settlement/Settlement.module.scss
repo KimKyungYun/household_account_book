@@ -1,0 +1,9 @@
+@use "styles/tokens/spacing" as s;
+
+.settlement {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+  max-width: s.$container-max;
+  margin: 0 auto;
+}

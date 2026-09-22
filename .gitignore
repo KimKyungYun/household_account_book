@@ -1,0 +1,31 @@
+node_modules
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+.pnp.*
+
+.next
+out
+build
+next-env.d.ts
+
+.env
+.env.*
+!.env.example
+
+coverage
+*.tsbuildinfo
+
+.DS_Store
+*.log
+
+# oh-my-claudecode 로컬 상태
+.omc
+
+/src/generated/prisma
+
+# Prisma 생성 클라이언트
+/src/generated
+
+# TypeScript 빌드 캐시
+tsconfig.tsbuildinfo

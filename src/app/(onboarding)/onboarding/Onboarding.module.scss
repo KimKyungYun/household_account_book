@@ -1,0 +1,24 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-7;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__title {
+    @include t.heading-medium;
+  }
+
+  &__lead {
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+}

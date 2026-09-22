@@ -1,0 +1,359 @@
+'use client';
+
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import Button from '@/components/common/Button';
+import FormField from '@/components/common/FormField';
+import Input from '@/components/common/Input';
+import MoneyInput from '@/components/common/MoneyInput';
+import SegmentedControl from '@/components/common/SegmentedControl';
+import Select from '@/components/common/Select';
+import Skeleton from '@/components/common/Skeleton';
+import CategoryPicker from '@/components/transaction/CategoryPicker';
+import { useMe } from '@/hooks/useMe';
+import { useRecentCategories } from '@/hooks/useRecentCategories';
+import { isApiError } from '@/interface/errorType';
+import { QUERY_KEY } from '@/interface/key/queryKey';
+import { getCategoryTree } from '@/service/category';
+import { getPaymentMethods } from '@/service/paymentMethod';
+import { createTransaction, updateTransaction } from '@/service/transaction';
+import { cn } from '@/utils/ts/cn';
+import { todayInSeoul } from '@/utils/ts/formatDate';
+import type { CategoryKind, TransactionType } from '@/generated/prisma/enums';
+import type { TransactionListItemDto } from '@/service/transaction/type';
+import styles from './TransactionForm.module.scss';
+
+interface TransactionFormProps {
+  mode: 'create' | 'edit';
+  transaction?: TransactionListItemDto;
+  onSuccess: () => void;
+  /** 모달·시트에서 쓸 때 제출 버튼을 바깥(푸터)에 두기 위한 폼 id. */
+  formId?: string;
+  /** 폼 안에 제출 버튼을 둘지. 전용 페이지에서는 true. */
+  withSubmitButton?: boolean;
+}
+
+const TYPE_OPTIONS = [
+  { value: 'EXPENSE', label: '지출' },
+  { value: 'INCOME', label: '수입' },
+  { value: 'TRANSFER', label: '이체' },
+] as const;
+
+const SPLIT_OPTIONS = [
+  { value: 'SHARED', label: '공동' },
+  { value: 'PERSONAL', label: '개인' },
+] as const;
+
+const DATE_QUICK = [
+  { label: '오늘', offset: 0 },
+  { label: '어제', offset: -1 },
+  { label: '그제', offset: -2 },
+] as const;
+
+function shiftDay(date: string, days: number): string {
+  const base = new Date(`${date}T00:00:00.000Z`);
+  base.setUTCDate(base.getUTCDate() + days);
+
+  return base.toISOString().slice(0, 10);
+}
+
+interface FormState {
+  type: TransactionType;
+  amount: number | null;
+  date: string;
+  categoryId: string | null;
+  memberId: string;
+  paymentMethodId: string;
+  splitMode: 'SHARED' | 'PERSONAL';
+  merchant: string;
+  memo: string;
+}
+
+/**
+ * 거래 입력의 정본. 모달(데스크톱)·바텀시트(모바일)·전용 페이지가 이 하나를 나눠 쓴다.
+ *
+ * 저장 후에는 유형·카테고리·날짜를 남기고 금액만 비운다 —
+ * 장보고 와서 세 건을 잇달아 넣는 흐름이 끊기지 않게 한다.
+ */
+export function TransactionForm({
+  mode,
+  transaction,
+  onSuccess,
+  formId = 'transaction-form',
+  withSubmitButton = false,
+}: TransactionFormProps) {
+  const me = useMe();
+  const { recentIds, remember } = useRecentCategories();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const [form, setForm] = useState<FormState>(() => ({
+    type: transaction?.type ?? 'EXPENSE',
+    amount: transaction ? Math.abs(transaction.amount) : null,
+    date: transaction?.date ?? todayInSeoul(),
+    categoryId: transaction?.category?.id ?? null,
+    memberId: transaction?.member.id ?? '',
+    paymentMethodId: transaction?.paymentMethod?.id ?? '',
+    splitMode: transaction?.splitMode === 'PERSONAL' ? 'PERSONAL' : 'SHARED',
+    merchant: transaction?.merchant ?? '',
+    memo: transaction?.memo ?? '',
+  }));
+
+  const kind: CategoryKind = form.type;
+  const categories = useQuery({
+    queryKey: QUERY_KEY.CATEGORY.TREE({ kind }),
+    queryFn: () => getCategoryTree({ kind }),
+  });
+  const paymentMethods = useQuery({
+    queryKey: QUERY_KEY.PAYMENT_METHOD.LIST(),
+    queryFn: getPaymentMethods,
+  });
+
+  const members = me.data?.members ?? [];
+  const memberId = form.memberId || me.data?.member?.id || members[0]?.id || '';
+
+  const patch = (next: Partial<FormState>) => setForm((previous) => ({ ...previous, ...next }));
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async () => {
+      if (mode === 'edit' && transaction) {
+        return updateTransaction(transaction.id, {
+          date: form.date,
+          amount: form.amount ?? 0,
+          memberId,
+          categoryId: form.type === 'TRANSFER' ? null : form.categoryId,
+          paymentMethodId: form.paymentMethodId || null,
+          splitMode: form.type === 'TRANSFER' ? 'PERSONAL' : form.splitMode,
+          merchant: form.merchant || null,
+          memo: form.memo || null,
+          version: transaction.version,
+        });
+      }
+
+      return createTransaction({
+        date: form.date,
+        type: form.type,
+        amount: form.amount ?? 0,
+        memberId,
+        categoryId: form.type === 'TRANSFER' ? null : form.categoryId,
+        paymentMethodId: form.paymentMethodId || null,
+        splitMode: form.type === 'TRANSFER' ? 'PERSONAL' : form.splitMode,
+        merchant: form.merchant || undefined,
+        memo: form.memo || undefined,
+        // 같은 화면에서 두 번 눌려도 한 건만 남는다.
+        clientRequestId: crypto.randomUUID(),
+      });
+    },
+  });
+
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFieldErrors({});
+
+    if (form.amount === null || form.amount === 0) {
+      setFieldErrors({ amount: '금액을 입력해 주세요.' });
+
+      return;
+    }
+
+    try {
+      await mutateAsync();
+    } catch (error) {
+      if (isApiError(error)) {
+        setFieldErrors(error.fieldErrors ?? {});
+        if (!error.fieldErrors) toast.error(error.message);
+
+        return;
+      }
+      toast.error('저장하지 못했습니다.');
+
+      return;
+    }
+
+    if (form.categoryId) remember(form.categoryId);
+    toast.success(mode === 'edit' ? '수정했습니다.' : '등록했습니다.');
+
+    // 연속 입력: 금액만 비우고 나머지는 그대로 둔다.
+    if (mode === 'create') patch({ amount: null, merchant: '', memo: '' });
+    onSuccess();
+  };
+
+  if (me.isPending) return <Skeleton height={320} />;
+
+  return (
+    <form
+      method="post"
+      className={styles.transactionform}
+      id={formId}
+      onSubmit={onSubmit}
+      noValidate
+    >
+      <SegmentedControl
+        name="transaction-type"
+        options={TYPE_OPTIONS}
+        value={form.type}
+        onChange={(value) => patch({ type: value as TransactionType, categoryId: null })}
+        ariaLabel="거래 종류"
+      />
+
+      <FormField
+        label="금액"
+        error={fieldErrors.amount}
+        isRequired
+      >
+        {({ id, describedBy }) => (
+          <MoneyInput
+            id={id}
+            value={form.amount}
+            onChange={(value) => patch({ amount: value })}
+            isInvalid={Boolean(fieldErrors.amount)}
+            ariaDescribedBy={describedBy}
+            autoFocus
+          />
+        )}
+      </FormField>
+
+      {form.type !== 'TRANSFER' && (
+        <FormField
+          label="카테고리"
+          error={fieldErrors.categoryId}
+          isRequired
+        >
+          {({ id, describedBy }) =>
+            categories.isPending ? (
+              <Skeleton height={44} />
+            ) : (
+              <CategoryPicker
+                id={id}
+                tree={categories.data ?? []}
+                value={form.categoryId}
+                onChange={(categoryId) => patch({ categoryId })}
+                recentIds={recentIds}
+                isInvalid={Boolean(fieldErrors.categoryId)}
+                ariaDescribedBy={describedBy}
+              />
+            )}
+        </FormField>
+      )}
+
+      <FormField
+        label="날짜"
+        error={fieldErrors.date}
+        isRequired
+      >
+        {({ id, describedBy }) => (
+          <div className={styles.transactionform__date}>
+            <Input
+              id={id}
+              type="date"
+              value={form.date}
+              aria-describedby={describedBy}
+              onChange={(event) => patch({ date: event.target.value })}
+            />
+            <ul className={styles.transactionform__quick}>
+              {DATE_QUICK.map((quick) => {
+                const target = shiftDay(todayInSeoul(), quick.offset);
+
+                return (
+                  <li key={quick.label}>
+                    <button
+                      type="button"
+                      className={cn(styles.transactionform__chip, {
+                        [styles['transactionform__chip--selected']]: form.date === target,
+                      })}
+                      onClick={() => patch({ date: target })}
+                      aria-pressed={form.date === target}
+                    >
+                      {quick.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </FormField>
+
+      <FormField
+        label="결제한 사람"
+        hint="정산은 이 사람이 낸 것으로 계산합니다."
+      >
+        {() => (
+          <SegmentedControl
+            name="transaction-member"
+            options={members.map((member) => ({ value: member.id, label: member.displayName }))}
+            value={memberId}
+            onChange={(value) => patch({ memberId: value })}
+            ariaLabel="결제한 사람"
+          />
+        )}
+      </FormField>
+
+      {form.type !== 'TRANSFER' && (
+        <FormField
+          label="분담"
+          hint="개인으로 두면 분담 정산에서 빠집니다."
+        >
+          {() => (
+            <SegmentedControl
+              name="transaction-split"
+              options={SPLIT_OPTIONS}
+              value={form.splitMode}
+              onChange={(value) => patch({ splitMode: value as 'SHARED' | 'PERSONAL' })}
+              ariaLabel="분담 방식"
+            />
+          )}
+        </FormField>
+      )}
+
+      <FormField label="결제수단">
+        {({ id }) => (
+          <Select
+            id={id}
+            options={(paymentMethods.data ?? []).map((method) => ({ value: method.id, label: method.name }))}
+            placeholder="선택 안 함"
+            value={form.paymentMethodId}
+            onChange={(event) => patch({ paymentMethodId: event.target.value })}
+          />
+        )}
+      </FormField>
+
+      <FormField label="가맹점">
+        {({ id }) => (
+          <Input
+            id={id}
+            placeholder="예: 이마트 성수점"
+            value={form.merchant}
+            onChange={(event) => patch({ merchant: event.target.value })}
+          />
+        )}
+      </FormField>
+
+      <FormField label="메모">
+        {({ id }) => (
+          <Input
+            id={id}
+            placeholder="남길 말이 있으면"
+            value={form.memo}
+            onChange={(event) => patch({ memo: event.target.value })}
+          />
+        )}
+      </FormField>
+
+      {withSubmitButton && (
+        <div className={styles.transactionform__submit}>
+          <Button
+            type="submit"
+            size="lg"
+            isFullWidth
+            isLoading={isPending}
+          >
+            {mode === 'edit' ? '수정' : '등록'}
+          </Button>
+        </div>
+      )}
+    </form>
+  );
+}
+
+export default TransactionForm;

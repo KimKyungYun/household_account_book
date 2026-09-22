@@ -1,0 +1,16 @@
+export const PATH = {
+  HOME: '/',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
+  ONBOARDING: '/onboarding',
+  DASHBOARD: '/dashboard',
+  TRANSACTIONS: '/transactions',
+  TRANSACTION_NEW: '/transactions/new',
+  TRANSACTION_DETAIL: (id: string) => `/transactions/${id}`,
+  CATEGORIES: '/categories',
+  BUDGETS: '/budgets',
+  RECURRINGS: '/recurrings',
+  SETTLEMENT: '/settlement',
+  REPORTS: '/reports',
+  SETTINGS: '/settings',
+} as const;

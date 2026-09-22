@@ -1,0 +1,175 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/tokens/z-index" as z;
+@use "styles/utils/media" as media;
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: z.$z-modal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: s.$gap-7;
+  animation: modal-in 0.18s ease-out;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+
+  // 모바일은 바텀시트 — 엄지가 닿는 아래쪽에서 올라온다.
+  @include media.mobile {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  // 본문 없는 확인 대화상자에서는 머리글 아래 선만 남긴다.
+  &__header + .modal__footer {
+    border-top: 0;
+  }
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    background-color: var(--surface-overlay);
+    border: 0;
+    backdrop-filter: blur(3px);
+  }
+
+  &__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: min(84dvh, 760px);
+    background-color: var(--surface-default);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-2xl;
+    box-shadow: var(--shadow-4);
+    animation: modal-panel-in 0.22s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    /*
+      hidden 이 아니라 clip 이다.
+      hidden 은 스크롤 컨테이너를 만든다 — 본문에서 포커스가 아래 칸으로 옮겨가면 브라우저가
+      그 칸을 보이려고 판 자체를 밀어 올려 머리글이 잘려 나간다. clip 은 컨테이너를 만들지
+      않아 밀리지 않는다. 스크롤은 본문 하나만 맡는다.
+    */
+    overflow: clip;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+
+    @include media.mobile {
+      max-height: 88dvh;
+      border-bottom: 0;
+      border-radius: s.$shape-2xl s.$shape-2xl 0 0;
+    }
+
+    &--md {
+      max-width: 520px;
+    }
+
+    &--lg {
+      max-width: 760px;
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: s.$gap-5;
+    padding: s.$gap-6 s.$gap-6 s.$gap-5;
+    border-bottom: 1px solid var(--border-subtle);
+
+    @include media.mobile {
+      padding: s.$gap-5 s.$gap-5 s.$gap-4;
+    }
+  }
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__title {
+    color: var(--text-primary);
+
+    @include t.heading-small;
+  }
+
+  &__description {
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+
+  &__close {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-tertiary);
+    background: none;
+    border: 1px solid var(--border-default);
+    border-radius: s.$shape-full;
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover {
+        color: var(--text-primary);
+        background-color: var(--surface-hover);
+        border-color: var(--border-strong);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: s.$gap-5 s.$gap-6 s.$gap-6;
+    overflow-y: auto;
+
+    @include media.mobile {
+      padding: s.$gap-5;
+      padding-bottom: calc(s.$gap-6 + env(safe-area-inset-bottom));
+    }
+  }
+
+  &__footer {
+    flex-shrink: 0;
+    padding: s.$gap-5 s.$gap-6;
+    background-color: var(--surface-subtle);
+    border-top: 1px solid var(--border-subtle);
+
+    @include media.mobile {
+      padding: s.$gap-5;
+      padding-bottom: calc(s.$gap-5 + env(safe-area-inset-bottom));
+    }
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes modal-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.99);
+    }
+  }
+}

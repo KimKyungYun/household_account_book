@@ -1,0 +1,9 @@
+@use "styles/tokens/spacing" as s;
+
+.categorymergemodal {
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+}

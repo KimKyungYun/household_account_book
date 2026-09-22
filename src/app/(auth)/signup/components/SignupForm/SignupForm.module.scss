@@ -1,0 +1,7 @@
+@use "styles/tokens/spacing" as s;
+
+.signupform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+}

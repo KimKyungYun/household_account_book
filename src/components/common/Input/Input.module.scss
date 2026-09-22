@@ -1,0 +1,74 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: s.$gap-3;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 s.$gap-4;
+  background-color: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: s.$shape-md;
+
+  &:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: var(--focus-ring);
+  }
+
+  &:has(> .input__field:disabled) {
+    background-color: var(--surface-muted);
+    cursor: not-allowed;
+  }
+
+  &--invalid {
+    border-color: var(--status-error);
+
+    &:focus-within {
+      box-shadow: var(--focus-ring-error);
+    }
+  }
+
+  &--numeric {
+    .input__field {
+      @include a.amount-medium;
+
+      text-align: right;
+    }
+  }
+
+  &__field {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    color: var(--text-primary);
+    background-color: transparent;
+    border: 0;
+
+    @include t.body-medium;
+
+    // iOS 는 16px 미만 입력칸에 포커스하면 화면을 확대한다. 모바일 입력이 주 사용 흐름이라 막는다.
+    @include media.mobile {
+      font-size: 16px;
+    }
+
+    &::placeholder {
+      color: var(--text-disabled);
+    }
+
+    &:disabled {
+      color: var(--text-disabled);
+      cursor: not-allowed;
+    }
+  }
+
+  &__affix {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+  }
+}

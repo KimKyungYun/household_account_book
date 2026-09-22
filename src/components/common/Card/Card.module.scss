@@ -1,0 +1,49 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-4;
+    padding: s.$gap-5 s.$gap-5 0;
+
+    @include media.tablet-up {
+      padding: s.$gap-6 s.$gap-6 0;
+    }
+  }
+
+  &__title {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__body {
+    padding: s.$gap-5;
+
+    @include media.tablet-up {
+      padding: s.$gap-6;
+    }
+  }
+
+  &--flush {
+    .card__body {
+      padding: 0;
+    }
+  }
+}

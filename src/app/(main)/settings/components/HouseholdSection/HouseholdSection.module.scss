@@ -1,0 +1,63 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+
+.householdsection {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-3;
+  margin: 0;
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    gap: s.$gap-4;
+
+    dt {
+      width: 72px;
+      flex-shrink: 0;
+      color: var(--text-tertiary);
+
+      @include t.label-small;
+    }
+
+    dd {
+      margin: 0;
+      color: var(--text-primary);
+
+      @include t.body-small;
+    }
+  }
+
+  &__invite {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+    margin-top: s.$gap-5;
+    padding-top: s.$gap-5;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  &__invitelead {
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+
+  &__code {
+    display: block;
+    padding: s.$gap-4;
+    overflow-wrap: anywhere;
+    color: var(--text-primary);
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-md;
+
+    @include a.amount-small;
+  }
+
+  &__inviteactions {
+    display: flex;
+    gap: s.$gap-3;
+  }
+}

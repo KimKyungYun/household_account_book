@@ -1,0 +1,9 @@
+@use "styles/tokens/spacing" as s;
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+  max-width: 640px;
+  margin: 0 auto;
+}

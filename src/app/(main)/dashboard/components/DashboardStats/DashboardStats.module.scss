@@ -1,0 +1,54 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.dashboardstats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: s.$gap-5;
+  margin: 0;
+
+  @include media.tablet-up {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    dt {
+      color: var(--text-tertiary);
+
+      @include t.label-small;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__value {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__delta {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+
+    font-size: 11px;
+  }
+
+  &__pending {
+    display: inline-flex;
+  }
+
+  &__none {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

@@ -1,0 +1,73 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.recurringboard {
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+    padding: s.$gap-5;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-4;
+    padding: s.$gap-2 s.$gap-5;
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-of-type {
+      border-bottom: 0;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: s.$gap-3 0;
+    text-align: left;
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    &:focus-visible {
+      border-radius: s.$shape-sm;
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  &__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-2;
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__meta {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+
+    font-size: 11px;
+  }
+
+  &__side {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+}

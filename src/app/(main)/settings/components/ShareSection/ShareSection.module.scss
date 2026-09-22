@@ -1,0 +1,59 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.sharesection {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__share {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+  }
+
+  &__ratio {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: s.$gap-4;
+    color: var(--text-primary);
+
+    @include a.amount-large;
+  }
+
+  &__vs {
+    color: var(--text-tertiary);
+  }
+
+  &__warning {
+    padding: s.$gap-4;
+    color: var(--status-warning);
+    background-color: var(--status-warning-bg);
+    border: 1px solid var(--status-warning-border);
+    border-radius: s.$shape-md;
+
+    @include t.body-small;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+
+  &__names {
+    display: grid;
+    gap: s.$gap-4;
+
+    @include media.tablet-up {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__note {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

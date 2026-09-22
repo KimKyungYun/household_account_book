@@ -1,0 +1,105 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.transactionboard {
+  &__filters {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+  }
+
+  &__month {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-3;
+  }
+
+  &__monthlabel {
+    color: var(--text-primary);
+
+    @include t.label-large;
+  }
+
+  &__controls {
+    display: grid;
+    gap: s.$gap-3;
+
+    @include media.tablet-up {
+      grid-template-columns: 1fr 1fr 2fr;
+    }
+  }
+
+  &__summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: s.$gap-4;
+    margin: s.$gap-5 0 0;
+    padding-top: s.$gap-5;
+    border-top: 1px solid var(--border-subtle);
+
+    @include media.tablet-up {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    dt {
+      color: var(--text-tertiary);
+
+      @include t.label-small;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__count {
+    color: var(--text-primary);
+
+    @include a.amount-large;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: s.$gap-4;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+
+    > li {
+      border-bottom: 1px solid var(--border-subtle);
+
+      &:last-of-type {
+        border-bottom: 0;
+      }
+    }
+  }
+
+  &__pagination {
+    padding: s.$gap-5;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+}

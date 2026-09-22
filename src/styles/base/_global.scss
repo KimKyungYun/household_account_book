@@ -1,0 +1,151 @@
+@use "../tokens/semantic";
+@use "../tokens/typography" as t;
+@use "../tokens/spacing" as s;
+@use "../utils/media" as media;
+
+:root {
+  // 전역 헤더 높이 — sticky offset 계산의 단일 기준값.
+  --header-height: 56px;
+
+  // 모바일 하단 탭바 높이. safe-area 를 더해 홈바를 침범하지 않는다.
+  --tabbar-height: 0px;
+
+  // 폼 컨트롤 높이 — 모바일은 터치 타깃 44px 이상을 지킨다.
+  --control-height: 48px;
+
+  @include media.mobile {
+    --tabbar-height: 60px;
+  }
+
+  @include media.desktop-up {
+    --header-height: 64px;
+    --control-height: 40px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+
+  // 앱 유일의 font-family 선언.
+  font-family: var(--font-app);
+}
+
+// ─── 공통 스크롤바 ────────────────────────────────────────────────
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: s.$shape-full;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+}
+
+*::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--surface-page);
+  color: var(--text-primary);
+
+  @include t.body-medium;
+}
+
+body {
+  min-height: 100dvh;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+button {
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+input,
+select,
+textarea {
+  // 입력 컴포넌트는 래퍼의 border + box-shadow 로 포커스를 표현한다.
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+// 금액이 들어가는 자리는 자릿수가 흔들리지 않아야 한다.
+input[inputmode="decimal"],
+input[inputmode="numeric"] {
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}

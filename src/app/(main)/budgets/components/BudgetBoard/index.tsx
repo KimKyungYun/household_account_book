@@ -1,0 +1,211 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import Amount from '@/components/common/Amount';
+import Badge from '@/components/common/Badge';
+import Button from '@/components/common/Button';
+import Card from '@/components/common/Card';
+import Icon from '@/components/common/Icon';
+import MoneyInput from '@/components/common/MoneyInput';
+import ProgressBar from '@/components/common/ProgressBar';
+import Skeleton from '@/components/common/Skeleton';
+import { isApiError } from '@/interface/errorType';
+import { QUERY_KEY } from '@/interface/key/queryKey';
+import { copyBudgets, getBudgetMonth, putBudgets } from '@/service/budget';
+import { currentYearMonth, formatYearMonthLabel, shiftYearMonth } from '@/utils/ts/formatDate';
+import type { BudgetRowDto, BudgetStatus } from '@/service/budget/type';
+import styles from './BudgetBoard.module.scss';
+
+const STATUS_BADGE: Record<BudgetStatus, { tone: 'neutral' | 'success' | 'warning' | 'error'; label: string } | null> = {
+  NO_BUDGET: null,
+  UNDER: null,
+  WARNING: { tone: 'warning', label: '80% 넘음' },
+  OVER: { tone: 'error', label: '초과' },
+};
+
+export default function BudgetBoard() {
+  const [yearMonth, setYearMonth] = useState(currentYearMonth());
+  const [drafts, setDrafts] = useState<Record<string, number | null>>({});
+  const queryClient = useQueryClient();
+
+  const { data, isPending } = useQuery({
+    queryKey: QUERY_KEY.BUDGET.MONTH(yearMonth),
+    queryFn: () => getBudgetMonth(yearMonth),
+  });
+
+  const refresh = () => {
+    setDrafts({});
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY.BUDGET.ALL });
+  };
+
+  const save = useMutation({
+    mutationFn: () =>
+      putBudgets({
+        yearMonth,
+        items: Object.entries(drafts).map(([categoryId, amount]) => ({ categoryId, amount })),
+      }),
+    onSuccess: () => {
+      toast.success('예산을 저장했습니다.');
+      refresh();
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : '저장하지 못했습니다.'),
+  });
+
+  const copy = useMutation({
+    mutationFn: () => copyBudgets({ fromYearMonth: shiftYearMonth(yearMonth, -1), toYearMonth: yearMonth, overwrite: false }),
+    onSuccess: ({ copied }) => {
+      toast.success(`전월 예산 ${copied}건을 가져왔습니다.`);
+      refresh();
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : '가져오지 못했습니다.'),
+  });
+
+  const parents = (data?.rows ?? []).filter((row) => row.level === 1);
+  const hasDrafts = Object.keys(drafts).length > 0;
+
+  const valueOf = (row: BudgetRowDto) => (row.categoryId in drafts ? drafts[row.categoryId] ?? null : row.budgetAmount);
+
+  return (
+    <>
+      <Card>
+        <div className={styles.budgetboard__head}>
+          <div className={styles.budgetboard__month}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setYearMonth((current) => shiftYearMonth(current, -1)); setDrafts({}); }}
+              iconLeft={<Icon
+                name="chevronLeft"
+                size={16}
+              />}
+            >
+              지난 달
+            </Button>
+            <span className={styles.budgetboard__monthlabel}>{formatYearMonthLabel(yearMonth)}</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setYearMonth((current) => shiftYearMonth(current, 1)); setDrafts({}); }}
+              iconRight={<Icon
+                name="chevronRight"
+                size={16}
+              />}
+            >
+              다음 달
+            </Button>
+          </div>
+
+          <div className={styles.budgetboard__actions}>
+            <Button
+              size="sm"
+              variant="secondary"
+              isLoading={copy.isPending}
+              onClick={() => copy.mutate()}
+            >
+              전월 예산 가져오기
+            </Button>
+            <Button
+              size="sm"
+              disabled={!hasDrafts}
+              isLoading={save.isPending}
+              onClick={() => save.mutate()}
+            >
+              저장
+            </Button>
+          </div>
+        </div>
+
+        {data && (
+          <div className={styles.budgetboard__totals}>
+            <div className={styles.budgetboard__total}>
+              <span className={styles.budgetboard__totallabel}>예산</span>
+              <Amount
+                value={data.totals.budgetAmount}
+                size="large"
+              />
+            </div>
+            <div className={styles.budgetboard__total}>
+              <span className={styles.budgetboard__totallabel}>지출</span>
+              <Amount
+                value={data.totals.actualAmount}
+                tone="expense"
+                size="large"
+              />
+            </div>
+            <div className={styles.budgetboard__total}>
+              <span className={styles.budgetboard__totallabel}>남은 예산</span>
+              <Amount
+                value={data.totals.remaining}
+                tone={data.totals.remaining < 0 ? 'expense' : 'income'}
+                size="large"
+              />
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {isPending ? (
+        <Skeleton height={320} />
+      ) : (
+        <Card title="대분류별 예산">
+          <p className={styles.budgetboard__hint}>
+            비워 두면 &lsquo;예산 없음&rsquo;이고, 0원으로 두면 한 푼도 쓰지 않기로 한 것입니다. 소진율은 예산이 있을 때만 나옵니다.
+          </p>
+
+          <ul className={styles.budgetboard__list}>
+            {parents.map((row) => {
+              const amount = valueOf(row);
+              const usage = amount === null ? null : amount === 0 ? (row.actualAmount > 0 ? 1 : 0) : row.actualAmount / amount;
+              const badge = STATUS_BADGE[amount === null ? 'NO_BUDGET' : usage !== null && usage > 1 ? 'OVER' : usage !== null && usage >= 0.8 ? 'WARNING' : 'UNDER'];
+
+              return (
+                <li
+                  key={row.categoryId}
+                  className={styles.budgetboard__row}
+                >
+                  <div className={styles.budgetboard__rowhead}>
+                    <span className={styles.budgetboard__name}>{row.name}</span>
+                    {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
+                    <span className={styles.budgetboard__spent}>
+                      <Amount
+                        value={row.actualAmount}
+                        size="small"
+                        tone="expense"
+                      />
+                      {amount !== null && (
+                        <span className={styles.budgetboard__of}>
+                          {' / '}
+                          <Amount
+                            value={amount}
+                            size="small"
+                          />
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  {usage !== null && (
+                    <ProgressBar
+                      ratio={usage}
+                      ariaLabel={`${row.name} 예산 소진율`}
+                    />
+                  )}
+
+                  <div className={styles.budgetboard__input}>
+                    <MoneyInput
+                      value={amount}
+                      placeholder="예산 없음"
+                      onChange={(next) => setDrafts((previous) => ({ ...previous, [row.categoryId]: next }))}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+    </>
+  );
+}

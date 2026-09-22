@@ -1,0 +1,62 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.select {
+  position: relative;
+  display: flex;
+  width: 100%;
+
+  // 화살표는 배경으로 그린다 — 네이티브 select 안에 요소를 넣을 수 없다.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: s.$gap-4;
+    width: 8px;
+    height: 8px;
+    border-right: 1.6px solid var(--text-tertiary);
+    border-bottom: 1.6px solid var(--text-tertiary);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  &--invalid {
+    .select__field {
+      border-color: var(--status-error);
+
+      &:focus-visible {
+        box-shadow: var(--focus-ring-error);
+      }
+    }
+  }
+
+  &__field {
+    width: 100%;
+    height: var(--control-height);
+    padding: 0 s.$gap-8 0 s.$gap-4;
+    color: var(--text-primary);
+    background-color: var(--surface-default);
+    border: 1px solid var(--border-default);
+    border-radius: s.$shape-md;
+    appearance: none;
+    cursor: pointer;
+
+    @include t.body-medium;
+
+    @include media.mobile {
+      font-size: 16px;
+    }
+
+    &:focus-visible {
+      border-color: var(--border-focus);
+      box-shadow: var(--focus-ring);
+    }
+
+    &:disabled {
+      color: var(--text-disabled);
+      background-color: var(--surface-muted);
+      cursor: not-allowed;
+    }
+  }
+}

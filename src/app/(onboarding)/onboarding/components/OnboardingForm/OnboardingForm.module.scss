@@ -1,0 +1,13 @@
+@use "styles/tokens/spacing" as s;
+
+.onboardingform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-6;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-5;
+  }
+}

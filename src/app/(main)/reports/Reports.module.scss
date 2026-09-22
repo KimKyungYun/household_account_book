@@ -1,0 +1,9 @@
+@use "styles/tokens/spacing" as s;
+
+.reports {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+  max-width: s.$container-wide;
+  margin: 0 auto;
+}

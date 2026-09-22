@@ -1,0 +1,24 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+  max-width: s.$container-wide;
+  margin: 0 auto;
+
+  @include media.tablet-up {
+    gap: s.$gap-6;
+  }
+
+  &__grid {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include media.desktop-up {
+      grid-template-columns: 1fr 1fr;
+      gap: s.$gap-6;
+    }
+  }
+}

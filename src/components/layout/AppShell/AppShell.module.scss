@@ -1,0 +1,74 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.appshell {
+  display: grid;
+  grid-template-areas:
+    "main"
+    "tabbar";
+  grid-template-rows: 1fr auto;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--surface-page);
+
+  @include media.tablet-up {
+    grid-template: "aside main" 1fr / 76px 1fr;
+  }
+
+  @include media.desktop-up {
+    grid-template-columns: 248px 1fr;
+  }
+
+  &__aside {
+    display: none;
+    grid-area: aside;
+
+    @include media.tablet-up {
+      display: block;
+    }
+  }
+
+  &__main {
+    display: flex;
+    grid-area: main;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  // 모바일 전용 — 좁은 화면에선 사이드바가 없어 분담 저울이 갈 자리가 헤더 아래뿐이다.
+  &__strip {
+    flex-shrink: 0;
+    padding: s.$gap-2 s.$gap-4;
+    background-color: var(--surface-default);
+    border-bottom: 1px solid var(--border-subtle);
+
+    @include media.tablet-up {
+      display: none;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-height: 0;
+    padding: s.$gap-5;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    @include media.tablet-up {
+      padding: s.$gap-6;
+    }
+
+    @include media.desktop-up {
+      padding: s.$gap-8;
+    }
+  }
+
+  &__tabbar {
+    grid-area: tabbar;
+
+    @include media.tablet-up {
+      display: none;
+    }
+  }
+}

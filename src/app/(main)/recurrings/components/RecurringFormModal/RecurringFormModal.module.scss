@@ -1,0 +1,34 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.recurringformmodal {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+
+  &__freq {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__freqdetail {
+    display: flex;
+    gap: s.$gap-3;
+  }
+
+  &__period {
+    display: grid;
+    gap: s.$gap-4;
+
+    @include media.tablet-up {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}

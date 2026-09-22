@@ -1,0 +1,33 @@
+// KRDS Spacing Tokens (gap)
+// 4px 기반 배수. 임의 px 사용 금지 → 본 변수만 사용.
+
+$gap-1: 2px;
+$gap-2: 4px;
+$gap-3: 8px;
+$gap-4: 12px;
+$gap-5: 16px;
+$gap-6: 20px;
+$gap-7: 24px;
+$gap-8: 32px;
+$gap-9: 40px;
+$gap-10: 48px;
+$gap-11: 64px;
+$gap-12: 80px;
+$gap-13: 96px;
+
+// Shape (border-radius)
+$shape-none: 0;
+$shape-xs: 2px;
+$shape-sm: 4px;
+$shape-md: 6px;
+$shape-lg: 8px;
+$shape-xl: 12px;
+$shape-2xl: 16px;
+$shape-3xl: 20px;
+$shape-4xl: 24px;
+$shape-full: 9999px;
+
+// Container width (PC)
+$container-min: 800px;
+$container-max: 1200px;
+$container-wide: 1328px;

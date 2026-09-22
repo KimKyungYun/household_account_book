@@ -1,0 +1,37 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.signup {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-7;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__title {
+    @include t.heading-medium;
+  }
+
+  &__lead {
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+
+  &__footer {
+    color: var(--text-secondary);
+    text-align: center;
+
+    @include t.body-small;
+
+    a {
+      color: var(--primary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+}

@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: hab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hab
+      POSTGRES_PASSWORD: hab
+      POSTGRES_DB: household_account_book
+      TZ: Asia/Seoul
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hab -d household_account_book']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

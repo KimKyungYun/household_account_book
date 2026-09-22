@@ -1,0 +1,44 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.reportpanel {
+  &__controls {
+    margin-bottom: s.$gap-5;
+
+    @include media.tablet-up {
+      max-width: 280px;
+    }
+  }
+
+  &__inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$gap-3;
+  }
+
+  &__member {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: s.$shape-full;
+  }
+
+  &__export {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: s.$gap-5;
+  }
+
+  &__note {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

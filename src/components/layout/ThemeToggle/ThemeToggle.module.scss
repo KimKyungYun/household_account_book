@@ -1,0 +1,33 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.themetoggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: s.$shape-full;
+  cursor: pointer;
+
+  @include media.hover-supported {
+    &:hover {
+      color: var(--text-primary);
+      background-color: var(--surface-hover);
+    }
+  }
+
+  &:focus-visible {
+    border-color: var(--border-focus);
+    box-shadow: var(--focus-ring);
+  }
+
+  &__icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+}

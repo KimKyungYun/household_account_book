@@ -1,0 +1,41 @@
+@use "styles/utils/amount" as a;
+
+.amount {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--text-primary);
+
+  @include a.amount-medium;
+
+  &__sign {
+    margin-right: 1px;
+  }
+
+  &__unit {
+    @include a.amount-unit;
+  }
+
+  &--income {
+    color: var(--amount-income);
+  }
+
+  &--expense {
+    color: var(--amount-expense);
+  }
+
+  &--transfer {
+    color: var(--amount-transfer);
+  }
+
+  &--display {
+    @include a.amount-display;
+  }
+
+  &--large {
+    @include a.amount-large;
+  }
+
+  &--small {
+    @include a.amount-small;
+  }
+}

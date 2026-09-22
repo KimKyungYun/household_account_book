@@ -1,0 +1,127 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.budgetboard {
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+
+    @include media.desktop-up {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  &__month {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-3;
+  }
+
+  &__monthlabel {
+    color: var(--text-primary);
+
+    @include t.label-large;
+  }
+
+  &__actions {
+    display: flex;
+    gap: s.$gap-3;
+  }
+
+  &__totals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: s.$gap-4;
+    margin-top: s.$gap-5;
+    padding-top: s.$gap-5;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  &__total {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__totallabel {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+  }
+
+  &__hint {
+    margin-bottom: s.$gap-5;
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-5;
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+    padding-bottom: s.$gap-5;
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-of-type {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    @include media.desktop-up {
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      grid-template-areas:
+        "head input"
+        "bar  input";
+      align-items: center;
+      column-gap: s.$gap-6;
+    }
+  }
+
+  &__rowhead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-3;
+
+    @include media.desktop-up {
+      grid-area: head;
+    }
+  }
+
+  &__name {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__spent {
+    display: inline-flex;
+    align-items: baseline;
+    margin-left: auto;
+  }
+
+  &__of {
+    display: inline-flex;
+    align-items: baseline;
+    color: var(--text-tertiary);
+  }
+
+  &__input {
+    @include media.desktop-up {
+      grid-area: input;
+    }
+  }
+}

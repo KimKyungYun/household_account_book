@@ -1,0 +1,57 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.mobiletabbar {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: var(--tabbar-bg);
+  border-top: 1px solid var(--tabbar-border);
+  backdrop-filter: blur(8px);
+
+  &__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+    color: var(--text-tertiary);
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--active {
+      color: var(--primary);
+    }
+  }
+
+  &__label {
+    @include t.label-small;
+
+    font-size: 10px;
+  }
+
+  &__add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 52px;
+    height: 52px;
+    margin-top: -18px;
+    color: var(--text-on-primary);
+    background-color: var(--primary);
+    border: 3px solid var(--surface-page);
+    border-radius: s.$shape-full;
+    box-shadow: var(--shadow-2);
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+  }
+}

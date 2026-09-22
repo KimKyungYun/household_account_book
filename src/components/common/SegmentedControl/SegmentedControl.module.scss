@@ -1,0 +1,51 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background-color: var(--surface-muted);
+  border-radius: s.$shape-md;
+
+  &--full {
+    display: flex;
+    width: 100%;
+  }
+
+  &__item {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    height: calc(var(--control-height) - 8px);
+    padding: 0 s.$gap-5;
+    color: var(--text-secondary);
+    border-radius: s.$shape-sm;
+    cursor: pointer;
+
+    @include t.label-medium;
+
+    &:has(> .segmented__input:focus-visible) {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--selected {
+      color: var(--text-primary);
+      background-color: var(--surface-default);
+      box-shadow: var(--shadow-1);
+    }
+  }
+
+  &__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__label {
+    white-space: nowrap;
+  }
+}

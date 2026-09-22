@@ -1,0 +1,100 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.table {
+  width: 100%;
+  overflow-x: auto;
+
+  &__grid {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  &__caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__th {
+    padding: s.$gap-4 s.$gap-5;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border-default);
+
+    @include t.label-small;
+
+    &--left {
+      text-align: left;
+    }
+
+    &--right {
+      text-align: right;
+    }
+
+    &--center {
+      text-align: center;
+    }
+
+    &--hide-tablet {
+      @include media.tablet-down {
+        display: none;
+      }
+    }
+  }
+
+  &__tr {
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-of-type {
+      border-bottom: 0;
+    }
+
+    &--clickable {
+      cursor: pointer;
+
+      @include media.hover-supported {
+        &:hover {
+          background-color: var(--surface-hover);
+        }
+      }
+    }
+  }
+
+  &__td {
+    padding: s.$gap-4 s.$gap-5;
+    color: var(--text-primary);
+    vertical-align: middle;
+
+    @include t.body-small;
+
+    &--left {
+      text-align: left;
+    }
+
+    &--right {
+      text-align: right;
+    }
+
+    &--center {
+      text-align: center;
+    }
+
+    &--hide-tablet {
+      @include media.tablet-down {
+        display: none;
+      }
+    }
+  }
+
+  &__empty {
+    padding: s.$gap-10 s.$gap-5;
+    color: var(--text-tertiary);
+    text-align: center;
+
+    @include t.body-small;
+  }
+}

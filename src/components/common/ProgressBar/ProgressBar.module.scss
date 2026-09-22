@@ -1,0 +1,33 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.progressbar {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  background-color: var(--budget-track);
+  border-radius: s.$shape-full;
+
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: s.$shape-full;
+    transition: width 0.3s ease;
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    &--normal {
+      background-color: var(--budget-fill);
+    }
+
+    &--warning {
+      background-color: var(--budget-fill-warning);
+    }
+
+    &--over {
+      background-color: var(--budget-fill-over);
+    }
+  }
+}

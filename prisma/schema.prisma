@@ -1,0 +1,440 @@
+// 부부 가계부 — 데이터 모델
+//
+// 원칙
+//  - 금액은 Int(원 단위). KRW 는 소수 단위가 없고, Decimal 은 JSON 직렬화·zod·차트마다
+//    변환이 붙는다. Int 상한 21.4억원 > 단일 거래이고 SUM 은 bigint 로 승격된다.
+//  - 분담률은 basis point Int(0~10000). 실수 비율을 저장하지 않는다.
+//  - 날짜는 @db.Date. timestamptz 로 두면 1일 거래가 전월로 새는 버그가 난다.
+//  - 거래는 hard delete, 참조되는 마스터(Category/PaymentMethod/RecurringRule)만 isActive 아카이브.
+//  - CHECK 제약과 부분 유니크 인덱스는 Prisma 로 표현할 수 없어 migration.sql 에서 보강한다.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Auth.js
+// ─────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  /// Credentials 로그인용 bcrypt 해시. 소셜 로그인만 쓰는 계정은 null.
+  passwordHash  String?
+
+  accounts   Account[]
+  sessions   Session[]
+  membership HouseholdMember?
+  createdTxs Transaction[]    @relation("TxCreatedBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 가구 / 구성원
+// ─────────────────────────────────────────────────────────────────
+
+model Household {
+  id       String @id @default(cuid())
+  name     String
+  currency String @default("KRW")
+  timezone String @default("Asia/Seoul")
+  /// 배우자를 초대할 때 쓰는 코드. 재발급 가능.
+  inviteCode String @unique @default(cuid())
+  /// 급여일 기준 회계월. v1 은 1(달력월) 고정이고 필드만 예약한다.
+  fiscalStartDay Int @default(1)
+  /// 반복 거래 lazy 백필을 하루 1회로 스로틀하기 위한 표시.
+  lastRecurringRunOn DateTime? @db.Date
+
+  members        HouseholdMember[]
+  categories     Category[]
+  paymentMethods PaymentMethod[]
+  transactions   Transaction[]
+  budgets        Budget[]
+  recurringRules RecurringRule[]
+  settlements    MonthlySettlement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HouseholdMember {
+  id          String @id @default(cuid())
+  householdId String
+  userId      String @unique
+  /// 0 | 1 — 차트 색과 정산 방향이 흔들리지 않게 순서를 고정한다.
+  slot        Int
+  displayName String
+  colorHex    String @default("#1f6feb")
+  /// 공동지출 기본 분담률(bp). 가구 내 합 = 10000.
+  defaultShareBp Int  @default(5000)
+  isActive       Boolean @default(true)
+
+  household      Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  splits         TransactionSplit[]
+  paymentMethods PaymentMethod[]
+  recurringRules RecurringRule[]
+
+  joinedAt DateTime @default(now())
+
+  @@unique([householdId, slot])
+  @@index([householdId])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 카테고리 (self-relation 2단)
+// ─────────────────────────────────────────────────────────────────
+
+enum CategoryKind {
+  EXPENSE
+  INCOME
+  /// 계좌간 이동·카드대금 납부·저축. 수입도 지출도 아니라 모든 집계에서 제외한다.
+  TRANSFER
+}
+
+enum SplitMode {
+  /// 공동지출 — 분담률로 나눠 정산한다.
+  SHARED
+  /// 개인지출(용돈·미용) — 정산에서 완전히 제외한다.
+  PERSONAL
+  /// 이 거래만 분담률을 따로 준다. TransactionSplit 행이 생긴다.
+  CUSTOM
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  householdId String
+  parentId    String?
+  /// 1 = 대분류, 2 = 소분류. parentId 와의 정합은 DB CHECK 로 고정한다.
+  level       Int
+  kind        CategoryKind
+  name        String
+  icon        String?
+  colorHex    String?
+  sortOrder   Int          @default(0)
+  /// 비활성 = soft delete. 기존 거래는 그대로 남고 선택 목록에서만 빠진다.
+  isActive    Boolean      @default(true)
+  /// 시딩된 기본 카테고리. 개명은 되지만 삭제는 막는다.
+  isSystem    Boolean      @default(false)
+  /// 미지정이면 SHARED 로 본다. 용돈·미용은 PERSONAL 로 시딩한다.
+  defaultSplitMode SplitMode?
+  archivedAt       DateTime?
+
+  household      Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  parent         Category?       @relation("CategoryTree", fields: [parentId], references: [id])
+  children       Category[]      @relation("CategoryTree")
+  transactions   Transaction[]
+  budgets        Budget[]
+  recurringRules RecurringRule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId, kind, isActive])
+  @@index([householdId, parentId, sortOrder])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 결제수단
+// ─────────────────────────────────────────────────────────────────
+
+enum PaymentMethodKind {
+  CASH
+  DEBIT_CARD
+  CREDIT_CARD
+  BANK_TRANSFER
+  EASY_PAY
+  GIFT_CARD
+  OTHER
+}
+
+model PaymentMethod {
+  id            String            @id @default(cuid())
+  householdId   String
+  name          String
+  kind          PaymentMethodKind
+  /// 개인 카드면 소유자. 공동 수단은 null.
+  ownerMemberId String?
+  last4         String?
+  sortOrder     Int               @default(0)
+  isActive      Boolean           @default(true)
+
+  household      Household        @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  owner          HouseholdMember? @relation(fields: [ownerMemberId], references: [id])
+  transactions   Transaction[]
+  recurringRules RecurringRule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, name])
+  @@index([householdId, isActive])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 거래
+// ─────────────────────────────────────────────────────────────────
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum TransactionSource {
+  MANUAL
+  RECURRING
+  IMPORT
+}
+
+enum TransactionStatus {
+  CONFIRMED
+  /// 금액이 매달 바뀌는 반복 거래(전기요금 등)가 확인을 기다리는 상태.
+  PENDING
+}
+
+model Transaction {
+  id          String @id @default(cuid())
+  householdId String
+  /// 실제로 결제·수령한 구성원. 정산의 'paid' 기준.
+  memberId    String
+  type        TransactionType
+  date        DateTime @db.Date
+  /// 원 단위. 음수는 환불/정정이며 SUM 이 자동 상계한다.
+  amount      Int
+  /// TRANSFER 만 null 을 허용한다 (DB CHECK).
+  categoryId      String?
+  paymentMethodId String?
+  splitMode       SplitMode         @default(SHARED)
+  merchant        String?
+  memo            String?
+  status          TransactionStatus @default(CONFIRMED)
+  source          TransactionSource @default(MANUAL)
+  recurringRuleId String?
+  /// 계좌간 이동의 짝 거래. 수정·삭제는 항상 쌍으로 처리한다.
+  transferPeerId  String? @unique
+  refundOfId      String?
+  /// 할부 개월 — 표시용. v1 은 결제 시점 총액 1건으로 기록한다.
+  installmentMonths Int?
+  /// 더블 서브밋 멱등키. 모바일 네트워크 재시도에서 실제로 발생한다.
+  clientRequestId String?
+  createdById     String
+  /// 낙관적 동시성 — 부부가 같은 거래를 동시에 고칠 때 409 로 막는다.
+  version         Int @default(0)
+
+  household     Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  member        HouseholdMember    @relation(fields: [memberId], references: [id])
+  category      Category?          @relation(fields: [categoryId], references: [id])
+  paymentMethod PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
+  recurringRule RecurringRule?     @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  createdBy     User               @relation("TxCreatedBy", fields: [createdById], references: [id])
+  refundOf      Transaction?       @relation("Refund", fields: [refundOfId], references: [id])
+  refunds       Transaction[]      @relation("Refund")
+  splits        TransactionSplit[]
+  occurrence    RecurringOccurrence?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, clientRequestId])
+  @@index([householdId, date, id])
+  @@index([householdId, type, date])
+  @@index([householdId, categoryId, date])
+  @@index([householdId, memberId, date])
+  @@index([householdId, splitMode, date])
+  @@index([recurringRuleId])
+  @@index([createdById])
+  @@index([paymentMethodId])
+  @@index([refundOfId])
+}
+
+model TransactionSplit {
+  id            String @id @default(cuid())
+  transactionId String
+  memberId      String
+  /// 거래 내 합 = 10000.
+  shareBp       Int
+
+  transaction Transaction     @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  member      HouseholdMember @relation(fields: [memberId], references: [id])
+
+  @@unique([transactionId, memberId])
+  @@index([memberId])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 예산
+// ─────────────────────────────────────────────────────────────────
+
+model Budget {
+  id          String @id @default(cuid())
+  householdId String
+  /// 대분류·소분류 모두 가능. 대분류 예산의 실적은 하위 합계 + 대분류 직접 지출.
+  categoryId  String
+  /// "2026-01"
+  yearMonth   String @db.Char(7)
+  /// 행이 없으면 '예산 미설정'(소진율 null), 0 이면 '의도적 0원 예산'이다. 이 둘을 구분한다.
+  amount      Int
+  memo        String?
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, categoryId, yearMonth])
+  @@index([householdId, yearMonth])
+  @@index([categoryId])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 반복 거래
+// ─────────────────────────────────────────────────────────────────
+
+enum RecurrenceFreq {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model RecurringRule {
+  id          String  @id @default(cuid())
+  householdId String
+  name        String
+  isActive    Boolean @default(true)
+
+  // 거래 템플릿
+  type            TransactionType
+  memberId        String
+  categoryId      String?
+  paymentMethodId String?
+  amount          Int
+  /// false 면 PENDING 으로 생성한다 (전기요금처럼 매달 금액이 바뀌는 항목).
+  amountIsFixed   Boolean   @default(true)
+  splitMode       SplitMode @default(SHARED)
+  merchant        String?
+  memo            String?
+
+  // 반복 규칙 (구조화 필드 — cron 문자열로는 '말일'·'격월'·'종료일'을 표현할 수 없다)
+  freq        RecurrenceFreq
+  /// 1 = 매월, 2 = 격월. startDate 의 월을 기준점으로 삼아 드리프트를 막는다.
+  interval    Int            @default(1)
+  /// 1~31 (MONTHLY/YEARLY). 31 은 말일을 겸한다 — 그 달 일수로 클램프한다.
+  dayOfMonth  Int?
+  /// 0(일)~6 (WEEKLY)
+  weekday     Int?
+  /// 1~12 (YEARLY)
+  monthOfYear Int?
+  startDate   DateTime  @db.Date
+  endDate     DateTime? @db.Date
+  /// 백필 시작 힌트(성능용). 정합의 근거는 RecurringOccurrence 다.
+  lastGeneratedOn DateTime? @db.Date
+
+  household     Household             @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  member        HouseholdMember       @relation(fields: [memberId], references: [id])
+  category      Category?             @relation(fields: [categoryId], references: [id])
+  paymentMethod PaymentMethod?        @relation(fields: [paymentMethodId], references: [id])
+  occurrences   RecurringOccurrence[]
+  transactions  Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId, isActive])
+  @@index([memberId])
+  @@index([categoryId])
+  @@index([paymentMethodId])
+}
+
+/// "이 회차는 이미 처리했다" 는 멱등 원장.
+/// 이 테이블이 없으면 사용자가 지운 반복 거래가 다음 백필에서 되살아난다.
+model RecurringOccurrence {
+  id             String   @id @default(cuid())
+  ruleId         String
+  occurrenceDate DateTime @db.Date
+  transactionId  String?  @unique
+  /// 사용자가 건너뛰거나 생성분을 지운 회차.
+  skipped        Boolean  @default(false)
+
+  rule        RecurringRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  transaction Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([ruleId, occurrenceDate])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 월 정산 확정
+// ─────────────────────────────────────────────────────────────────
+
+/// 성능이 아니라 "부부가 합의한 사실을 동결"하기 위한 스냅샷.
+/// 확정 후 해당 월 거래가 바뀌면 재계산값과 비교해 재확정을 유도한다.
+model MonthlySettlement {
+  id          String @id @default(cuid())
+  householdId String
+  yearMonth   String @db.Char(7)
+  sharedTotal Int
+  /// [{ memberId, displayName, shareBp, owedAmount, paidAmount, balanceAmount }]
+  lines       Json
+  transferFromMemberId String?
+  transferToMemberId   String?
+  transferAmount       Int     @default(0)
+  confirmedAt          DateTime
+  confirmedByMemberId  String
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, yearMonth])
+}

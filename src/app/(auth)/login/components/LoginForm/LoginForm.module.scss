@@ -1,0 +1,18 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.loginform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__error {
+    padding: s.$gap-4;
+    color: var(--status-error);
+    background-color: var(--status-error-bg);
+    border: 1px solid var(--status-error-border);
+    border-radius: s.$shape-md;
+
+    @include t.body-small;
+  }
+}

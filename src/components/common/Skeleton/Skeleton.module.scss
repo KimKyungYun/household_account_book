@@ -1,0 +1,28 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.skeleton {
+  display: block;
+  background-color: var(--surface-muted);
+  border-radius: s.$shape-sm;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+
+  &--circle {
+    border-radius: s.$shape-full;
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.45;
+    }
+  }
+}

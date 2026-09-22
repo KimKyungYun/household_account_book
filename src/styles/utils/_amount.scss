@@ -1,0 +1,52 @@
+// 금액 타이포그래피.
+// 가계부에서 비교하는 것은 문장이 아니라 자릿수다. 고정폭 + tabular figures 로
+// 표·카드·차트의 금액이 같은 자리에서 끊기게 만든다. 한글에는 쓰지 않는다.
+
+@mixin amount-base {
+  font-family: var(--font-numeric, ui-monospace, "SFMono-Regular", monospace);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+}
+
+@mixin amount-display {
+  @include amount-base;
+
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+@mixin amount-large {
+  @include amount-base;
+
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+@mixin amount-medium {
+  @include amount-base;
+
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@mixin amount-small {
+  @include amount-base;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+// 통화 단위는 금액보다 한 단계 작고 흐리게 붙인다 — 숫자가 주인공이다.
+@mixin amount-unit {
+  margin-left: 2px;
+  font-family: var(--font-app);
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+}

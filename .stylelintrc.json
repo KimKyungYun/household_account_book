@@ -1,0 +1,32 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "plugins": ["stylelint-scss", "stylelint-selector-bem-pattern"],
+  "rules": {
+    "property-no-vendor-prefix": null,
+    "import-notation": "string",
+    "selector-class-pattern": null,
+    "color-hex-length": null,
+    "no-descending-specificity": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null,
+    "scss/percent-placeholder-pattern": null,
+    "custom-property-pattern": null,
+    "declaration-empty-line-before": null,
+    "scss/at-mixin-pattern": null,
+    "selector-pseudo-class-no-unknown": [true, { "ignorePseudoClasses": ["global", "local"] }],
+    "declaration-property-value-disallowed-list": {
+      "/^color$/": ["/^#/", "/^rgb/"],
+      "/^background-color$/": ["/^#/", "/^rgb/"],
+      "/^border-color$/": ["/^#/", "/^rgb/"]
+    },
+    "plugin/selector-bem-pattern": {
+      "componentName": "[A-Z]+",
+      "componentSelectors": {
+        "initial": "^\\.{componentName}(?:-[a-z]+)?$",
+        "combined": "^\\.combined-{componentName}-[a-z]+$"
+      },
+      "utilitySelectors": "^\\.util-[a-z]+$"
+    }
+  },
+  "ignoreFiles": ["src/styles/tokens/**", "src/styles/base/**"]
+}

@@ -1,0 +1,15 @@
+@use "styles/tokens/spacing" as s;
+
+.splitscalesection {
+  display: block;
+  padding: s.$gap-3;
+  border-radius: s.$shape-md;
+
+  &:focus-visible {
+    box-shadow: var(--focus-ring);
+  }
+
+  &__skeleton {
+    margin: s.$gap-3;
+  }
+}

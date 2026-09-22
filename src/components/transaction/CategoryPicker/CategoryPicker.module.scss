@@ -1,0 +1,52 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.categorypicker {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-3;
+
+  &__recents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$gap-2;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$gap-2;
+    height: 34px;
+    padding: 0 s.$gap-4;
+    color: var(--text-secondary);
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-full;
+    cursor: pointer;
+
+    @include t.label-small;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--selected {
+      color: var(--primary);
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+    }
+  }
+
+  &__chipparent {
+    color: var(--text-tertiary);
+
+    font-size: 10px;
+  }
+}
