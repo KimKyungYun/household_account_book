@@ -4,8 +4,10 @@
     {
       "name": "household-account-book",
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["dev"],
-      "port": 3000
+      "runtimeArgs": [
+        "dev"
+      ],
+      "port": 4000
     }
   ]
 }
