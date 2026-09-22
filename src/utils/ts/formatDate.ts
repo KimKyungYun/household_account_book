@@ -28,6 +28,14 @@ export function formatYearMonthLabel(yearMonth: string): string {
 }
 
 /** 해당 월의 [첫날, 다음달 첫날) 반개구간. 기간 필터는 항상 이 형태로 넘긴다. */
+/**
+ * 그 달의 마지막 날짜. `monthRange` 의 `toExclusive`(다음 달 1일)와 달리 포함 경계다.
+ * 반복 거래를 그 달 끝까지 미리 만들 때 상한으로 쓴다.
+ */
+export function monthEnd(yearMonth: string): DateString {
+  return dayjs(`${yearMonth}-01`).endOf('month').format('YYYY-MM-DD');
+}
+
 export function monthRange(yearMonth: string): { from: DateString; toExclusive: DateString } {
   const start = dayjs(`${yearMonth}-01`);
 

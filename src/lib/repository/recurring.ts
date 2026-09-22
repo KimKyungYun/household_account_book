@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { badRequest, notFound } from '@/lib/api/httpError';
 import { logger } from '@/lib/logger';
 import { nextOccurrence, occurrencesBetween } from '@/lib/domain/recurring';
-import { todayInSeoul } from '@/utils/ts/formatDate';
+import { currentYearMonth, monthEnd, todayInSeoul } from '@/utils/ts/formatDate';
 import type { RecurrenceRule } from '@/lib/domain/recurring';
 import type { CreateRecurringInput, UpdateRecurringInput } from '@/service/recurring/schema';
 import type { RecurringRuleDto } from '@/service/recurring/type';
@@ -143,22 +143,51 @@ export async function updateRecurringRule(householdId: string, id: string, input
   });
 }
 
-/** 규칙은 비활성으로만 내린다. 이미 만든 거래는 남겨 과거 집계를 지키지 않으면 안 된다. */
-export async function deactivateRecurringRule(householdId: string, id: string) {
+/** 중지 — 규칙만 멈춘다. 되살릴 수 있고 이미 만든 거래는 그대로다. */
+export async function setRecurringRuleActive(householdId: string, id: string, isActive: boolean) {
   const current = await prisma.recurringRule.findFirst({ where: { id, householdId }, select: { id: true } });
   if (!current) throw notFound('반복 거래를 찾을 수 없습니다.');
 
-  await prisma.recurringRule.update({ where: { id }, data: { isActive: false } });
+  await prisma.recurringRule.update({ where: { id }, data: { isActive } });
+}
+
+/**
+ * 삭제 — 규칙을 완전히 지운다.
+ *
+ * **이미 만들어진 거래는 지우지 않는다.** 그건 실제로 나간 돈의 기록이라
+ * 함께 지우면 과거 달의 합계와 정산이 통째로 바뀐다.
+ * 거래의 `recurringRuleId` 는 SetNull 로 끊기고, 회차 원장은 규칙과 함께 사라진다.
+ */
+export async function deleteRecurringRule(householdId: string, id: string) {
+  const current = await prisma.recurringRule.findFirst({
+    where: { id, householdId },
+    select: { id: true, _count: { select: { transactions: true } } },
+  });
+  if (!current) throw notFound('반복 거래를 찾을 수 없습니다.');
+
+  await prisma.recurringRule.delete({ where: { id } });
+
+  return { keptTransactionCount: current._count.transactions };
 }
 
 export interface BackfillResult {
+  /** 날짜가 지났고 금액이 고정된 회차 — 확정 거래로 넣었다. */
   created: number;
+  /** 날짜는 지났지만 금액이 매달 바뀌는 회차 — 금액 확인이 필요하다. */
   pending: number;
+  /** 아직 날짜가 오지 않은 이번 달 회차 — 예정으로 넣었다. */
+  upcoming: number;
+  /** 이미 만들었거나 사용자가 지운 회차 — 건드리지 않았다. */
   skipped: number;
 }
 
 /**
  * 미생성 회차를 채운다.
+ *
+ * **상한은 오늘이 아니라 이번 달 말일이다.** 25일 월급이 22일에도 이번 달 수입에 잡혀야
+ * 한 달을 통째로 볼 수 있다. 아직 오지 않은 날짜의 거래를 미리 만들어 두면 대시보드·예산·
+ * 정산·엑셀이 모두 같은 데이터를 세므로, 집계 쿼리마다 예정액을 따로 더하다가 화면끼리
+ * 숫자가 갈리는 일이 없다. 미래 회차는 `PENDING` 이라 실제 발생분과 구분된다.
  *
  * 별도 스케줄러를 두지 않는다 — Vercel Cron 은 Hobby 에서 하루 한 번이고 로컬 Docker 개발에서는
  * 아예 돌지 않아 테스트 경로가 갈라진다. 대신 앱에 들어올 때 이 함수가 돈다.
@@ -168,14 +197,20 @@ export interface BackfillResult {
  */
 export async function backfillRecurring(
   ctx: { householdId: string; userId: string },
-  until: string = todayInSeoul(),
+  until: string = monthEnd(currentYearMonth()),
+  options: { ruleId?: string } = {},
 ): Promise<BackfillResult> {
+  const today = todayInSeoul();
   const rules = await prisma.recurringRule.findMany({
-    where: { householdId: ctx.householdId, isActive: true },
+    where: {
+      householdId: ctx.householdId,
+      isActive: true,
+      ...(options.ruleId ? { id: options.ruleId } : {}),
+    },
     select: { ...RULE_SELECT, lastGeneratedOn: true },
   });
 
-  const result: BackfillResult = { created: 0, pending: 0, skipped: 0 };
+  const result: BackfillResult = { created: 0, pending: 0, upcoming: 0, skipped: 0 };
 
   for (const rule of rules) {
     const from = rule.lastGeneratedOn
@@ -211,8 +246,9 @@ export async function backfillRecurring(
               paymentMethodId: rule.paymentMethodId,
               splitMode: rule.splitMode,
               memo: rule.memo,
-              // 금액이 매달 바뀌는 항목은 확인 대기로 둔다.
-              status: rule.amountIsFixed ? 'CONFIRMED' : 'PENDING',
+              // 아직 날짜가 오지 않은 회차와, 금액이 매달 바뀌는 항목은 확정하지 않는다.
+              // 둘 다 PENDING 이지만 화면은 날짜로 갈라 '예정'과 '확인 필요'로 달리 적는다.
+              status: date > today || !rule.amountIsFixed ? 'PENDING' : 'CONFIRMED',
               source: 'RECURRING',
               recurringRuleId: rule.id,
               createdById: ctx.userId,
@@ -225,7 +261,8 @@ export async function backfillRecurring(
             data: { transactionId: created.id },
           });
 
-          if (rule.amountIsFixed) result.created += 1;
+          if (date > today) result.upcoming += 1;
+          else if (rule.amountIsFixed) result.created += 1;
           else result.pending += 1;
         });
       } catch (error) {
@@ -241,6 +278,20 @@ export async function backfillRecurring(
   }
 
   return result;
+}
+
+/**
+ * 규칙 하나의 지난 회차를 **지금 바로** 채운다.
+ *
+ * 규칙을 등록·수정·재개한 직후에 부른다. `ensureRecurringUpToDate` 의 스로틀은 가구 단위
+ * 하루 한 번이라, 오늘 이미 돌았다면 오늘 만든 규칙을 그대로 건너뛴다. 그러면 이번 달에
+ * 이미 지나간 결제일이 거래로 들어오지 않아 대시보드 합계에서 빠진다.
+ *
+ * 스로틀 값(`lastRecurringRunOn`)은 건드리지 않는다. 이 호출은 가구 전체 스캔이 아니라
+ * 규칙 한 건만 보므로, 그 값을 갱신하면 아직 안 본 다른 규칙들이 하루 동안 막힌다.
+ */
+export function backfillRecurringRule(ctx: { householdId: string; userId: string }, ruleId: string) {
+  return backfillRecurring(ctx, monthEnd(currentYearMonth()), { ruleId });
 }
 
 /**

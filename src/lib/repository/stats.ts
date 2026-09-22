@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
+import { monthRange, shiftYearMonth, todayInSeoul } from '@/utils/ts/formatDate';
 import type { CategoryShareDto, MemberStatDto, MonthlyPointDto, OverviewDto } from '@/service/stats/type';
 
 /**
@@ -29,8 +29,15 @@ export async function getOverview(householdId: string, yearMonth: string): Promi
   const [current, prev, pendingCount] = await Promise.all([
     totalsOf(householdId, yearMonth),
     totalsOf(householdId, shiftYearMonth(yearMonth, -1)),
+    // 금액을 확인해야 하는 건수 — **날짜가 지난 것만** 센다.
+    // 반복 거래는 이번 달 끝까지 미리 만들어지므로 미래 회차도 PENDING 이다. 그건
+    // 아직 일어나지 않아 확인할 것이 없고, 거래 목록에서 '예정' 배지로 이미 보인다.
     prisma.transaction.count({
-      where: { householdId, status: 'PENDING', date: { gte: new Date(from), lt: new Date(toExclusive) } },
+      where: {
+        householdId,
+        status: 'PENDING',
+        date: { gte: new Date(from), lt: new Date(toExclusive), lte: new Date(todayInSeoul()) },
+      },
     }),
   ]);
 

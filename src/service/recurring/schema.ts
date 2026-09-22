@@ -64,6 +64,8 @@ export type UpdateRecurringInput = z.infer<typeof updateRecurringSchema>;
 
 export const recurringIdParamsSchema = z.object({ id: z.string().min(1) });
 
+export const setActiveSchema = z.object({ isActive: z.boolean() });
+
 export const runRecurringSchema = z.object({
   until: dateSchema.optional(),
 });
