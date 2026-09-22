@@ -27,7 +27,7 @@ export default function SettlementPanel() {
   const columns: Column<SettlementLineDto>[] = [
     {
       key: 'member',
-      header: '구성원',
+      header: '사람',
       render: (line) => (
         <span className={styles.settlementpanel__member}>
           <span
@@ -41,7 +41,7 @@ export default function SettlementPanel() {
     },
     {
       key: 'shareBp',
-      header: '분담률',
+      header: '나누는 비율',
       align: 'right',
       render: (line) => `${(line.shareBp / 100).toFixed(0)}%`,
     },
@@ -120,13 +120,17 @@ export default function SettlementPanel() {
       ) : !data || data.sharedTotal === 0 ? (
         <Card>
           <EmptyState
-            title="이 달에는 공동지출이 없습니다"
-            description="거래를 '공동'으로 등록하면 여기에 분담 결과가 나옵니다. 개인 지출은 정산에서 빠집니다."
+            title="같이 쓴 돈이 없습니다"
+            description="거래를 '같이 쓴 돈'으로 등록하면 여기에 표시됩니다."
           />
         </Card>
       ) : (
         <>
-          <Card title="결론">
+          <Card
+            tone="feature"
+            title="나누기 결과"
+            description="같이 쓴 돈을 설정한 비율로 나눈 결과입니다. 각자 쓴 돈과 옮긴 돈은 제외됩니다."
+          >
             <div className={styles.settlementpanel__verdict}>
               {data.transfer && debtor && creditor ? (
                 <>
@@ -142,21 +146,25 @@ export default function SettlementPanel() {
                 <p className={styles.settlementpanel__verdicttext}>분담이 맞습니다. 주고받을 돈이 없습니다.</p>
               )}
               <p className={styles.settlementpanel__note}>
-                공동지출 <Amount
+                같이 쓴 돈 <Amount
                   value={data.sharedTotal}
                   size="small"
-                /> 기준입니다. 개인지출과 이체는 빠져 있습니다.
+                /> 기준입니다. 각자 쓴 돈과 옮긴 돈은 제외되어 있습니다.
               </p>
             </div>
           </Card>
 
-          <Card title="저울">
+          <Card
+            title="실제로 낸 비율"
+            description="색의 길이는 각자 실제로 낸 비율이고, 점선은 설정한 비율입니다."
+          >
             <SplitScale settlement={data} />
           </Card>
 
           <Card
             isFlush
-            title="내역"
+            title="계산 내역"
+            description="차액은 실제로 낸 금액에서 내야 할 금액을 뺀 값입니다."
           >
             <Table
               caption={`${formatYearMonthLabel(yearMonth)} 분담 정산 내역`}

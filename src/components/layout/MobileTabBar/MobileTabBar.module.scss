@@ -9,8 +9,7 @@
   height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   background-color: var(--tabbar-bg);
-  border-top: 1px solid var(--tabbar-border);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
 
   &__tab {
     display: flex;
@@ -46,7 +45,7 @@
     margin-top: -18px;
     color: var(--text-on-primary);
     background-color: var(--primary);
-    border: 3px solid var(--surface-page);
+    border: 0;
     border-radius: s.$shape-full;
     box-shadow: var(--shadow-2);
 

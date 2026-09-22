@@ -39,6 +39,14 @@
     gap: s.$gap-3;
   }
 
+  // 분류 색. 도넛·거래 목록과 같은 색이라 여기서 바꾸면 저기도 바뀐다는 걸 보여준다.
+  &__color {
+    width: 10px;
+    height: 10px;
+    background-color: var(--text-disabled);
+    border-radius: 3px;
+  }
+
   &__groupname {
     color: var(--text-primary);
 
@@ -48,17 +56,13 @@
   &__groupactions {
     display: flex;
     gap: s.$gap-2;
-    margin-left: auto;
   }
 
   &__count {
+    margin-left: auto;
     color: var(--text-tertiary);
 
     @include a.amount-small;
-
-    &--child {
-      margin-left: auto;
-    }
   }
 
   &__children {
@@ -73,7 +77,8 @@
   }
 
   &__child {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
     gap: s.$gap-3;
     padding: s.$gap-2 s.$gap-3;

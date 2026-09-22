@@ -1,6 +1,7 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
 @use "styles/utils/amount" as a;
+@use "styles/utils/glass" as glass;
 @use "styles/utils/media" as media;
 
 .input {
@@ -10,9 +11,9 @@
   width: 100%;
   height: var(--control-height);
   padding: 0 s.$gap-4;
-  background-color: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: s.$shape-md;
+  border-radius: s.$shape-lg;
+
+  @include glass.well;
 
   &:focus-within {
     border-color: var(--border-focus);
@@ -20,8 +21,8 @@
   }
 
   &:has(> .input__field:disabled) {
-    background-color: var(--surface-muted);
     cursor: not-allowed;
+    opacity: 0.6;
   }
 
   &--invalid {

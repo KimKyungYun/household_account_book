@@ -19,68 +19,80 @@ export default function DashboardStats() {
     queryFn: () => getOverview(yearMonth),
   });
 
-  if (isPending) return <Skeleton height={148} />;
+  if (isPending) return <Skeleton height={190} />;
 
+  const net = data?.net ?? 0;
   const delta = data?.expenseDeltaRate ?? null;
+  const pending = data?.pendingCount ?? 0;
 
   return (
-    <Card title={`${formatYearMonthLabel(yearMonth)} 요약`}>
-      <dl className={styles.dashboardstats}>
-        <div className={styles.dashboardstats__item}>
-          <dt>수입</dt>
-          <dd>
-            <Amount
-              value={data?.income ?? 0}
-              tone="income"
-              size="large"
-            />
-          </dd>
+    <Card
+      tone="feature"
+      title={`${formatYearMonthLabel(yearMonth)} 요약`}
+      description="아직 날짜가 오지 않은 반복 거래까지 더한 이번 달 전체입니다. 계좌끼리 옮긴 금액과 카드값은 '옮긴 돈'이라 합계에서 빠집니다."
+      action={
+        pending > 0 ? (
+          <Link href={PATH.TRANSACTIONS}>
+            <Badge tone="warning">금액 확인 {pending}건</Badge>
+          </Link>
+        ) : undefined
+      }
+    >
+      <div className={styles.dashboardstats}>
+        {/* 이 달의 한 문장. 번 것에서 쓴 것을 뺀 값이 이 화면의 결론이다. */}
+        <div className={styles.dashboardstats__hero}>
+          <span className={styles.dashboardstats__herolabel}>{net < 0 ? '모자란 돈' : '남은 돈'}</span>
+          <Amount
+            value={net}
+            tone={net < 0 ? 'expense' : 'income'}
+            size="hero"
+          />
         </div>
 
-        <div className={styles.dashboardstats__item}>
-          <dt>지출</dt>
-          <dd className={styles.dashboardstats__value}>
-            <Amount
-              value={data?.expense ?? 0}
-              tone="expense"
-              size="large"
-            />
-            {delta !== null && (
-              <span className={styles.dashboardstats__delta}>
-                전월 대비 {delta > 0 ? '+' : ''}
-                {(delta * 100).toFixed(0)}%
-              </span>
-            )}
-          </dd>
-        </div>
+        <dl className={styles.dashboardstats__pair}>
+          <div className={styles.dashboardstats__item}>
+            <dt>
+              <span
+                className={styles.dashboardstats__mark}
+                data-kind="income"
+                aria-hidden="true"
+              />
+              수입
+            </dt>
+            <dd>
+              <Amount
+                value={data?.income ?? 0}
+                tone="income"
+                size="large"
+              />
+            </dd>
+          </div>
 
-        <div className={styles.dashboardstats__item}>
-          <dt>남은 돈</dt>
-          <dd>
-            <Amount
-              value={data?.net ?? 0}
-              tone={(data?.net ?? 0) < 0 ? 'expense' : 'income'}
-              size="large"
-            />
-          </dd>
-        </div>
-
-        <div className={styles.dashboardstats__item}>
-          <dt>확인 필요</dt>
-          <dd>
-            {(data?.pendingCount ?? 0) > 0 ? (
-              <Link
-                className={styles.dashboardstats__pending}
-                href={PATH.TRANSACTIONS}
-              >
-                <Badge tone="warning">{data?.pendingCount}건</Badge>
-              </Link>
-            ) : (
-              <span className={styles.dashboardstats__none}>없음</span>
-            )}
-          </dd>
-        </div>
-      </dl>
+          <div className={styles.dashboardstats__item}>
+            <dt>
+              <span
+                className={styles.dashboardstats__mark}
+                data-kind="expense"
+                aria-hidden="true"
+              />
+              지출
+            </dt>
+            <dd>
+              <Amount
+                value={data?.expense ?? 0}
+                tone="expense"
+                size="large"
+              />
+              {delta !== null && (
+                <span className={styles.dashboardstats__delta}>
+                  전월 대비 {delta > 0 ? '+' : ''}
+                  {(delta * 100).toFixed(0)}%
+                </span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      </div>
     </Card>
   );
 }

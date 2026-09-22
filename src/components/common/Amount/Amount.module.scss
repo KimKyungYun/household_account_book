@@ -27,6 +27,10 @@
     color: var(--amount-transfer);
   }
 
+  &--hero {
+    @include a.amount-hero;
+  }
+
   &--display {
     @include a.amount-display;
   }

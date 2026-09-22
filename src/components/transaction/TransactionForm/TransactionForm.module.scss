@@ -7,6 +7,25 @@
   flex-direction: column;
   gap: s.$gap-5;
 
+  &__type {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  // 이체가 무엇인지 고른 그 자리에서 알려 준다.
+  &__typehint {
+    padding: s.$gap-3 s.$gap-4;
+    color: var(--text-secondary);
+    background-color: var(--surface-subtle);
+    border-radius: s.$shape-md;
+
+    @include t.body-small;
+
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
   &__date {
     display: flex;
     flex-direction: column;

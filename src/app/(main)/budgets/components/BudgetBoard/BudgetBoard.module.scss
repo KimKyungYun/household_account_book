@@ -39,7 +39,6 @@
     gap: s.$gap-4;
     margin-top: s.$gap-5;
     padding-top: s.$gap-5;
-    border-top: 1px solid var(--border-subtle);
   }
 
   &__total {
@@ -72,12 +71,6 @@
     flex-direction: column;
     gap: s.$gap-3;
     padding-bottom: s.$gap-5;
-    border-bottom: 1px solid var(--border-subtle);
-
-    &:last-of-type {
-      padding-bottom: 0;
-      border-bottom: 0;
-    }
 
     @include media.desktop-up {
       display: grid;

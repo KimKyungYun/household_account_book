@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 4.1 26 26">
+  <!--
+    브라우저 탭 아이콘. CSS 변수를 읽을 수 없어 색을 직접 적는다 — 값은
+    styles/tokens/_semantic.scss 의 --member-a / --member-b 와 같아야 한다.
+    탭 배경은 브라우저 테마에 따라 밝거나 어두우므로 두 벌을 둔다.
+  -->
+  <style>
+    .a { fill: #3b82f6 }
+    .b { fill: #d97706 }
+    @media (prefers-color-scheme: dark) {
+      .a { fill: #74a3de }
+      .b { fill: #ffb020 }
+    }
+  </style>
+  <path class="a" d="M16 10.5 5.5 7.2A1.2 1.2 0 0 0 4 8.3v14.2c0 .5.3 1 .8 1.1L16 27z"/>
+  <path class="b" d="m16 10.5 10.5-3.3A1.2 1.2 0 0 1 28 8.3v14.2c0 .5-.3 1-.8 1.1L16 27z"/>
+</svg>

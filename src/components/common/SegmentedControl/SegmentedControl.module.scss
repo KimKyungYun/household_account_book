@@ -6,7 +6,7 @@
   gap: 2px;
   padding: 3px;
   background-color: var(--surface-muted);
-  border-radius: s.$shape-md;
+  border-radius: s.$shape-lg;
 
   &--full {
     display: flex;
@@ -21,7 +21,7 @@
     height: calc(var(--control-height) - 8px);
     padding: 0 s.$gap-5;
     color: var(--text-secondary);
-    border-radius: s.$shape-sm;
+    border-radius: s.$shape-md;
     cursor: pointer;
 
     @include t.label-medium;

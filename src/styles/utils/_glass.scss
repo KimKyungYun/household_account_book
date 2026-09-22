@@ -1,0 +1,21 @@
+// 유리 패널.
+// 배경이 비치는 반투명 면 + 흐림. 가장자리 한 겹만 짚고 안쪽에 칸을 가르는 선은 두지 않는다.
+// backdrop-filter 가 없는 환경에서는 반투명만 남아도 읽히도록 색을 고른다.
+
+@mixin panel {
+  background-color: var(--surface-card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+}
+
+@mixin panel-strong {
+  background-color: var(--surface-default);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+}
+
+// 입력칸처럼 안쪽으로 파인 면.
+@mixin well {
+  background-color: var(--surface-muted);
+  border: 1px solid transparent;
+}

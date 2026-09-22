@@ -42,6 +42,7 @@ export async function createHousehold(params: {
             level: 1,
             kind: group.kind,
             name: parent.name,
+            colorHex: parent.colorHex,
             sortOrder: groupIndex,
             isSystem: true,
             defaultSplitMode: parent.defaultSplitMode ?? null,
@@ -55,6 +56,8 @@ export async function createHousehold(params: {
             level: 2,
             kind: group.kind,
             name,
+            // 소분류는 대분류 색을 물려받는다 — 도넛·목록·배지가 한 색을 쓴다.
+            colorHex: parent.colorHex,
             sortOrder: childIndex,
             isSystem: true,
             defaultSplitMode: parent.defaultSplitMode ?? null,

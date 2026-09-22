@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/common/Icon';
+import Logo from '@/components/common/Logo';
 import SplitScaleSection from '@/components/layout/SplitScale/SplitScaleSection';
 import { SIDEBAR_NAV } from '@/routes/nav';
 import { PATH } from '@/routes/paths';
@@ -17,16 +18,17 @@ export default function Sidebar() {
       className={styles.sidebar}
       aria-label="주요 메뉴"
     >
+      {/* 워드마크는 데스크톱에서만 보인다. 좁은 폭에서 마크만 남으면 이 링크에
+          읽어 줄 이름이 없어지므로 이름을 직접 붙인다. */}
       <Link
         className={styles.sidebar__brand}
         href={PATH.DASHBOARD}
+        aria-label="우리집 가계부 — 대시보드로"
       >
-        <span
+        <Logo
           className={styles.sidebar__mark}
-          aria-hidden="true"
-        >
-          가
-        </span>
+          size={32}
+        />
         <span className={styles.sidebar__wordmark}>우리집 가계부</span>
       </Link>
 

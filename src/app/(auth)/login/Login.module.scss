@@ -15,16 +15,7 @@
   }
 
   &__mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    color: var(--text-on-primary);
-    background-color: var(--primary);
-    border-radius: s.$shape-xl;
-
-    @include t.heading-small;
+    flex-shrink: 0;
   }
 
   &__title {

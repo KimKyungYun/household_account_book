@@ -78,6 +78,21 @@ body {
 
 body {
   min-height: 100dvh;
+
+  /*
+    화면의 바탕.
+
+    유리 패널은 뒤에 볼 것이 있어야 유리로 읽힌다. 사진 대신 색 덩어리를 깔았다 —
+    표와 숫자가 빽빽한 화면이라 사진을 두면 글자가 먹힌다.
+    `fixed` 라 본문이 스크롤해도 제자리에 있다.
+  */
+  background-image:
+    radial-gradient(ellipse 58% 42% at 18% 0%, var(--bg-wash-a), transparent 62%),
+    radial-gradient(ellipse 52% 38% at 86% 6%, var(--bg-wash-b), transparent 60%),
+    radial-gradient(ellipse 70% 46% at 62% 104%, var(--bg-wash-a), transparent 66%),
+    radial-gradient(ellipse 46% 34% at 8% 88%, var(--bg-wash-b), transparent 62%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;

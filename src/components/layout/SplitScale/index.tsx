@@ -1,6 +1,6 @@
+import Amount from '@/components/common/Amount';
 import { cn } from '@/utils/ts/cn';
 import formatMoney from '@/utils/ts/formatMoney';
-import Amount from '@/components/common/Amount';
 import type { SettlementDto } from '@/service/settlement/type';
 import styles from './SplitScale.module.scss';
 
@@ -12,32 +12,27 @@ interface SplitScaleProps {
 }
 
 /**
- * 분담 저울 — 이 앱의 시그니처.
+ * 같이 쓴 돈이 두 사람 사이에서 어떻게 갈렸는지 보여주는 띠.
  *
- * 띠의 **두 색 길이**는 각자 실제로 낸 비율이고, 띠 위의 **눈금**은 합의한 분담 비율이다.
- * 둘이 벌어진 만큼이 곧 정산할 돈이라, 숫자를 읽기 전에 눈으로 먼저 알 수 있다.
- * 이게 일반 가계부에 없는 것이고, 부부가 이 앱을 여는 이유다.
+ * 색 길이는 각자 실제로 낸 비율이고, 점선은 약속한 비율이다.
+ * 둘이 벌어졌는지만 눈으로 보면 되는 자리라 금액 계산 결과는 적지 않는다 —
+ * 그건 분담 정산 화면이 맡는다.
  */
 export function SplitScale({ settlement, layout = 'stack', className }: SplitScaleProps) {
-  const { lines, sharedTotal, transfer } = settlement;
+  const { lines, sharedTotal } = settlement;
   const paidTotal = lines.reduce((sum, line) => sum + Math.max(line.paidAmount, 0), 0);
-
-  const creditor = transfer ? lines.find((line) => line.memberId === transfer.toMemberId) : null;
-  const debtor = transfer ? lines.find((line) => line.memberId === transfer.fromMemberId) : null;
+  const isEmpty = sharedTotal === 0 || paidTotal === 0;
 
   return (
     <div className={cn(styles.splitscale, styles[`splitscale--${layout}`], className)}>
-      <p className={styles.splitscale__caption}>이번 달 공동지출 분담</p>
-
       <div
         className={styles.splitscale__bar}
         role="img"
         aria-label={ariaLabel(settlement)}
       >
-        {sharedTotal === 0 || paidTotal === 0 ? (
-          <span className={styles['splitscale__bar-empty']} />
-        ) : (
-          lines.map((line) => (
+        {isEmpty
+          ? <span className={styles['splitscale__bar-empty']} />
+          : lines.map((line) => (
             <span
               key={line.memberId}
               className={styles.splitscale__fill}
@@ -46,10 +41,9 @@ export function SplitScale({ settlement, layout = 'stack', className }: SplitSca
                 backgroundColor: line.colorHex,
               }}
             />
-          ))
-        )}
+          ))}
 
-        {/* 합의한 비율 눈금. 띠 경계가 이 선에 붙어 있으면 정산할 게 없다. */}
+        {/* 약속한 비율 자리. 띠 경계가 이 선에 붙어 있으면 그대로 나눠 낸 것이다. */}
         {lines.length > 1 && lines[0] && (
           <span
             className={styles.splitscale__tick}
@@ -81,14 +75,6 @@ export function SplitScale({ settlement, layout = 'stack', className }: SplitSca
           </li>
         ))}
       </ul>
-
-      <p className={cn(styles.splitscale__verdict, { [styles['splitscale__verdict--settled']]: !transfer })}>
-        {transfer && debtor && creditor
-          ? `${debtor.displayName} → ${creditor.displayName} ${formatMoney(transfer.amount)}원`
-          : sharedTotal === 0
-            ? '아직 공동지출이 없습니다'
-            : '분담이 맞습니다'}
-      </p>
     </div>
   );
 }
@@ -96,7 +82,7 @@ export function SplitScale({ settlement, layout = 'stack', className }: SplitSca
 function ariaLabel(settlement: SettlementDto): string {
   const paid = settlement.lines.map((line) => `${line.displayName} ${formatMoney(line.paidAmount)}원`).join(', ');
 
-  return `공동지출 ${formatMoney(settlement.sharedTotal)}원 중 ${paid}`;
+  return `같이 쓴 돈 ${formatMoney(settlement.sharedTotal)}원 중 ${paid}`;
 }
 
 export default SplitScale;

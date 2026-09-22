@@ -42,7 +42,11 @@ function toGroups(tree: readonly CategoryTreeDto[]) {
     .flatMap((group) => group.categories)
     .map((parent: CategoryNodeDto) => ({
       label: parent.name,
-      options: parent.children.map((child) => ({ value: child.id, label: child.name })),
+      options: parent.children.map((child) => ({
+        value: child.id,
+        // '기타'는 분류마다 있다. 고르고 나면 무엇의 기타인지 알 수 없어 부모를 붙인다.
+        label: child.name === '기타' ? `${parent.name} 기타` : child.name,
+      })),
     }))
     .filter((group) => group.options.length > 0);
 }
@@ -102,7 +106,7 @@ export function CategoryPicker({
         id={id}
         options={[]}
         groups={groups}
-        placeholder="카테고리 고르기"
+        placeholder="분류 고르기"
         value={value ?? ''}
         isInvalid={isInvalid}
         aria-describedby={ariaDescribedBy}

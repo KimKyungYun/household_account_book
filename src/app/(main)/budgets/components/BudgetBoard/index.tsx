@@ -69,7 +69,11 @@ export default function BudgetBoard() {
 
   return (
     <>
-      <Card>
+      <Card
+        tone="feature"
+        title="이번 달 예산"
+        description="분류마다 쓸 금액을 정해 두면 남은 예산이 표시됩니다."
+      >
         <div className={styles.budgetboard__head}>
           <div className={styles.budgetboard__month}>
             <Button
@@ -103,8 +107,9 @@ export default function BudgetBoard() {
               variant="secondary"
               isLoading={copy.isPending}
               onClick={() => copy.mutate()}
+              title="지난달 금액을 이번 달로 복사합니다"
             >
-              전월 예산 가져오기
+              지난 달과 똑같이
             </Button>
             <Button
               size="sm"
@@ -149,10 +154,10 @@ export default function BudgetBoard() {
       {isPending ? (
         <Skeleton height={320} />
       ) : (
-        <Card title="대분류별 예산">
-          <p className={styles.budgetboard__hint}>
-            비워 두면 &lsquo;예산 없음&rsquo;이고, 0원으로 두면 한 푼도 쓰지 않기로 한 것입니다. 소진율은 예산이 있을 때만 나옵니다.
-          </p>
+        <Card
+          title="분류별 예산"
+          description="오른쪽 칸에 금액을 입력하고 저장하세요. 비워 두면 예산을 정하지 않은 상태이고, 0원으로 두면 한 푼도 쓰지 않겠다는 뜻입니다."
+        >
 
           <ul className={styles.budgetboard__list}>
             {parents.map((row) => {
@@ -196,7 +201,7 @@ export default function BudgetBoard() {
                   <div className={styles.budgetboard__input}>
                     <MoneyInput
                       value={amount}
-                      placeholder="예산 없음"
+                      placeholder="예산 적기"
                       onChange={(next) => setDrafts((previous) => ({ ...previous, [row.categoryId]: next }))}
                     />
                   </div>

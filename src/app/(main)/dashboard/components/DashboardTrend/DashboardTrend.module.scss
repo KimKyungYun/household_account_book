@@ -1,0 +1,25 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.dashboardtrend {
+  &__keys {
+    display: flex;
+    gap: s.$gap-5;
+    margin-bottom: s.$gap-3;
+  }
+
+  &__key {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$gap-2;
+    color: var(--text-secondary);
+
+    @include t.label-small;
+  }
+
+  &__swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+  }
+}

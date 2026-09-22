@@ -15,10 +15,13 @@ export default function AccountSection() {
 
   return (
     <>
-      <Card title="계정">
+      <Card
+        title="계정"
+        description=""
+      >
         <div className={styles.accountsection}>
           <p className={styles.accountsection__note}>
-            로그아웃해도 기록은 그대로 남습니다. 같은 이메일로 다시 들어오면 이어서 씁니다.
+            기록은 그대로 남습니다.
           </p>
           <Button
             variant="secondary"
@@ -40,7 +43,7 @@ export default function AccountSection() {
           setIsSigningOut(true);
           void signOut({ callbackUrl: PATH.LOGIN });
         }}
-        title="로그아웃할까요?"
+        title="로그아웃"
         confirmLabel="로그아웃"
         isLoading={isSigningOut}
       />

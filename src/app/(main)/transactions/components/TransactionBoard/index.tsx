@@ -9,6 +9,7 @@ import Card from '@/components/common/Card';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
+import FormField from '@/components/common/FormField';
 import Input from '@/components/common/Input';
 import Modal from '@/components/common/Modal';
 import Pagination from '@/components/common/Pagination';
@@ -27,10 +28,11 @@ import type { TransactionListItemDto } from '@/service/transaction/type';
 import styles from './TransactionBoard.module.scss';
 
 const TYPE_FILTERS = [
-  { value: '', label: '수입·지출' },
-  { value: 'EXPENSE', label: '지출만' },
-  { value: 'INCOME', label: '수입만' },
-  { value: 'TRANSFER', label: '이체만' },
+  { value: '', label: '쓴 돈·번 돈' },
+  { value: 'EXPENSE', label: '쓴 돈만' },
+  { value: 'INCOME', label: '번 돈만' },
+  // 이체는 기본 목록에서 빠져 있다 — 계좌 이동·카드대금 납부는 쓴 돈이 아니다.
+  { value: 'TRANSFER', label: '옮긴 돈만' },
 ];
 
 const PAGE_SIZE = 30;
@@ -86,7 +88,11 @@ export default function TransactionBoard() {
 
   return (
     <>
-      <Card>
+      <Card
+        tone="feature"
+        title="이번 달 합계"
+        description="현재 페이지가 아니라 아래 조건에 맞는 거래 전체를 더한 금액입니다."
+      >
         <div className={styles.transactionboard__filters}>
           <div className={styles.transactionboard__month}>
             <Button
@@ -117,40 +123,54 @@ export default function TransactionBoard() {
           </div>
 
           <div className={styles.transactionboard__controls}>
-            <Select
-              options={TYPE_FILTERS}
-              value={typeFilter}
-              aria-label="거래 종류"
-              onChange={(event) => {
-                setTypeFilter(event.target.value);
-                setPage(1);
-              }}
-            />
-            <Select
-              options={[
-                { value: '', label: '두 사람 모두' },
-                ...(me.data?.members ?? []).map((member) => ({ value: member.id, label: member.displayName })),
-              ]}
-              value={memberFilter}
-              aria-label="결제한 사람"
-              onChange={(event) => {
-                setMemberFilter(event.target.value);
-                setPage(1);
-              }}
-            />
-            <Input
-              placeholder="가맹점·메모 검색"
-              leading={<Icon
-                name="search"
-                size={16}
-              />}
-              value={keyword}
-              aria-label="검색"
-              onChange={(event) => {
-                setKeyword(event.target.value);
-                setPage(1);
-              }}
-            />
+            <FormField label="종류">
+              {({ id }) => (
+                <Select
+                  id={id}
+                  options={TYPE_FILTERS}
+                  value={typeFilter}
+                  onChange={(event) => {
+                    setTypeFilter(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              )}
+            </FormField>
+
+            <FormField label="결제한 사람">
+              {({ id }) => (
+                <Select
+                  id={id}
+                  options={[
+                    { value: '', label: '두 사람 모두' },
+                    ...(me.data?.members ?? []).map((member) => ({ value: member.id, label: member.displayName })),
+                  ]}
+                  value={memberFilter}
+                  onChange={(event) => {
+                    setMemberFilter(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              )}
+            </FormField>
+
+            <FormField label="검색">
+              {({ id }) => (
+                <Input
+                  id={id}
+                  placeholder="이마트, 스타벅스…"
+                  leading={<Icon
+                    name="search"
+                    size={16}
+                  />}
+                  value={keyword}
+                  onChange={(event) => {
+                    setKeyword(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              )}
+            </FormField>
           </div>
         </div>
 
@@ -194,7 +214,8 @@ export default function TransactionBoard() {
 
       <Card
         isFlush
-        title="내역"
+        title="거래 내역"
+        description="줄을 누르면 수정하거나 삭제할 수 있습니다. 줄 왼쪽의 색은 결제한 사람을 나타냅니다."
         action={
           <>
             <Button
@@ -237,8 +258,8 @@ export default function TransactionBoard() {
           </div>
         ) : (data?.items.length ?? 0) === 0 ? (
           <EmptyState
-            title="이 달에는 내역이 없습니다"
-            description="첫 거래를 등록하면 대시보드와 분담 저울이 함께 채워집니다."
+            title="이번 달 거래가 없습니다"
+            description="등록한 거래는 대시보드와 나누기 결과에 바로 반영됩니다."
             action={
               <Button
                 size="sm"
@@ -347,8 +368,8 @@ export default function TransactionBoard() {
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
-        title="이 거래를 삭제할까요?"
-        description="되돌릴 수 없습니다. 이 달 합계와 분담 정산이 함께 바뀝니다."
+        title="거래 삭제"
+        description="되돌릴 수 없습니다. 이번 달 합계와 나누기 결과가 바뀝니다."
         confirmLabel="삭제"
         isDestructive
         isLoading={removal.isPending}

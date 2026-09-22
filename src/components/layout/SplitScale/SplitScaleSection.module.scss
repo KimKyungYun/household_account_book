@@ -1,12 +1,22 @@
 @use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
 
 .splitscalesection {
   display: block;
   padding: s.$gap-3;
-  border-radius: s.$shape-md;
+  border-radius: s.$shape-lg;
 
   &:focus-visible {
     box-shadow: var(--focus-ring);
+  }
+
+  &__title {
+    display: block;
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+
+    font-size: 11px;
   }
 
   &__skeleton {

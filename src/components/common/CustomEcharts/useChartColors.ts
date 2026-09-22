@@ -24,6 +24,7 @@ export function useChartColors(): ChartColors {
     return {
       textPrimary: read('--text-primary', fallback.textPrimary),
       textSecondary: read('--text-secondary', fallback.textSecondary),
+      textTertiary: read('--text-tertiary', fallback.textTertiary),
       axis: read('--chart-axis', fallback.axis),
       grid: read('--chart-grid', fallback.grid),
       surface: read('--surface-card', fallback.surface),
@@ -31,6 +32,8 @@ export function useChartColors(): ChartColors {
       income: read('--amount-income', fallback.income),
       expense: read('--amount-expense', fallback.expense),
       tooltipBg: read('--surface-card', fallback.tooltipBg),
+      memberA: read('--member-a', fallback.memberA),
+      memberB: read('--member-b', fallback.memberB),
     };
   }, [theme]);
 }

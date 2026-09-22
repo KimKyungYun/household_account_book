@@ -1,19 +1,29 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/utils/glass" as glass;
 @use "styles/utils/media" as media;
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  background-color: var(--surface-card);
-  border: 1px solid var(--card-border);
   border-radius: var(--card-radius);
+  box-shadow: var(--shadow-2);
+
+  @include glass.panel;
+
+  // 화면에 들어올 때 한 번만 살짝 떠오른다. 되풀이되는 연출은 금방 성가시다.
+  animation: card-in 0.32s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
 
   &__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: s.$gap-4;
+    gap: s.$gap-5;
     padding: s.$gap-5 s.$gap-5 0;
 
     @include media.tablet-up {
@@ -21,14 +31,35 @@
     }
   }
 
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
   &__title {
     color: var(--text-primary);
 
-    @include t.label-medium;
+    @include t.heading-small;
+
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+
+  // 이 카드가 무엇을 하는지 말하는 자리. 작지만 항상 보인다.
+  &__description {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+
+    font-size: 13px;
+    line-height: 1.55;
   }
 
   &__action {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     gap: s.$gap-3;
   }
@@ -41,9 +72,35 @@
     }
   }
 
+  &--feature {
+    overflow: hidden;
+    border-radius: var(--card-radius-feature);
+    box-shadow: var(--shadow-2);
+
+    // 두 사람의 색이 만나는 선. 이 카드가 화면의 주인공이라는 표시다.
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 3px;
+      background: linear-gradient(90deg, var(--member-a) 0%, var(--member-b) 100%);
+    }
+
+    .card__header {
+      padding-top: s.$gap-6;
+    }
+  }
+
   &--flush {
     .card__body {
       padding: 0;
+    }
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
     }
   }
 }

@@ -6,7 +6,7 @@ import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import CustomEcharts from '@/components/common/CustomEcharts';
-import { useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
+import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
 import EmptyState from '@/components/common/EmptyState';
 import FormField from '@/components/common/FormField';
 import Icon from '@/components/common/Icon';
@@ -30,8 +30,8 @@ const RANGE_OPTIONS = [
 ] as const;
 
 const LEVEL_OPTIONS = [
-  { value: '1', label: '대분류' },
-  { value: '2', label: '소분류' },
+  { value: '1', label: '큰 분류' },
+  { value: '2', label: '세부 분류' },
 ] as const;
 
 /** 해당 월의 마지막 날. 엑셀 기간 파라미터가 반개구간이 아니라 닫힌 구간이라 필요하다. */
@@ -72,53 +72,33 @@ export default function ReportPanel() {
 
   const trendOption: EChartsOption = {
     ...base,
-    legend: {
-      data: ['수입', '지출', '순액'],
-      top: 0,
-      right: 0,
-      textStyle: { color: colors.textSecondary, fontSize: 11 },
-      itemWidth: 10,
-      itemHeight: 10,
-    },
-    xAxis: {
-      type: 'category',
-      data: points.map((point) => point.yearMonth.replace('-', '.')),
-      axisLine: { lineStyle: { color: colors.axis } },
-      axisTick: { show: false },
-      axisLabel: { color: colors.textSecondary, fontSize: 10, rotate: months > 12 ? 45 : 0 },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: colors.grid } },
-      axisLabel: {
-        color: colors.textSecondary,
-        fontSize: 11,
-        formatter: (value: number) => (value === 0 ? '0' : `${Math.round(value / 10_000)}만`),
-      },
-    },
+    xAxis: quietCategoryAxis(colors, points.map((point) => point.yearMonth.replace('-', '.')), months > 12 ? 45 : 0),
+    yAxis: quietValueAxis(colors),
     series: [
       {
         name: '수입',
         type: 'bar',
         data: points.map((point) => point.income),
-        itemStyle: { color: colors.income, borderRadius: [3, 3, 0, 0] },
-        barMaxWidth: 14,
+        itemStyle: { color: colors.income, borderRadius: [4, 4, 0, 0] },
+        barMaxWidth: 16,
+        barGap: '18%',
       },
       {
         name: '지출',
         type: 'bar',
         data: points.map((point) => point.expense),
-        itemStyle: { color: colors.expense, borderRadius: [3, 3, 0, 0] },
-        barMaxWidth: 14,
+        itemStyle: { color: colors.expense, borderRadius: [4, 4, 0, 0] },
+        barMaxWidth: 16,
       },
       {
-        name: '순액',
+        name: '차이',
         type: 'line',
         data: points.map((point) => point.net),
-        smooth: true,
+        smooth: 0.35,
+        symbol: 'circle',
         symbolSize: 5,
-        lineStyle: { color: colors.textSecondary, width: 1.6 },
-        itemStyle: { color: colors.textSecondary },
+        lineStyle: { color: colors.textTertiary, width: 1.5 },
+        itemStyle: { color: colors.surface, borderColor: colors.textTertiary, borderWidth: 1.5 },
         // 거래가 없는 달이 구멍으로 끊기지 않게 잇는다.
         connectNulls: true,
       },
@@ -126,7 +106,7 @@ export default function ReportPanel() {
   };
 
   const categoryColumns: Column<CategoryShareDto>[] = [
-    { key: 'name', header: level === 1 ? '대분류' : '소분류', render: (row) => row.name },
+    { key: 'name', header: level === 1 ? '큰 분류' : '세부 분류', render: (row) => row.name },
     {
       key: 'amount',
       header: '지출',
@@ -170,7 +150,7 @@ export default function ReportPanel() {
   const memberColumns: Column<MemberStatDto>[] = [
     {
       key: 'member',
-      header: '구성원',
+      header: '사람',
       render: (row) => (
         <span className={styles.reportpanel__member}>
           <span
@@ -196,7 +176,7 @@ export default function ReportPanel() {
     },
     {
       key: 'shared',
-      header: '공동지출',
+      header: '같이 쓴 돈',
       align: 'right',
       render: (row) => (
         <Amount
@@ -208,7 +188,7 @@ export default function ReportPanel() {
     },
     {
       key: 'personal',
-      header: '개인지출',
+      header: '각자 쓴 돈',
       align: 'right',
       render: (row) => (
         <Amount
@@ -221,7 +201,10 @@ export default function ReportPanel() {
 
   return (
     <>
-      <Card title="기간 추이">
+      <Card
+        title="기간별 수입·지출"
+        description="막대는 수입(초록)과 지출(빨강)이고, 선은 수입에서 지출을 뺀 금액입니다. 선이 0 아래로 내려간 달은 번 금액보다 많이 쓴 달입니다."
+      >
         <div className={styles.reportpanel__controls}>
           <SegmentedControl
             name="report-range"
@@ -242,14 +225,15 @@ export default function ReportPanel() {
           />
         ) : (
           <EmptyState
-            title="이 기간에는 기록이 없습니다"
-            description="거래를 등록하면 추이가 그려집니다."
+            title="이 기간 기록이 없습니다"
+            description="거래를 등록하면 차트가 표시됩니다."
           />
         )}
       </Card>
 
       <Card
-        title="카테고리별"
+        title="분류별 지출"
+        description="선택한 달의 분류별 지출과 지난달 대비 증감을 보여줍니다."
         action={
           <div className={styles.reportpanel__inline}>
             <Input
@@ -282,7 +266,10 @@ export default function ReportPanel() {
         )}
       </Card>
 
-      <Card title="구성원별">
+      <Card
+        title="사람별 수입·지출"
+        description="각자 쓴 돈은 나누지 않습니다."
+      >
         {memberStats.isPending ? (
           <Skeleton height={140} />
         ) : (
@@ -295,15 +282,18 @@ export default function ReportPanel() {
         )}
       </Card>
 
-      <Card title="엑셀로 내보내기">
+      <Card
+        title="엑셀로 내보내기"
+        description="요약, 전체 내역, 분류별 표 세 개의 시트로 저장됩니다."
+      >
         <div className={styles.reportpanel__export}>
           <p className={styles.reportpanel__note}>
-            요약·상세·카테고리피벗 세 시트가 기본입니다. 상세 시트는 자동 필터가 걸려 있고 합계가 필터에 따라 바뀝니다.
+            요약·상세·분류별 표 세 시트가 기본입니다. 상세 시트는 자동 필터가 걸려 있고 합계가 필터에 따라 바뀝니다.
           </p>
 
           <FormField
-            label="정산 시트도 넣기"
-            hint="월별 분담률·분담액·실제 납부·차액을 한 시트로 담습니다."
+            label="나눠 낸 내역도 넣기"
+            hint="달마다 각자 얼마를 냈고 얼마를 주고받아야 하는지 한 시트에 정리합니다."
           >
             {() => (
               <SegmentedControl
@@ -314,7 +304,7 @@ export default function ReportPanel() {
                 ]}
                 value={withSettlement ? 'yes' : 'no'}
                 onChange={(value) => setWithSettlement(value === 'yes')}
-                ariaLabel="정산 시트 포함 여부"
+                ariaLabel="나누기 내역 포함 여부"
               />
             )}
           </FormField>

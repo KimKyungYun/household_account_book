@@ -15,7 +15,10 @@ export default function ThemeSection() {
   const setTheme = useThemeStore((state) => state.setTheme);
 
   return (
-    <Card title="화면">
+    <Card
+      title="테마"
+      description="이 기기에만 저장됩니다."
+    >
       <SegmentedControl
         name="theme"
         options={THEME_OPTIONS}

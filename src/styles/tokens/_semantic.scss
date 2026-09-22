@@ -22,14 +22,21 @@
   // ── Surface ──────────────────────────────────────────────────
   // page 는 앱 바탕, default/card 는 그 위에 얹히는 면, subtle 은 면 안쪽의 옅은 칸.
   // 세 값이 한 색으로 겹치면 카드 경계가 사라지므로 테마마다 단계가 유지되는지 확인한다.
-  --surface-page: #{p.$gray-5};
-  --surface-default: #{p.$gray-0};
-  --surface-card: #{p.$gray-0};
-  --surface-subtle: #{p.$gray-5};
-  --surface-muted: #{p.$gray-10};
-  --surface-hover: #{p.$gray-15};
+  --surface-page: #e8edf4;
+
+  /*
+    유리 표면. 배경이 비쳐야 유리로 읽히므로 반투명 + backdrop-filter 를 같이 쓴다.
+    불투명 면이 필요한 곳(드롭다운 등)만 --surface-solid 를 쓴다.
+  */
+  --surface-card: rgb(255, 255, 255, 0.58);
+  --surface-default: rgb(255, 255, 255, 0.72);
+  --surface-solid: #{p.$gray-0};
+  --surface-subtle: rgb(255, 255, 255, 0.42);
+  --surface-muted: rgb(15, 23, 42, 0.05);
+  --surface-hover: rgb(15, 23, 42, 0.05);
   --surface-inverse: #{p.$gray-90};
-  --surface-overlay: rgb(22, 26, 34, 0.48);
+  --surface-overlay: rgb(22, 26, 34, 0.32);
+  --glass-blur: 20px;
 
   // ── Text ─────────────────────────────────────────────────────
   --text-primary: #{p.$gray-90};
@@ -40,9 +47,10 @@
   --text-link: #{p.$blue-60};
 
   // ── Border ───────────────────────────────────────────────────
-  --border-default: #{p.$gray-20};
-  --border-strong: #{p.$gray-30};
-  --border-subtle: #{p.$gray-10};
+  // 유리의 가장자리를 짚는 실선 한 겹. 이것 말고 칸을 가르는 선은 두지 않는다.
+  --border-default: rgb(255, 255, 255, 0.7);
+  --border-strong: rgb(15, 23, 42, 0.12);
+  --border-subtle: rgb(15, 23, 42, 0.06);
   --border-focus: #{p.$blue-50};
 
   // ── Brand ────────────────────────────────────────────────────
@@ -82,9 +90,17 @@
   --budget-fill-warning: #{p.$amber-50};
   --budget-fill-over: #{p.$red-50};
 
-  // ── 구성원 기본색 (DB colorHex 가 없을 때의 폴백) ──────────────
-  --member-a: #{p.$blue-50};
+  // ── 두 사람의 색 ──────────────────────────────────────────────
+  // 이 앱의 시각 축이다. 브랜드(버튼) 색과 일부러 구분해 뒀다 —
+  // 같으면 "파란 버튼 = 남편"으로 읽힌다.
+  --member-a: #{p.$blue-45};
   --member-b: #{p.$amber-60};
+  --member-a-soft: rgb(59, 130, 246, 0.12);
+  --member-b-soft: rgb(217, 119, 6, 0.12);
+
+  // 화면 바탕에 두 색이 아주 옅게 번지는 자리. body 가 고정 배경으로 깐다.
+  --bg-wash-a: rgb(59, 130, 246, 0.3);
+  --bg-wash-b: rgb(245, 158, 11, 0.22);
 
   // ── 차트 (echarts 는 CSS 변수를 못 읽어 useChartColors 가 여기서 읽어 간다) ──
   --chart-axis: #{p.$gray-40};
@@ -93,23 +109,22 @@
   // ── 상호작용 ──────────────────────────────────────────────────
   --hover-overlay: rgb(15, 76, 159, 0.04);
   --active-overlay: rgb(15, 76, 159, 0.08);
-  --focus-ring: 0 0 0 3px rgb(31, 111, 235, 0.24);
+  --focus-ring: 0 0 0 3px rgb(31, 111, 235, 0.32);
   --focus-ring-error: 0 0 0 3px rgb(224, 51, 27, 0.24);
 
   // ── 레이아웃 ──────────────────────────────────────────────────
-  --card-radius: #{s.$shape-lg};
-  --card-border: #{p.$gray-20};
-  --header-bg: rgb(255, 255, 255, 0.88);
-  --header-border: #{p.$gray-10};
-  --header-shadow: 0 1px 2px rgb(15, 23, 42, 0.06);
-  --tabbar-bg: rgb(255, 255, 255, 0.96);
-  --tabbar-border: #{p.$gray-10};
+  --card-radius: #{s.$shape-2xl};
+  --card-radius-feature: #{s.$shape-4xl};
+  // 유리의 위쪽 가장자리를 짚는 밝은 한 겹. 칸을 가르는 선이 아니라 면의 경계다.
+  --card-border: rgb(255, 255, 255, 0.55);
+  --header-bg: rgb(255, 255, 255, 0.4);
+  --tabbar-bg: rgb(255, 255, 255, 0.6);
 
   // ── Shadow ───────────────────────────────────────────────────
-  --shadow-1: 0 1px 3px rgb(15, 23, 42, 0.08), 0 1px 2px rgb(15, 23, 42, 0.06);
-  --shadow-2: 0 4px 6px rgb(15, 23, 42, 0.07), 0 2px 4px rgb(15, 23, 42, 0.06);
-  --shadow-3: 0 10px 20px rgb(15, 23, 42, 0.1), 0 4px 8px rgb(15, 23, 42, 0.06);
-  --shadow-4: 0 20px 40px rgb(15, 23, 42, 0.14), 0 8px 16px rgb(15, 23, 42, 0.08);
+  --shadow-1: 0 2px 10px rgb(15, 23, 42, 0.05);
+  --shadow-2: 0 8px 24px rgb(15, 23, 42, 0.07);
+  --shadow-3: 0 16px 40px rgb(15, 23, 42, 0.09);
+  --shadow-4: 0 24px 60px rgb(15, 23, 42, 0.13);
 }
 
 [data-theme="dark"] {
@@ -118,14 +133,17 @@
   --font-app: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   // ── Surface ──────────────────────────────────────────────────
-  --surface-page: #{p.$navy-950};
-  --surface-default: #{p.$navy-850};
-  --surface-card: #{p.$navy-850};
-  --surface-subtle: #{p.$navy-800};
-  --surface-muted: #{p.$navy-700};
-  --surface-hover: #{p.$navy-700};
+  --surface-page: #0a0d13;
+
+  --surface-card: rgb(32, 38, 50, 0.55);
+  --surface-default: rgb(32, 38, 50, 0.7);
+  --surface-solid: #{p.$navy-850};
+  --surface-subtle: rgb(255, 255, 255, 0.04);
+  --surface-muted: rgb(255, 255, 255, 0.06);
+  --surface-hover: rgb(255, 255, 255, 0.07);
   --surface-inverse: #{p.$steel-5};
-  --surface-overlay: rgb(13, 15, 20, 0.72);
+  --surface-overlay: rgb(5, 7, 11, 0.6);
+  --glass-blur: 20px;
 
   // ── Text ─────────────────────────────────────────────────────
   --text-primary: #{p.$steel-5};
@@ -136,9 +154,9 @@
   --text-link: #{p.$dark-cyan-40};
 
   // ── Border ───────────────────────────────────────────────────
-  --border-default: #{p.$steel-70};
-  --border-strong: #{p.$steel-60};
-  --border-subtle: #{p.$steel-80};
+  --border-default: rgb(255, 255, 255, 0.1);
+  --border-strong: rgb(255, 255, 255, 0.16);
+  --border-subtle: rgb(255, 255, 255, 0.06);
   --border-focus: #{p.$dark-blue-40};
 
   // ── Brand ────────────────────────────────────────────────────
@@ -176,9 +194,14 @@
   --budget-fill-warning: #{p.$dark-yellow-50};
   --budget-fill-over: #{p.$dark-red-50};
 
-  // ── 구성원 기본색 ─────────────────────────────────────────────
-  --member-a: #{p.$dark-blue-50};
+  // ── 두 사람의 색 ──────────────────────────────────────────────
+  --member-a: #{p.$dark-blue-40};
   --member-b: #{p.$dark-amber-50};
+  --member-a-soft: rgb(116, 163, 222, 0.16);
+  --member-b-soft: rgb(255, 176, 32, 0.14);
+
+  --bg-wash-a: rgb(80, 130, 200, 0.28);
+  --bg-wash-b: rgb(200, 140, 40, 0.18);
 
   // ── 차트 ─────────────────────────────────────────────────────
   --chart-axis: #{p.$steel-40};
@@ -187,21 +210,19 @@
   // ── 상호작용 ──────────────────────────────────────────────────
   --hover-overlay: rgb(85, 144, 216, 0.08);
   --active-overlay: rgb(85, 144, 216, 0.14);
-  --focus-ring: 0 0 0 3px rgb(116, 163, 222, 0.3);
+  --focus-ring: 0 0 0 3px rgb(116, 163, 222, 0.4);
   --focus-ring-error: 0 0 0 3px rgb(255, 77, 109, 0.3);
 
   // ── 레이아웃 ──────────────────────────────────────────────────
-  --card-radius: #{s.$shape-lg};
-  --card-border: #{p.$steel-80};
-  --header-bg: rgb(18, 20, 27, 0.88);
-  --header-border: #{p.$steel-80};
-  --header-shadow: 0 1px 2px rgb(0, 0, 0, 0.5);
-  --tabbar-bg: rgb(24, 27, 35, 0.96);
-  --tabbar-border: #{p.$steel-80};
+  --card-radius: #{s.$shape-2xl};
+  --card-radius-feature: #{s.$shape-4xl};
+  --card-border: rgb(255, 255, 255, 0.08);
+  --header-bg: rgb(20, 24, 33, 0.4);
+  --tabbar-bg: rgb(20, 24, 33, 0.64);
 
   // ── Shadow ───────────────────────────────────────────────────
-  --shadow-1: 0 1px 2px rgb(0, 0, 0, 0.5);
-  --shadow-2: 0 2px 6px rgb(0, 0, 0, 0.55);
-  --shadow-3: 0 8px 16px rgb(0, 0, 0, 0.6);
-  --shadow-4: 0 16px 32px rgb(0, 0, 0, 0.65);
+  --shadow-1: 0 2px 10px rgb(0, 0, 0, 0.35);
+  --shadow-2: 0 8px 24px rgb(0, 0, 0, 0.42);
+  --shadow-3: 0 16px 40px rgb(0, 0, 0, 0.5);
+  --shadow-4: 0 24px 60px rgb(0, 0, 0, 0.58);
 }

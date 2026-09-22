@@ -11,8 +11,7 @@
   height: var(--header-height);
   padding: 0 s.$gap-5;
   background-color: var(--header-bg);
-  border-bottom: 1px solid var(--header-border);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
 
   @include media.desktop-up {
     padding: 0 s.$gap-8;

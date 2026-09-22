@@ -1,0 +1,36 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.dashboardupcoming {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-4;
+
+  &__item {
+    display: grid;
+    grid-template-columns: 54px 1fr auto;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__when {
+    padding: 3px 0;
+    color: var(--text-secondary);
+    text-align: center;
+    background-color: var(--surface-muted);
+    border-radius: s.$shape-full;
+
+    @include t.label-small;
+
+    font-size: 11px;
+  }
+
+  &__name {
+    overflow: hidden;
+    color: var(--text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include t.body-small;
+  }
+}

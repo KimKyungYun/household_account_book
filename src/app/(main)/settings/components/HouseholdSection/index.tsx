@@ -21,7 +21,7 @@ export default function HouseholdSection() {
   const rotation = useMutation({
     mutationFn: rotateInviteCode,
     onSuccess: () => {
-      toast.success('새 초대 코드를 발급했습니다. 이전 코드는 더 쓸 수 없습니다.');
+      toast.success('새 초대 코드를 발급했습니다.');
       setIsRotating(false);
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
     },
@@ -35,18 +35,21 @@ export default function HouseholdSection() {
 
   return (
     <>
-      <Card title="가구">
+      <Card
+        title="우리 집"
+        description="최대 두 명까지 함께 쓸 수 있습니다."
+      >
         <dl className={styles.householdsection}>
           <div className={styles.householdsection__row}>
             <dt>이름</dt>
             <dd>{me.data?.household?.name ?? '-'}</dd>
           </div>
           <div className={styles.householdsection__row}>
-            <dt>구성원</dt>
+            <dt>사람</dt>
             <dd>{me.data?.members.map((member) => member.displayName).join(', ') || '-'}</dd>
           </div>
           <div className={styles.householdsection__row}>
-            <dt>내 이메일</dt>
+            <dt>이메일</dt>
             <dd>{me.data?.user.email ?? '-'}</dd>
           </div>
         </dl>
@@ -54,7 +57,7 @@ export default function HouseholdSection() {
         {isAlone && (
           <div className={styles.householdsection__invite}>
             <p className={styles.householdsection__invitelead}>
-              배우자에게 이 코드를 전해 주세요. 가입 후 &lsquo;초대 코드로 합류&rsquo;에서 붙여넣으면 같은 장부를 씁니다.
+              배우자가 가입 후 &lsquo;초대 코드로 합류&rsquo;에 붙여넣으면 같은 장부를 씁니다.
             </p>
             <code className={styles.householdsection__code}>{inviteCode}</code>
             <div className={styles.householdsection__inviteactions}>
@@ -86,8 +89,8 @@ export default function HouseholdSection() {
         isOpen={isRotating}
         onClose={() => setIsRotating(false)}
         onConfirm={() => rotation.mutate()}
-        title="초대 코드를 새로 발급할까요?"
-        description="이전 코드로는 합류할 수 없게 됩니다."
+        title="초대 코드 재발급"
+        description="이전 코드는 사용할 수 없게 됩니다."
         confirmLabel="새로 발급"
         isLoading={rotation.isPending}
       />

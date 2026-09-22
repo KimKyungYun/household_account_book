@@ -25,7 +25,8 @@
 
   &__controls {
     display: grid;
-    gap: s.$gap-3;
+    gap: s.$gap-4;
+    align-items: end;
 
     @include media.tablet-up {
       grid-template-columns: 1fr 1fr 2fr;
@@ -38,7 +39,6 @@
     gap: s.$gap-4;
     margin: s.$gap-5 0 0;
     padding-top: s.$gap-5;
-    border-top: 1px solid var(--border-subtle);
 
     @include media.tablet-up {
       grid-template-columns: repeat(4, 1fr);
@@ -79,17 +79,12 @@
     flex-direction: column;
 
     > li {
-      border-bottom: 1px solid var(--border-subtle);
-
-      &:last-of-type {
-        border-bottom: 0;
-      }
+      padding: 0 s.$gap-2;
     }
   }
 
   &__pagination {
     padding: s.$gap-5;
-    border-top: 1px solid var(--border-subtle);
   }
 
   &__actions {

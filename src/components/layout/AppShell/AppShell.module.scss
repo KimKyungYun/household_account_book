@@ -9,7 +9,9 @@
   grid-template-rows: 1fr auto;
   height: 100dvh;
   overflow: hidden;
-  background-color: var(--surface-page);
+
+  // 바탕의 두 색 워시가 보이도록 셸은 투명하게 둔다.
+  background-color: transparent;
 
   @include media.tablet-up {
     grid-template: "aside main" 1fr / 76px 1fr;
@@ -40,8 +42,6 @@
   &__strip {
     flex-shrink: 0;
     padding: s.$gap-2 s.$gap-4;
-    background-color: var(--surface-default);
-    border-bottom: 1px solid var(--border-subtle);
 
     @include media.tablet-up {
       display: none;

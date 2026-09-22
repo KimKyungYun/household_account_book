@@ -1,23 +1,17 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
-@use "styles/utils/amount" as a;
 @use "styles/utils/media" as media;
 
 .splitscale {
   display: flex;
   flex-direction: column;
-  gap: s.$gap-3;
-
-  &__caption {
-    color: var(--text-tertiary);
-
-    @include t.label-small;
-  }
+  gap: s.$gap-4;
 
   &__bar {
     position: relative;
     display: flex;
     height: 10px;
+    margin-top: s.$gap-4;
     overflow: visible;
     background-color: var(--budget-track);
     border-radius: s.$shape-full;
@@ -48,26 +42,30 @@
     border-radius: s.$shape-full;
   }
 
-  // 합의한 비율 눈금 — 띠를 위아래로 넘겨 짚어 실제 비율과 대조된다.
+  // 약속한 비율 — 점선으로 띠를 위아래로 넘겨 짚는다.
+  // border 로 그리면 실선 사이 간격을 못 잡아 그라디언트로 직접 찍는다.
   &__tick {
     position: absolute;
-    top: -4px;
-    bottom: -4px;
+    top: -5px;
+    bottom: -5px;
     width: 2px;
-    background-color: var(--text-primary);
-    border-radius: 1px;
+    background-image: linear-gradient(
+      var(--primary) 0 3px,
+      transparent 3px 6px
+    );
+    background-size: 2px 6px;
     transform: translateX(-1px);
   }
 
   &__ticklabel {
     position: absolute;
-    top: -16px;
+    top: -17px;
     left: 50%;
-    color: var(--text-tertiary);
+    color: var(--primary);
     white-space: nowrap;
     transform: translateX(-50%);
 
-    @include a.amount-base;
+    @include t.label-small;
 
     font-size: 10px;
   }
@@ -76,7 +74,6 @@
     display: flex;
     flex-direction: column;
     gap: s.$gap-2;
-    margin-top: s.$gap-2;
   }
 
   &__member {
@@ -88,7 +85,7 @@
   &__dot {
     width: 8px;
     height: 8px;
-    border-radius: s.$shape-full;
+    border-radius: 3px;
   }
 
   &__name {
@@ -102,29 +99,16 @@
     color: var(--text-primary);
   }
 
-  &__verdict {
-    color: var(--text-primary);
-
-    @include t.label-small;
-
-    &--settled {
-      color: var(--text-tertiary);
-    }
-  }
-
-  // 모바일 헤더 아래 들어가는 한 줄 스트립.
+  // 모바일 헤더 아래 한 줄. 띠와 두 사람의 금액만 남긴다.
   &--strip {
     flex-direction: row;
     align-items: center;
     gap: s.$gap-4;
 
-    .splitscale__caption {
-      display: none;
-    }
-
     .splitscale__bar {
       flex: 1;
       height: 8px;
+      margin-top: 0;
     }
 
     .splitscale__ticklabel {
@@ -132,13 +116,13 @@
     }
 
     .splitscale__legend {
-      display: none;
+      flex-direction: row;
+      flex-shrink: 0;
+      gap: s.$gap-4;
     }
 
-    .splitscale__verdict {
-      flex-shrink: 0;
-
-      @include a.amount-small;
+    .splitscale__name {
+      display: none;
     }
   }
 }

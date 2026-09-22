@@ -9,6 +9,16 @@
   letter-spacing: -0.02em;
 }
 
+// 화면에 단 하나만 쓰는 크기. 그 달의 결론이 되는 숫자다.
+@mixin amount-hero {
+  @include amount-base;
+
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
 @mixin amount-display {
   @include amount-base;
 

@@ -52,7 +52,7 @@ export default function SignupForm() {
     >
       <FormField
         label="이름"
-        hint="가계부에 표시될 이름입니다."
+        hint="가계부에 표시됩니다."
         error={formState.errors.name?.message}
       >
         {({ id, describedBy }) => (

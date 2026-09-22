@@ -7,7 +7,7 @@ import styles from './Amount.module.scss';
 
 export type { AmountTone };
 
-export type AmountSize = 'display' | 'large' | 'medium' | 'small';
+export type AmountSize = 'hero' | 'display' | 'large' | 'medium' | 'small';
 
 interface AmountProps {
   /** 원 단위 정수. 음수는 환불·정정이다. */

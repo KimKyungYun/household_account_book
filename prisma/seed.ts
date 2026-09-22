@@ -49,12 +49,24 @@ async function seedCategories(householdId: string) {
           level: 1,
           kind: group.kind,
           name: parent.name,
+          colorHex: parent.colorHex,
           sortOrder: groupIndex,
           isSystem: true,
           defaultSplitMode: parent.defaultSplitMode ?? null,
         },
       });
       if (!existingParent) created += 1;
+
+      // 색을 뒤늦게 도입했다. 이미 있는 기본 카테고리는 비어 있을 때만 채운다 —
+      // 사용자가 직접 고른 색은 건드리지 않는다.
+      await prisma.category.updateMany({
+        where: { id: parentRow.id, colorHex: null, isSystem: true },
+        data: { colorHex: parent.colorHex },
+      });
+      await prisma.category.updateMany({
+        where: { householdId, parentId: parentRow.id, colorHex: null, isSystem: true },
+        data: { colorHex: parent.colorHex },
+      });
 
       for (const [childIndex, childName] of parent.children.entries()) {
         const existingChild = await prisma.category.findFirst({
@@ -69,6 +81,7 @@ async function seedCategories(householdId: string) {
             level: 2,
             kind: group.kind,
             name: childName,
+            colorHex: parent.colorHex,
             sortOrder: childIndex,
             isSystem: true,
             defaultSplitMode: parent.defaultSplitMode ?? null,

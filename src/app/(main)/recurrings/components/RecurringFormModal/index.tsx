@@ -20,7 +20,7 @@ import { getPaymentMethods } from '@/service/paymentMethod';
 import { createRecurringRule, updateRecurringRule } from '@/service/recurring';
 import { todayInSeoul } from '@/utils/ts/formatDate';
 import type { CategoryKind, TransactionType } from '@/generated/prisma/enums';
-import type { RecurringRuleDto } from '@/service/recurring/type';
+import type { RecurringRuleDto, RecurringSaveResult } from '@/service/recurring/type';
 import styles from './RecurringFormModal.module.scss';
 
 interface RecurringFormModalProps {
@@ -31,9 +31,9 @@ interface RecurringFormModalProps {
 }
 
 const TYPE_OPTIONS = [
-  { value: 'EXPENSE', label: '지출' },
-  { value: 'INCOME', label: '수입' },
-  { value: 'TRANSFER', label: '이체' },
+  { value: 'EXPENSE', label: '쓴 돈' },
+  { value: 'INCOME', label: '번 돈' },
+  { value: 'TRANSFER', label: '옮긴 돈' },
 ] as const;
 
 const FREQ_OPTIONS = [
@@ -43,8 +43,8 @@ const FREQ_OPTIONS = [
 ] as const;
 
 const SPLIT_OPTIONS = [
-  { value: 'SHARED', label: '공동' },
-  { value: 'PERSONAL', label: '개인' },
+  { value: 'SHARED', label: '같이 쓴 돈' },
+  { value: 'PERSONAL', label: '각자 쓴 돈' },
 ] as const;
 
 const WEEKDAY_OPTIONS = ['일', '월', '화', '수', '목', '금', '토'].map((label, index) => ({
@@ -159,8 +159,9 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
       return;
     }
 
+    let saved: RecurringSaveResult;
     try {
-      await mutateAsync();
+      saved = await mutateAsync();
     } catch (error) {
       if (isApiError(error)) {
         setErrors(error.fieldErrors ?? {});
@@ -173,7 +174,16 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
       return;
     }
 
-    toast.success(rule ? '수정했습니다.' : '추가했습니다.');
+    // 서버가 이번 달 회차를 거래로 만든다. 몇 건이 들어갔는지 말해 주지 않으면
+    // 사용자는 합계가 왜 늘었는지 모른다.
+    const { created, pending, upcoming } = saved.backfill;
+    const filled = created + pending + upcoming;
+    const detail = upcoming > 0 ? ` (아직 날짜가 오지 않은 ${upcoming}건 포함)` : '';
+    toast.success(
+      filled === 0
+        ? rule ? '수정했습니다.' : '추가했습니다.'
+        : `${rule ? '수정했습니다' : '추가했습니다'}. 이번 달 ${filled}건을 거래로 넣었습니다.${detail}`,
+    );
     onSaved();
   };
 
@@ -181,8 +191,8 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={rule ? '반복 거래 수정' : '반복 거래 추가'}
-      description="앱에 들어올 때 지난 회차가 자동으로 만들어집니다."
+      title={rule ? '반복되는 돈 수정' : '매달 반복되는 돈'}
+      description="월급, 월세처럼 매달 같은 날 들어오거나 나가는 금액입니다. 앱을 열면 지난 날짜의 거래가 자동으로 만들어집니다."
       footer={
         <div className={styles.recurringformmodal__actions}>
           <Button
@@ -248,15 +258,15 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
         </FormField>
 
         <FormField
-          label="금액 확정 여부"
-          hint="매달 금액이 바뀌는 항목(전기요금 등)은 '매번 다름'으로 두면 확인 대기로 만들어집니다."
+          label="금액"
+          hint="'매번 다름'을 고르면 만들어질 때 금액을 확인하라고 알려 줍니다."
         >
           {() => (
             <SegmentedControl
               name="recurring-fixed"
               options={[
-                { value: 'fixed', label: '항상 같음' },
-                { value: 'variable', label: '매번 다름' },
+                { value: 'fixed', label: '매달 같은 금액' },
+                { value: 'variable', label: '매달 다른 금액' },
               ]}
               value={form.amountIsFixed ? 'fixed' : 'variable'}
               onChange={(value) => patch({ amountIsFixed: value === 'fixed' })}
@@ -267,7 +277,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
 
         {form.type !== 'TRANSFER' && (
           <FormField
-            label="카테고리"
+            label="분류"
             error={errors.categoryId}
             isRequired
           >
@@ -327,7 +337,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
         </FormField>
 
         <FormField
-          label="결제할 사람"
+          label={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
         >
           {() => (
             <SegmentedControl
@@ -335,13 +345,13 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
               options={members.map((member) => ({ value: member.id, label: member.displayName }))}
               value={memberId}
               onChange={(value) => patch({ memberId: value })}
-              ariaLabel="결제할 사람"
+              ariaLabel={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
             />
           )}
         </FormField>
 
-        {form.type !== 'TRANSFER' && (
-          <FormField label="분담">
+        {form.type === 'EXPENSE' && (
+          <FormField label="나누기">
             {() => (
               <SegmentedControl
                 name="recurring-split"
@@ -371,7 +381,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
 
           <FormField
             label="종료일"
-            hint="비워 두면 계속됩니다."
+            hint="비우면 계속"
             error={errors.endDate}
           >
             {({ id }) => (
@@ -385,7 +395,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
           </FormField>
         </div>
 
-        <FormField label="결제수단">
+        <FormField label={form.type === 'INCOME' ? '입금 계좌' : '결제수단'}>
           {({ id }) => (
             <Select
               id={id}

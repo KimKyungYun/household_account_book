@@ -35,15 +35,27 @@ interface TransactionFormProps {
 }
 
 const TYPE_OPTIONS = [
-  { value: 'EXPENSE', label: '지출' },
-  { value: 'INCOME', label: '수입' },
-  { value: 'TRANSFER', label: '이체' },
+  { value: 'EXPENSE', label: '쓴 돈' },
+  { value: 'INCOME', label: '번 돈' },
+  { value: 'TRANSFER', label: '옮긴 돈' },
 ] as const;
 
 const SPLIT_OPTIONS = [
-  { value: 'SHARED', label: '공동' },
-  { value: 'PERSONAL', label: '개인' },
+  { value: 'SHARED', label: '같이 쓴 돈' },
+  { value: 'PERSONAL', label: '각자 쓴 돈' },
 ] as const;
+
+/**
+ * 종류에 따라 달라지는 말.
+ *
+ * 번 돈인데 '누가 냈나'를 묻거나 '같이 쓴 돈'을 고르라고 하면 앞뒤가 맞지 않는다.
+ * 나누기(분담)는 **쓴 돈에만** 쓰이므로 다른 종류에서는 아예 보여주지 않는다.
+ */
+const WORDING = {
+  EXPENSE: { member: '결제한 사람', place: '사용한 곳', placeHint: '예: 이마트', method: '결제수단' },
+  INCOME: { member: '받은 사람', place: '받은 곳', placeHint: '예: 회사 이름', method: '입금 계좌' },
+  TRANSFER: { member: '옮긴 사람', place: '옮긴 곳', placeHint: '예: 신한 적금', method: '이동 수단' },
+} as const;
 
 const DATE_QUICK = [
   { label: '오늘', offset: 0 },
@@ -188,13 +200,20 @@ export function TransactionForm({
       onSubmit={onSubmit}
       noValidate
     >
-      <SegmentedControl
-        name="transaction-type"
-        options={TYPE_OPTIONS}
-        value={form.type}
-        onChange={(value) => patch({ type: value as TransactionType, categoryId: null })}
-        ariaLabel="거래 종류"
-      />
+      <div className={styles.transactionform__type}>
+        <SegmentedControl
+          name="transaction-type"
+          options={TYPE_OPTIONS}
+          value={form.type}
+          onChange={(value) => patch({ type: value as TransactionType, categoryId: null })}
+          ariaLabel="거래 종류"
+        />
+        {form.type === 'TRANSFER' && (
+          <p className={styles.transactionform__typehint}>
+            계좌끼리 옮긴 금액, 카드값, 적금 납입액입니다. 쓴 것도 번 것도 아니므로 합계에서 제외됩니다.
+          </p>
+        )}
+      </div>
 
       <FormField
         label="금액"
@@ -215,7 +234,7 @@ export function TransactionForm({
 
       {form.type !== 'TRANSFER' && (
         <FormField
-          label="카테고리"
+          label="분류"
           error={fieldErrors.categoryId}
           isRequired
         >
@@ -274,25 +293,26 @@ export function TransactionForm({
         )}
       </FormField>
 
-      <FormField
-        label="결제한 사람"
-        hint="정산은 이 사람이 낸 것으로 계산합니다."
-      >
+      <FormField label={WORDING[form.type].member}>
         {() => (
           <SegmentedControl
             name="transaction-member"
             options={members.map((member) => ({ value: member.id, label: member.displayName }))}
             value={memberId}
             onChange={(value) => patch({ memberId: value })}
-            ariaLabel="결제한 사람"
+            ariaLabel={WORDING[form.type].member}
           />
         )}
       </FormField>
 
-      {form.type !== 'TRANSFER' && (
+      {form.type === 'EXPENSE' && (
         <FormField
-          label="분담"
-          hint="개인으로 두면 분담 정산에서 빠집니다."
+          label="나누기"
+          hint={
+            form.splitMode === 'SHARED'
+              ? '설정한 비율대로 나누어 계산합니다.'
+              : '용돈처럼 각자 쓴 돈이므로 나누지 않습니다.'
+          }
         >
           {() => (
             <SegmentedControl
@@ -306,7 +326,7 @@ export function TransactionForm({
         </FormField>
       )}
 
-      <FormField label="결제수단">
+      <FormField label={WORDING[form.type].method}>
         {({ id }) => (
           <Select
             id={id}
@@ -318,11 +338,14 @@ export function TransactionForm({
         )}
       </FormField>
 
-      <FormField label="가맹점">
+      <FormField
+        label={WORDING[form.type].place}
+        hint="거래 목록에 이 이름이 먼저 표시됩니다."
+      >
         {({ id }) => (
           <Input
             id={id}
-            placeholder="예: 이마트 성수점"
+            placeholder={WORDING[form.type].placeHint}
             value={form.merchant}
             onChange={(event) => patch({ merchant: event.target.value })}
           />
@@ -333,7 +356,7 @@ export function TransactionForm({
         {({ id }) => (
           <Input
             id={id}
-            placeholder="남길 말이 있으면"
+            placeholder="선택"
             value={form.memo}
             onChange={(event) => patch({ memo: event.target.value })}
           />

@@ -8,6 +8,7 @@
 export interface ChartColors {
   textPrimary: string;
   textSecondary: string;
+  textTertiary: string;
   axis: string;
   grid: string;
   surface: string;
@@ -15,49 +16,61 @@ export interface ChartColors {
   income: string;
   expense: string;
   tooltipBg: string;
+  /** 두 사람의 색 — 구성원을 가르는 자리에만 쓴다. */
+  memberA: string;
+  memberB: string;
 }
 
 export const CHART_COLORS_LIGHT: ChartColors = {
   textPrimary: '#161a22',
   textSecondary: '#4a5160',
-  axis: '#8d96a3',
+  textTertiary: '#6b7380',
+  axis: '#bcc2cc',
   grid: '#eceef2',
   surface: '#ffffff',
   border: '#d9dde4',
   income: '#15803d',
   expense: '#e0331b',
   tooltipBg: '#ffffff',
+  memberA: '#3b82f6',
+  memberB: '#d97706',
 };
 
 export const CHART_COLORS_DARK: ChartColors = {
   textPrimary: '#eef1f5',
   textSecondary: '#b0b6c0',
-  axis: '#676d78',
+  textTertiary: '#8b929c',
+  axis: '#3b444f',
   grid: '#20262e',
   surface: '#181b23',
   border: '#2c333c',
   income: '#00e08a',
   expense: '#ff4d6d',
   tooltipBg: '#1d212a',
+  memberA: '#74a3de',
+  memberB: '#ffb020',
 };
 
 /**
- * 카테고리 색 팔레트. 라이트·다크 양쪽에서 서로 구분되는 채도로 골랐다.
- * 카테고리에 colorHex 가 지정돼 있으면 그 값이 이기고, 없을 때만 여기서 순서대로 쓴다.
+ * 카테고리 색 팔레트.
+ *
+ * 두 사람의 색(파랑·호박)을 양 끝에 두고 그 사이를 건너가도록 골랐다 —
+ * 도넛이 앱의 나머지와 한 세트로 보이고, 이웃한 조각끼리도 구분된다.
+ * 카테고리에 colorHex 가 지정돼 있으면 그 값이 이기고, 없을 때만 순서대로 쓴다.
  */
 export const CATEGORY_PALETTE = [
-  '#1f6feb',
-  '#f59e0b',
-  '#16a34a',
-  '#e0331b',
-  '#0ea5e9',
-  '#8b5cf6',
+  '#3b82f6',
   '#d97706',
-  '#0d9488',
-  '#db2777',
-  '#65a30d',
+  '#0ea5e9',
+  '#f59e0b',
   '#6366f1',
-  '#78716c',
+  '#0d9488',
+  '#8b5cf6',
+  '#65a30d',
+  '#db2777',
+  '#0891b2',
+  '#a16207',
+  '#64748b',
 ] as const;
 
 export function paletteColor(index: number): string {

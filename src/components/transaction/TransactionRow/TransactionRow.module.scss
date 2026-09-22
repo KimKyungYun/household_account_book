@@ -33,12 +33,22 @@
   }
 
   &__title {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-2;
     overflow: hidden;
     color: var(--text-primary);
     text-overflow: ellipsis;
     white-space: nowrap;
 
     @include t.label-medium;
+  }
+
+  &__dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
   }
 
   &__meta {

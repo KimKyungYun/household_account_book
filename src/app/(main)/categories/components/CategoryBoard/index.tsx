@@ -1,36 +1,33 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import SegmentedControl from '@/components/common/SegmentedControl';
 import Skeleton from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
-import { deleteCategory, getCategoryTree } from '@/service/category';
-import { isApiError } from '@/interface/errorType';
-import { cn } from '@/utils/ts/cn';
+import { getCategoryTree } from '@/service/category';
 import type { CategoryKind } from '@/generated/prisma/enums';
 import type { CategoryNodeDto } from '@/service/category/type';
+import CategoryDeleteModal from '../CategoryDeleteModal';
 import CategoryFormModal from '../CategoryFormModal';
-import CategoryMergeModal from '../CategoryMergeModal';
 import styles from './CategoryBoard.module.scss';
 
 const KIND_OPTIONS = [
-  { value: 'EXPENSE', label: '지출' },
-  { value: 'INCOME', label: '수입' },
-  { value: 'TRANSFER', label: '이체' },
+  { value: 'EXPENSE', label: '쓴 돈' },
+  { value: 'INCOME', label: '번 돈' },
+  { value: 'TRANSFER', label: '옮긴 돈' },
 ] as const;
 
 const KIND_HINT: Record<CategoryKind, string> = {
-  EXPENSE: '쓴 돈을 담는 분류입니다.',
-  INCOME: '들어온 돈을 담는 분류입니다.',
-  TRANSFER: '계좌 이동·카드대금 납부·저축처럼 수입도 지출도 아닌 돈입니다. 집계에서 빠집니다.',
+  EXPENSE: '나간 금액을 기록하는 분류입니다.',
+  INCOME: '들어온 금액을 기록하는 분류입니다. 급여, 상여 등.',
+  TRANSFER:
+    '계좌끼리 옮긴 금액, 카드값, 적금 납입액입니다. 쓴 것도 번 것도 아니므로 모든 합계에서 제외됩니다.',
 };
 
 type FormTarget =
@@ -38,7 +35,7 @@ type FormTarget =
   | { mode: 'create-child'; parent: CategoryNodeDto }
   | { mode: 'edit'; category: CategoryNodeDto };
 
-/** 폼 모달을 대상마다 새로 마운트하기 위한 키. 앞서 열었던 값이 남지 않는다. */
+/** 폼을 대상마다 새로 마운트하기 위한 키. 앞서 열었던 값이 남지 않는다. */
 function formTargetKey(target: FormTarget | null): string {
   if (!target) return 'form:none';
   if (target.mode === 'create-parent') return 'create-parent';
@@ -50,7 +47,6 @@ function formTargetKey(target: FormTarget | null): string {
 export default function CategoryBoard() {
   const [kind, setKind] = useState<CategoryKind>('EXPENSE');
   const [formTarget, setFormTarget] = useState<FormTarget | null>(null);
-  const [mergeTarget, setMergeTarget] = useState<CategoryNodeDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryNodeDto | null>(null);
   const queryClient = useQueryClient();
 
@@ -59,31 +55,18 @@ export default function CategoryBoard() {
     queryFn: () => getCategoryTree({ kind }),
   });
 
-  const removal = useMutation({
-    mutationFn: (id: string) => deleteCategory(id),
-    onSuccess: () => {
-      toast.success('카테고리를 삭제했습니다.');
-      setDeleteTarget(null);
-    },
-    onError: (error) => {
-      // 거래가 남아 있으면 '옮기고 삭제'로 넘긴다 — 막다른 길로 두지 않는다.
-      if (isApiError(error) && error.code === 'CONFLICT' && deleteTarget) {
-        setDeleteTarget(null);
-        setMergeTarget(deleteTarget);
-        toast.info(error.message);
-
-        return;
-      }
-      toast.error(isApiError(error) ? error.message : '삭제하지 못했습니다.');
-    },
-  });
-
   const groups = data?.[0]?.categories ?? [];
+  const refresh = () => {
+    setFormTarget(null);
+    setDeleteTarget(null);
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY.CATEGORY.ALL });
+  };
 
   return (
     <>
       <Card
-        title="카테고리"
+        title="분류"
+        description="큰 분류 아래에 세부 분류를 만듭니다. 거래는 세부 분류에만 등록됩니다."
         action={
           <Button
             size="sm"
@@ -94,7 +77,7 @@ export default function CategoryBoard() {
             />}
             onClick={() => setFormTarget({ mode: 'create-parent' })}
           >
-            대분류 추가
+            큰 분류 추가
           </Button>
         }
       >
@@ -104,26 +87,25 @@ export default function CategoryBoard() {
             options={KIND_OPTIONS}
             value={kind}
             onChange={(value) => setKind(value as CategoryKind)}
-            ariaLabel="카테고리 종류"
+            ariaLabel="분류 종류"
           />
           <p className={styles.categoryboard__hint}>{KIND_HINT[kind]}</p>
 
           {isPending ? (
             <div className={styles.categoryboard__loading}>
-              <Skeleton height={64} />
-              <Skeleton height={64} />
-              <Skeleton height={64} />
+              <Skeleton height={72} />
+              <Skeleton height={72} />
             </div>
           ) : groups.length === 0 ? (
             <EmptyState
-              title="카테고리가 없습니다"
-              description="대분류를 먼저 만들고 그 아래 소분류를 더하세요."
+              title="분류가 없습니다"
+              description="큰 분류를 먼저 만드세요."
               action={
                 <Button
                   size="sm"
                   onClick={() => setFormTarget({ mode: 'create-parent' })}
                 >
-                  대분류 추가
+                  큰 분류 추가
                 </Button>
               }
             />
@@ -135,9 +117,14 @@ export default function CategoryBoard() {
                   className={styles.categoryboard__group}
                 >
                   <div className={styles.categoryboard__grouphead}>
+                    <span
+                      className={styles.categoryboard__color}
+                      style={parent.colorHex ? { backgroundColor: parent.colorHex } : undefined}
+                      aria-hidden="true"
+                    />
                     <span className={styles.categoryboard__groupname}>{parent.name}</span>
-                    {parent.defaultSplitMode === 'PERSONAL' && <Badge tone="neutral">개인</Badge>}
-                    <span className={styles.categoryboard__count}>{parent.transactionCount}건</span>
+                    {parent.defaultSplitMode === 'PERSONAL' && <Badge tone="neutral">각자 돈</Badge>}
+                    <span className={styles.categoryboard__count}>거래 {parent.transactionCount}건</span>
 
                     <div className={styles.categoryboard__groupactions}>
                       <Button
@@ -145,14 +132,14 @@ export default function CategoryBoard() {
                         variant="ghost"
                         onClick={() => setFormTarget({ mode: 'create-child', parent })}
                       >
-                        소분류 추가
+                        세부 분류 추가
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setFormTarget({ mode: 'edit', category: parent })}
                       >
-                        수정
+                        이름 바꾸기
                       </Button>
                     </div>
                   </div>
@@ -167,23 +154,26 @@ export default function CategoryBoard() {
                           type="button"
                           className={styles.categoryboard__childname}
                           onClick={() => setFormTarget({ mode: 'edit', category: child })}
+                          title="이름 바꾸기"
                         >
                           {child.name}
                         </button>
-                        <span className={cn(styles.categoryboard__count, styles['categoryboard__count--child'])}>
-                          {child.transactionCount}건
+                        <span className={styles.categoryboard__count}>
+                          {child.transactionCount === 0 ? '' : `${child.transactionCount}건`}
                         </span>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => (child.transactionCount > 0 ? setMergeTarget(child) : setDeleteTarget(child))}
+                          onClick={() => setDeleteTarget(child)}
                         >
-                          {child.transactionCount > 0 ? '옮기기' : '삭제'}
+                          지우기
                         </Button>
                       </li>
                     ))}
                     {parent.children.length === 0 && (
-                      <li className={styles.categoryboard__nochild}>소분류가 없습니다. 거래는 소분류에만 달립니다.</li>
+                      <li className={styles.categoryboard__nochild}>
+                        세부 분류가 없어 이 분류로는 거래를 등록할 수 없습니다.
+                      </li>
                     )}
                   </ul>
                 </li>
@@ -198,32 +188,15 @@ export default function CategoryBoard() {
         target={formTarget}
         kind={kind}
         onClose={() => setFormTarget(null)}
-        onSaved={() => {
-          setFormTarget(null);
-          void queryClient.invalidateQueries({ queryKey: QUERY_KEY.CATEGORY.ALL });
-        }}
+        onSaved={refresh}
       />
 
-      <CategoryMergeModal
-        key={`merge:${mergeTarget?.id ?? 'none'}`}
-        category={mergeTarget}
-        candidates={groups}
-        onClose={() => setMergeTarget(null)}
-        onMerged={() => {
-          setMergeTarget(null);
-          void queryClient.invalidateQueries({ queryKey: QUERY_KEY.CATEGORY.ALL });
-        }}
-      />
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
+      <CategoryDeleteModal
+        key={`delete:${deleteTarget?.id ?? 'none'}`}
+        category={deleteTarget}
+        groups={groups}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
-        title={`'${deleteTarget?.name ?? ''}' 삭제`}
-        description="되돌릴 수 없습니다. 거래가 달려 있으면 삭제되지 않고 옮기기로 넘어갑니다."
-        confirmLabel="삭제"
-        isDestructive
-        isLoading={removal.isPending}
+        onDone={refresh}
       />
     </>
   );

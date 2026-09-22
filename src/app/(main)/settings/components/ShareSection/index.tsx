@@ -54,7 +54,7 @@ export default function ShareSection() {
       return;
     }
 
-    toast.success('저장했습니다. 확정하지 않은 달의 정산이 새 비율로 다시 계산됩니다.');
+    toast.success('저장했습니다. 지난 달의 나누기 결과도 새 비율로 다시 계산됩니다.');
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.SETTLEMENT.ALL });
   };
@@ -62,7 +62,7 @@ export default function ShareSection() {
   if (me.isPending) return <Skeleton height={260} />;
   if (!first || !second) {
     return (
-      <Card title="분담 비율">
+      <Card title="돈 나누는 비율">
         <p className={styles.sharesection__note}>배우자가 합류하면 분담 비율을 정할 수 있습니다.</p>
       </Card>
     );
@@ -70,7 +70,9 @@ export default function ShareSection() {
 
   return (
     <Card
-      title="분담 비율"
+      tone="feature"
+      title="돈 나누는 비율"
+      description="같이 쓴 돈을 나누는 비율입니다. 각자 쓴 돈에는 적용되지 않습니다."
       action={
         <Button
           size="sm"
@@ -83,8 +85,8 @@ export default function ShareSection() {
     >
       <div className={styles.sharesection}>
         <FormField
-          label={`${names[first.id] ?? first.displayName} 몫`}
-          hint="공동지출을 나누는 기준입니다. 개인지출에는 영향이 없습니다."
+          label={`${names[first.id] ?? first.displayName} 몫 : ${names[second.id] ?? second.displayName} 몫`}
+          hint="왼쪽이 첫 번째 사람의 몫입니다."
         >
           {() => (
             <div className={styles.sharesection__share}>
@@ -105,14 +107,15 @@ export default function ShareSection() {
         </FormField>
 
         <p className={styles.sharesection__warning}>
-          비율을 바꾸면 <strong>확정하지 않은 모든 달</strong>의 정산 결과가 함께 바뀝니다.
+          비율을 바꾸면 <strong>지난 달까지 포함한 모든 달</strong>의 나누기 결과가 다시 계산됩니다.
         </p>
 
         <div className={styles.sharesection__names}>
           {members.map((member) => (
             <FormField
               key={member.id}
-              label={`${member.slot === 0 ? '첫째 자리' : '둘째 자리'} 표시 이름`}
+              label={`${member.displayName} 이름`}
+              hint={member.slot === 0 ? '거래 목록과 정산에 표시됩니다.' : undefined}
             >
               {({ id }) => (
                 <Input

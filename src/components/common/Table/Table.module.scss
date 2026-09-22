@@ -23,7 +23,6 @@
     padding: s.$gap-4 s.$gap-5;
     color: var(--text-tertiary);
     white-space: nowrap;
-    border-bottom: 1px solid var(--border-default);
 
     @include t.label-small;
 
@@ -47,12 +46,6 @@
   }
 
   &__tr {
-    border-bottom: 1px solid var(--border-subtle);
-
-    &:last-of-type {
-      border-bottom: 0;
-    }
-
     &--clickable {
       cursor: pointer;
 

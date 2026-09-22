@@ -13,7 +13,7 @@ import Icon from '@/components/common/Icon';
 import Skeleton from '@/components/common/Skeleton';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
-import { deactivateRecurringRule, getRecurringRules, runRecurring } from '@/service/recurring';
+import { deleteRecurringRule, getRecurringRules, runRecurring, setRecurringRuleActive } from '@/service/recurring';
 import { formatDateLabel } from '@/utils/ts/formatDate';
 import type { RecurringRuleDto } from '@/service/recurring/type';
 import RecurringFormModal from '../RecurringFormModal';
@@ -39,7 +39,7 @@ function describeRule(rule: RecurringRuleDto): string {
 export default function RecurringBoard() {
   const [editing, setEditing] = useState<RecurringRuleDto | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [stopTarget, setStopTarget] = useState<RecurringRuleDto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RecurringRuleDto | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isPending } = useQuery({
@@ -52,23 +52,49 @@ export default function RecurringBoard() {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
   };
 
-  const stop = useMutation({
-    mutationFn: (id: string) => deactivateRecurringRule(id),
-    onSuccess: () => {
-      toast.success('중지했습니다. 이미 만들어진 거래는 그대로 남습니다.');
-      setStopTarget(null);
+  // 중지는 되돌릴 수 있어 확인을 받지 않는다. 삭제만 확인 창을 띄운다.
+  const toggle = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => setRecurringRuleActive(id, isActive),
+    onSuccess: ({ backfill }, variables) => {
+      const filled = backfill ? backfill.created + backfill.pending + backfill.upcoming : 0;
+      toast.success(
+        variables.isActive
+          ? filled === 0
+            ? '다시 시작했습니다.'
+            : `다시 시작했습니다. 이번 달 ${filled}건을 거래로 넣었습니다.`
+          : '중지했습니다. 규칙은 남아 있어 언제든 다시 켤 수 있습니다.',
+      );
       refresh();
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '중지하지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '바꾸지 못했습니다.'),
+  });
+
+  const removal = useMutation({
+    mutationFn: (id: string) => deleteRecurringRule(id),
+    onSuccess: ({ keptTransactionCount }) => {
+      toast.success(
+        keptTransactionCount > 0
+          ? `삭제했습니다. 이미 만들어진 거래 ${keptTransactionCount}건은 그대로 남아 있습니다.`
+          : '삭제했습니다.',
+      );
+      setDeleteTarget(null);
+      refresh();
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : '삭제하지 못했습니다.'),
   });
 
   const run = useMutation({
     mutationFn: runRecurring,
-    onSuccess: ({ created, pending, skipped }) => {
+    onSuccess: ({ created, pending, upcoming, skipped }) => {
+      const filled = created + pending + upcoming;
+      const notes = [
+        upcoming > 0 ? `아직 날짜가 오지 않은 ${upcoming}건 포함` : '',
+        pending > 0 ? `금액 확인이 필요한 ${pending}건 포함` : '',
+      ].filter(Boolean);
       toast.success(
-        created + pending === 0
-          ? '새로 만들 회차가 없습니다.'
-          : `${created + pending}건을 만들었습니다.${pending > 0 ? ` (확인 필요 ${pending}건)` : ''}${skipped > 0 ? ` 이미 처리한 ${skipped}건은 건너뜀.` : ''}`,
+        filled === 0
+          ? '새로 만들 거래가 없습니다.'
+          : `이번 달 ${filled}건을 거래로 넣었습니다.${notes.length > 0 ? ` (${notes.join(', ')})` : ''}${skipped > 0 ? ` 이미 처리한 ${skipped}건은 건너뛰었습니다.` : ''}`,
       );
       refresh();
     },
@@ -79,7 +105,8 @@ export default function RecurringBoard() {
     <>
       <Card
         isFlush
-        title="반복 거래"
+        title="매달 반복되는 돈"
+        description="월급처럼 매달 들어오는 금액과 월세, 통신비처럼 매달 나가는 금액을 등록합니다. 앱을 열면 지난 날짜의 거래가 자동으로 만들어집니다."
         action={
           <>
             <Button
@@ -87,8 +114,9 @@ export default function RecurringBoard() {
               variant="secondary"
               isLoading={run.isPending}
               onClick={() => run.mutate()}
+              title="아직 안 만들어진 지난 날짜 거래를 만듭니다"
             >
-              지금 생성
+              빠진 회차 만들기
             </Button>
             <Button
               size="sm"
@@ -110,8 +138,8 @@ export default function RecurringBoard() {
           </div>
         ) : (data?.length ?? 0) === 0 ? (
           <EmptyState
-            title="반복 거래가 없습니다"
-            description="월세·통신비처럼 매달 같은 날 나가는 돈을 등록하면 앱에 들어올 때 자동으로 만들어집니다."
+            title="등록된 항목이 없습니다"
+            description="두 사람의 월급, 월세, 통신비처럼 매달 같은 날 들어오거나 나가는 금액을 등록해 보세요."
             action={
               <Button
                 size="sm"
@@ -152,15 +180,26 @@ export default function RecurringBoard() {
                     value={rule.amount}
                     tone={rule.type === 'INCOME' ? 'income' : rule.type === 'EXPENSE' ? 'expense' : 'transfer'}
                   />
-                  {rule.isActive && (
+
+                  <div className={styles.recurringboard__actions}>
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => setStopTarget(rule)}
+                      isLoading={toggle.isPending}
+                      onClick={() => toggle.mutate({ id: rule.id, isActive: !rule.isActive })}
+                      title={rule.isActive ? '자동 생성을 멈춥니다. 규칙은 남습니다' : '자동 생성을 다시 켭니다'}
                     >
-                      중지
+                      {rule.isActive ? '중지' : '다시 시작'}
                     </Button>
-                  )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setDeleteTarget(rule)}
+                      title="반복 거래를 완전히 지웁니다"
+                    >
+                      삭제
+                    </Button>
+                  </div>
                 </div>
               </li>
             ))}
@@ -184,13 +223,14 @@ export default function RecurringBoard() {
       />
 
       <ConfirmDialog
-        isOpen={Boolean(stopTarget)}
-        onClose={() => setStopTarget(null)}
-        onConfirm={() => stopTarget && stop.mutate(stopTarget.id)}
-        title={`'${stopTarget?.name ?? ''}' 중지`}
-        description="앞으로 자동 생성되지 않습니다. 이미 만들어진 거래는 그대로 남습니다."
-        confirmLabel="중지"
-        isLoading={stop.isPending}
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
+        title={`'${deleteTarget?.name ?? ''}' 삭제`}
+        description="되돌릴 수 없습니다. 이미 만들어진 거래는 남습니다. 잠시 멈추려면 '중지'를 쓰세요."
+        confirmLabel="삭제"
+        isDestructive
+        isLoading={removal.isPending}
       />
     </>
   );

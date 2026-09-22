@@ -81,7 +81,7 @@ function CreateForm() {
       noValidate
     >
       <FormField
-        label="가구 이름"
+        label="집 이름"
         error={formState.errors.householdName?.message}
       >
         {({ id, describedBy }) => (
@@ -96,8 +96,8 @@ function CreateForm() {
       </FormField>
 
       <FormField
-        label="내 표시 이름"
-        hint="거래 목록과 정산에 이 이름으로 나옵니다."
+        label="내 이름"
+        hint="거래 목록과 나누기 결과에 표시됩니다."
         error={formState.errors.displayName?.message}
       >
         {({ id, describedBy }) => (
@@ -113,7 +113,7 @@ function CreateForm() {
 
       <FormField
         label="내 자리"
-        hint="차트 색과 정산 방향이 이 자리를 따릅니다."
+        hint="차트 색과 표시 순서가 정해집니다."
         error={formState.errors.slot?.message}
       >
         {() => (
@@ -133,7 +133,7 @@ function CreateForm() {
         isFullWidth
         isLoading={isPending || formState.isSubmitting}
       >
-        가구 만들기
+        시작하기
       </Button>
     </form>
   );
@@ -171,7 +171,7 @@ function JoinForm() {
     >
       <FormField
         label="초대 코드"
-        hint="배우자의 설정 화면에서 확인할 수 있습니다."
+        hint="배우자의 설정 화면에 있습니다."
         error={formState.errors.inviteCode?.message}
       >
         {({ id, describedBy }) => (
@@ -186,7 +186,7 @@ function JoinForm() {
       </FormField>
 
       <FormField
-        label="내 표시 이름"
+        label="내 이름"
         error={formState.errors.displayName?.message}
       >
         {({ id, describedBy }) => (

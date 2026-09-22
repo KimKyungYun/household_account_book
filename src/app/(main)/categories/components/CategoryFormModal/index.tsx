@@ -35,15 +35,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const SPLIT_OPTIONS = [
-  { value: '', label: '지정 안 함 (공동으로 봅니다)' },
-  { value: 'SHARED', label: '공동 — 분담 정산에 들어갑니다' },
-  { value: 'PERSONAL', label: '개인 — 정산에서 빠집니다' },
+  { value: '', label: '고르지 않음 (같이 쓴 돈)' },
+  { value: 'SHARED', label: '같이 쓴 돈 (나눠서 계산)' },
+  { value: 'PERSONAL', label: '각자 쓴 돈 (안 나눔)' },
 ];
 
 function titleOf(target: FormTarget | null): string {
   if (!target) return '';
-  if (target.mode === 'create-parent') return '대분류 추가';
-  if (target.mode === 'create-child') return `'${target.parent.name}' 소분류 추가`;
+  if (target.mode === 'create-parent') return '큰 분류 추가';
+  if (target.mode === 'create-child') return `'${target.parent.name}' 세부 분류 추가`;
 
   return `'${target.category.name}' 수정`;
 }
@@ -114,7 +114,7 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
       isOpen={Boolean(target)}
       onClose={onClose}
       title={titleOf(target)}
-      description={isEditingSystem ? '기본 카테고리는 이름과 분담 방식만 바꿀 수 있습니다.' : undefined}
+      description={isEditingSystem ? '처음부터 있던 분류는 이름과 기본 설정만 바꿀 수 있습니다.' : undefined}
       footer={
         <div className={styles.categoryformmodal__actions}>
           <Button
@@ -157,8 +157,8 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
         </FormField>
 
         <FormField
-          label="기본 분담 방식"
-          hint="이 카테고리로 거래를 등록할 때 처음 고를 값입니다."
+          label="기본 나누기 방식"
+          hint="거래 등록 시 기본으로 고를 값입니다."
           error={formState.errors.defaultSplitMode?.message}
         >
           {({ id, describedBy }) => (

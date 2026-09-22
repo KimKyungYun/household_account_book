@@ -9,8 +9,8 @@
   height: 100%;
   padding: s.$gap-5 s.$gap-3;
   overflow-y: auto;
-  background-color: var(--surface-default);
-  border-right: 1px solid var(--border-subtle);
+  background-color: var(--header-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
 
   @include media.desktop-up {
     padding: s.$gap-6 s.$gap-5;
@@ -29,18 +29,9 @@
     }
   }
 
+  // 마크 자체가 두 사람의 색을 품은 그림이다. 배경 판을 덧대지 않는다.
   &__mark {
-    display: inline-flex;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    color: var(--text-on-primary);
-    background-color: var(--primary);
-    border-radius: s.$shape-lg;
-
-    @include t.label-medium;
   }
 
   &__wordmark {
@@ -62,13 +53,14 @@
   }
 
   &__link {
+    position: relative;
     display: flex;
     align-items: center;
     gap: s.$gap-4;
     height: 44px;
     padding: 0 s.$gap-3;
     color: var(--text-secondary);
-    border-radius: s.$shape-md;
+    border-radius: s.$shape-lg;
 
     @include t.label-medium;
 
@@ -88,8 +80,26 @@
     }
 
     &--active {
-      color: var(--primary);
-      background-color: var(--primary-subtle);
+      color: var(--text-primary);
+      background-color: var(--surface-muted);
+      font-weight: 600;
+
+      // 지금 어디에 있는지 왼쪽 막대로 한 번 더 말한다.
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: -2px;
+        width: 3px;
+        height: 18px;
+        background-color: var(--primary);
+        border-radius: s.$shape-full;
+        transform: translateY(-50%);
+      }
+
+      svg {
+        color: var(--primary);
+      }
     }
   }
 
@@ -105,8 +115,7 @@
   // 아이콘 레일(601~900px)에서는 분담 저울을 숨긴다 — 76px 폭에 들어갈 정보가 아니다.
   &__footer {
     display: none;
-    padding: s.$gap-4 s.$gap-3 0;
-    border-top: 1px solid var(--border-subtle);
+    padding: s.$gap-5 s.$gap-3 0;
 
     @include media.desktop-up {
       display: block;

@@ -5,11 +5,35 @@
 
 .dashboardcategories {
   display: grid;
-  gap: s.$gap-5;
+  gap: s.$gap-6;
 
-  @include media.tablet-up {
-    grid-template-columns: 200px 1fr;
+  @include media.desktop-up {
+    grid-template-columns: 156px 1fr;
     align-items: center;
+  }
+
+  &__chart {
+    position: relative;
+  }
+
+  &__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  &__centerlabel {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+
+    font-size: 10px;
   }
 
   &__legend {
@@ -18,32 +42,65 @@
     gap: s.$gap-3;
   }
 
+  // 비중 막대는 태블릿부터만 보인다. display:none 은 그리드 트랙까지 없애므로
+  // 트랙 수를 폭마다 따로 적는다 — 한 벌로 두면 남은 칸이 밀려 금액이 34px 칸에
+  // 들어가고, 넘친 글자가 옆 칸의 `100%` 위로 올라탄다.
   &__item {
-    display: flex;
-    align-items: baseline;
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) 40px auto;
+    align-items: center;
     gap: s.$gap-3;
+
+    @include media.tablet-up {
+      grid-template-columns: 8px minmax(56px, 1fr) minmax(0, 96px) 40px auto;
+    }
   }
 
   &__dot {
-    flex-shrink: 0;
     width: 8px;
     height: 8px;
-    border-radius: s.$shape-full;
+    border-radius: 3px;
   }
 
   &__name {
-    flex: 1;
     overflow: hidden;
     color: var(--text-secondary);
     text-overflow: ellipsis;
     white-space: nowrap;
 
     @include t.body-small;
+
+    font-size: 13px;
+  }
+
+  // 비중을 숫자와 함께 길이로도 보여준다 — 도넛 조각이 작으면 눈으로 못 잡는다.
+  &__bar {
+    display: none;
+    height: 5px;
+    background-color: var(--surface-muted);
+    border-radius: s.$shape-full;
+
+    @include media.tablet-up {
+      display: block;
+    }
+  }
+
+  &__barfill {
+    display: block;
+    height: 100%;
+    border-radius: s.$shape-full;
   }
 
   &__share {
     color: var(--text-tertiary);
+    text-align: right;
 
     @include a.amount-small;
+
+    font-size: 11px;
+  }
+
+  &__amount {
+    justify-content: flex-end;
   }
 }

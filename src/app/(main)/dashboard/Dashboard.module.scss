@@ -18,6 +18,9 @@
 
     @include media.desktop-up {
       grid-template-columns: 1fr 1fr;
+
+      // 옆 카드에 맞춰 늘어나면 내용이 적은 카드 아래가 통째로 빈다.
+      align-items: start;
       gap: s.$gap-6;
     }
   }

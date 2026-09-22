@@ -23,7 +23,9 @@ export default function DashboardSettlement() {
 
   return (
     <Card
-      title="분담 저울"
+      tone="feature"
+      title="같이 쓴 돈 나누기"
+      description="색의 길이는 각자 실제로 낸 비율이고, 점선은 설정한 비율입니다."
       action={
         <Link href={PATH.SETTLEMENT}>
           <Button

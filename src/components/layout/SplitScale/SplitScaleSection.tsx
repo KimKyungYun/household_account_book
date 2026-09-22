@@ -39,6 +39,7 @@ export default function SplitScaleSection({ layout = 'stack' }: SplitScaleSectio
       className={styles.splitscalesection}
       href={PATH.SETTLEMENT}
     >
+      {layout === 'stack' && <span className={styles.splitscalesection__title}>이번 달 같이 쓴 돈</span>}
       <SplitScale
         settlement={data}
         layout={layout}

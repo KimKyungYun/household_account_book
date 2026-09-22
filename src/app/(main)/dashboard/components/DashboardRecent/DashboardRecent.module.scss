@@ -1,12 +1,10 @@
+@use "styles/tokens/spacing" as s;
+
 .dashboardrecent {
   display: flex;
   flex-direction: column;
 
   > li {
-    border-bottom: 1px solid var(--border-subtle);
-
-    &:last-of-type {
-      border-bottom: 0;
-    }
+    padding: 0 s.$gap-2;
   }
 }
