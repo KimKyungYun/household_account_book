@@ -159,11 +159,11 @@ export async function listTransactions(householdId: string, query: TransactionLi
 export async function getTransaction(householdId: string, id: string) {
   const row = await prisma.transaction.findFirst({
     where: { id, householdId },
-    select: { ...LIST_SELECT, splits: { select: { memberId: true, shareBp: true } } },
+    select: LIST_SELECT,
   });
   if (!row) throw notFound('거래를 찾을 수 없습니다.');
 
-  return { ...toListItem(row), splits: row.splits };
+  return toListItem(row);
 }
 
 /** 카테고리가 이 가구의 것이고, 종류가 맞고, 리프(소분류)인지 확인한다. */
@@ -220,9 +220,6 @@ export async function createTransaction(
       memo: input.memo || null,
       clientRequestId: input.clientRequestId ?? null,
       createdById: ctx.userId,
-      ...(splitMode === 'CUSTOM' && input.splits
-        ? { splits: { createMany: { data: input.splits.map((split) => ({ memberId: split.memberId, shareBp: split.shareBp })) } } }
-        : {}),
     },
     select: { id: true },
   });
@@ -255,15 +252,6 @@ export async function updateTransaction(householdId: string, id: string, input: 
   });
   // updateMany 가 0건이면 그 사이에 상대가 먼저 저장했다는 뜻이다.
   if (updated.count === 0) throw staleWrite();
-
-  if (input.splits) {
-    await prisma.$transaction([
-      prisma.transactionSplit.deleteMany({ where: { transactionId: id } }),
-      prisma.transactionSplit.createMany({
-        data: input.splits.map((split) => ({ transactionId: id, memberId: split.memberId, shareBp: split.shareBp })),
-      }),
-    ]);
-  }
 
   return { id };
 }

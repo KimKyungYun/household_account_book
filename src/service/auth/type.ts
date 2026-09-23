@@ -3,7 +3,6 @@ export interface MeMemberDto {
   slot: number;
   displayName: string;
   colorHex: string;
-  defaultShareBp: number;
 }
 
 export interface MeDto {

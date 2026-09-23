@@ -168,6 +168,14 @@ export function TransactionForm({
       return;
     }
 
+    // 종류와 상관없이 '누가 했는지'는 반드시 있어야 한다. 구성원을 못 불러온 상태에서
+    // 그대로 보내면 서버가 400 으로 되돌려줄 뿐 사용자는 이유를 알 수 없다.
+    if (!memberId) {
+      setFieldErrors({ memberId: `${WORDING[form.type].member}을(를) 고를 수 없습니다. 새로고침해 주세요.` });
+
+      return;
+    }
+
     try {
       await mutateAsync();
     } catch (error) {
@@ -191,6 +199,16 @@ export function TransactionForm({
   };
 
   if (me.isPending) return <Skeleton height={320} />;
+
+  // 구성원 목록이 없으면 '누가 썼는지'를 고를 수 없어 어떤 거래도 저장되지 않는다.
+  // 빈 선택지를 주고 저장을 누르게 두면 400 만 돌아온다.
+  if (members.length === 0) {
+    return (
+      <p className={styles.transactionform__blocked}>
+        구성원 정보를 불러오지 못했습니다. 새로고침해 주세요.
+      </p>
+    );
+  }
 
   return (
     <form
@@ -293,7 +311,10 @@ export function TransactionForm({
         )}
       </FormField>
 
-      <FormField label={WORDING[form.type].member}>
+      <FormField
+        label={WORDING[form.type].member}
+        error={fieldErrors.memberId}
+      >
         {() => (
           <SegmentedControl
             name="transaction-member"

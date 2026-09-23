@@ -13,7 +13,6 @@ export const SIDEBAR_NAV: readonly NavItem[] = [
   { href: PATH.TRANSACTIONS, label: '거래', icon: 'ledger' },
   { href: PATH.BUDGETS, label: '예산', icon: 'budget' },
   { href: PATH.RECURRINGS, label: '반복 거래', icon: 'repeat' },
-  { href: PATH.SETTLEMENT, label: '나눠 내기', icon: 'scale' },
   { href: PATH.REPORTS, label: '리포트', icon: 'report' },
   { href: PATH.CATEGORIES, label: '분류', icon: 'category' },
   { href: PATH.SETTINGS, label: '설정', icon: 'settings' },
@@ -23,7 +22,7 @@ export const SIDEBAR_NAV: readonly NavItem[] = [
 export const MOBILE_NAV: readonly NavItem[] = [
   { href: PATH.DASHBOARD, label: '대시보드', icon: 'dashboard' },
   { href: PATH.TRANSACTIONS, label: '거래', icon: 'ledger' },
-  { href: PATH.SETTLEMENT, label: '나눠 내기', icon: 'scale' },
+  { href: PATH.BUDGETS, label: '예산', icon: 'budget' },
   { href: PATH.SETTINGS, label: '더보기', icon: 'more' },
 ];
 
@@ -33,7 +32,6 @@ const TITLE_BY_PATH: Record<string, string> = {
   [PATH.TRANSACTION_NEW]: '거래 등록',
   [PATH.BUDGETS]: '예산',
   [PATH.RECURRINGS]: '반복 거래',
-  [PATH.SETTLEMENT]: '나눠 내기',
   [PATH.REPORTS]: '리포트',
   [PATH.CATEGORIES]: '분류',
   [PATH.SETTINGS]: '설정',

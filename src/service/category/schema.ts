@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const categoryKindSchema = z.enum(['EXPENSE', 'INCOME', 'TRANSFER']);
-export const splitModeSchema = z.enum(['SHARED', 'PERSONAL', 'CUSTOM']);
+export const splitModeSchema = z.enum(['SHARED', 'PERSONAL']);
 
 export const categoryTreeQuerySchema = z.object({
   kind: categoryKindSchema.optional(),

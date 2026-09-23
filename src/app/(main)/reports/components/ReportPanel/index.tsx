@@ -8,7 +8,6 @@ import Card from '@/components/common/Card';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
 import EmptyState from '@/components/common/EmptyState';
-import FormField from '@/components/common/FormField';
 import Icon from '@/components/common/Icon';
 import Input from '@/components/common/Input';
 import SegmentedControl from '@/components/common/SegmentedControl';
@@ -45,7 +44,6 @@ export default function ReportPanel() {
   const [months, setMonths] = useState(6);
   const [level, setLevel] = useState(1);
   const [yearMonth, setYearMonth] = useState(currentYearMonth());
-  const [withSettlement, setWithSettlement] = useState(true);
   const excel = useExcelDownload();
 
   const to = currentYearMonth();
@@ -291,24 +289,6 @@ export default function ReportPanel() {
             요약·상세·분류별 표 세 시트가 기본입니다. 상세 시트는 자동 필터가 걸려 있고 합계가 필터에 따라 바뀝니다.
           </p>
 
-          <FormField
-            label="나눠 낸 내역도 넣기"
-            hint="달마다 각자 얼마를 냈고 얼마를 주고받아야 하는지 한 시트에 정리합니다."
-          >
-            {() => (
-              <SegmentedControl
-                name="report-settlement"
-                options={[
-                  { value: 'yes', label: '넣기' },
-                  { value: 'no', label: '빼기' },
-                ]}
-                value={withSettlement ? 'yes' : 'no'}
-                onChange={(value) => setWithSettlement(value === 'yes')}
-                ariaLabel="나누기 내역 포함 여부"
-              />
-            )}
-          </FormField>
-
           <Button
             iconLeft={<Icon
               name="download"
@@ -319,9 +299,7 @@ export default function ReportPanel() {
               excel.mutate({
                 from: monthRange(from).from,
                 to: lastDayOf(to),
-                sheets: withSettlement
-                  ? ['summary', 'detail', 'pivot', 'settlement']
-                  : ['summary', 'detail', 'pivot'],
+                sheets: ['summary', 'detail', 'pivot'],
               })}
           >
             {`${formatYearMonthLabel(from)} ~ ${formatYearMonthLabel(to)} 내려받기`}

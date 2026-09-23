@@ -83,7 +83,6 @@ export default function TransactionBoard() {
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
-    void queryClient.invalidateQueries({ queryKey: QUERY_KEY.SETTLEMENT.ALL });
   };
 
   return (

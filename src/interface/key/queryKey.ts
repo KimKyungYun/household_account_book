@@ -34,10 +34,6 @@ export const QUERY_KEY = {
     LIST: () => [...QUERY_KEY.RECURRING.ALL, 'list'] as const,
     PREVIEW: (id: string, months: number) => [...QUERY_KEY.RECURRING.ALL, 'preview', id, months] as const,
   },
-  SETTLEMENT: {
-    ALL: ['settlement'] as const,
-    MONTH: (yearMonth: string) => [...QUERY_KEY.SETTLEMENT.ALL, 'month', yearMonth] as const,
-  },
   STATS: {
     ALL: ['stats'] as const,
     OVERVIEW: (yearMonth: string) => [...QUERY_KEY.STATS.ALL, 'overview', yearMonth] as const,

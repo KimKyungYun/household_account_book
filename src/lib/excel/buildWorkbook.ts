@@ -1,6 +1,5 @@
 import ExcelJS from 'exceljs';
 import { prisma } from '@/lib/prisma';
-import { getMonthlySettlement } from '@/lib/repository/settlement';
 import { formatYearMonthLabel } from '@/utils/ts/formatDate';
 
 export interface ExcelRange {
@@ -8,14 +7,14 @@ export interface ExcelRange {
   to: string;
 }
 
-export type ExcelSheet = 'summary' | 'detail' | 'pivot' | 'settlement';
+export type ExcelSheet = 'summary' | 'detail' | 'pivot';
 
 const MONEY_FORMAT = '#,##0;[Red]-#,##0';
 const DATE_FORMAT = 'yyyy-mm-dd';
 const HEADER_FILL: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F4F7' } };
 
 const TYPE_LABEL: Record<string, string> = { INCOME: '수입', EXPENSE: '지출', TRANSFER: '이체' };
-const SPLIT_LABEL: Record<string, string> = { SHARED: '공동', PERSONAL: '개인', CUSTOM: '개별지정' };
+const SPLIT_LABEL: Record<string, string> = { SHARED: '같이', PERSONAL: '개인' };
 
 function toDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
@@ -89,7 +88,6 @@ export async function buildWorkbook(
   if (sheets.includes('summary')) addSummarySheet(workbook, range, transactions, members);
   if (sheets.includes('detail')) addDetailSheet(workbook, transactions);
   if (sheets.includes('pivot')) addPivotSheet(workbook, range, transactions);
-  if (sheets.includes('settlement')) await addSettlementSheet(workbook, householdId, range);
 
   const buffer = await workbook.xlsx.writeBuffer();
 
@@ -171,7 +169,7 @@ function addDetailSheet(workbook: ExcelJS.Workbook, rows: Row[]) {
     { header: '소분류', width: 16 },
     { header: '금액', width: 14 },
     { header: '결제수단', width: 12 },
-    { header: '분담', width: 10 },
+    { header: '같이/개인', width: 11 },
     { header: '가맹점', width: 22 },
     { header: '메모', width: 28 },
     { header: '상태', width: 10 },
@@ -278,28 +276,4 @@ function addPivotSheet(workbook: ExcelJS.Workbook, range: ExcelRange, rows: Row[
   totalRow.font = { bold: true };
   for (let index = 3; index <= months.length + 3; index += 1) totalRow.getCell(index).numFmt = MONEY_FORMAT;
   totalRow.getCell(months.length + 4).numFmt = '0.0%';
-}
-
-async function addSettlementSheet(workbook: ExcelJS.Workbook, householdId: string, range: ExcelRange) {
-  const sheet = workbook.addWorksheet('분담정산');
-  sheet.columns = [{ width: 14 }, { width: 16 }, { width: 10 }, { width: 14 }, { width: 14 }, { width: 14 }];
-
-  styleHeaderRow(sheet.addRow(['월', '구성원', '분담률', '분담액', '실제 납부', '차액']));
-
-  for (const yearMonth of yearMonthsBetween(range.from, range.to)) {
-    const settlement = await getMonthlySettlement(householdId, yearMonth);
-
-    for (const line of settlement.lines) {
-      const row = sheet.addRow([
-        formatYearMonthLabel(yearMonth),
-        line.displayName,
-        line.shareBp / 10_000,
-        line.owedAmount,
-        line.paidAmount,
-        line.balanceAmount,
-      ]);
-      row.getCell(3).numFmt = '0.0%';
-      for (const index of [4, 5, 6]) row.getCell(index).numFmt = MONEY_FORMAT;
-    }
-  }
 }

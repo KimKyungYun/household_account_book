@@ -1,0 +1,18 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.memberssection {
+  display: grid;
+  gap: s.$gap-5;
+
+  @include media.tablet-up {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  &__note {
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+}

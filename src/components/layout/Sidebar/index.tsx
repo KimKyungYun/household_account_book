@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/common/Icon';
 import Logo from '@/components/common/Logo';
-import SplitScaleSection from '@/components/layout/SplitScale/SplitScaleSection';
 import { SIDEBAR_NAV } from '@/routes/nav';
 import { PATH } from '@/routes/paths';
 import { cn } from '@/utils/ts/cn';
@@ -51,10 +50,6 @@ export default function Sidebar() {
           );
         })}
       </ul>
-
-      <div className={styles.sidebar__footer}>
-        <SplitScaleSection layout="stack" />
-      </div>
     </nav>
   );
 }

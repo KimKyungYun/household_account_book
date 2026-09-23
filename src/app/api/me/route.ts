@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic';
 
 /**
  * 화면이 필요한 것은 세션 토큰이 아니라 가구 프로필이다 —
- * 표시명·분담률·구성원 색이 있어야 거래 목록과 정산이 그려진다.
- * 그래서 SessionProvider 대신 이 엔드포인트 하나를 react-query 로 읽는다.
+ * 표시명과 구성원 색이 있어야 거래 목록과 차트가 그려지고, 거래를 등록할 때
+ * '누가 썼는지'를 고를 수 있다. 그래서 SessionProvider 대신 이 엔드포인트 하나를
+ * react-query 로 읽는다.
  */
 export const GET = withPreOnboardingHandler({}, async (ctx) => {
   const member = ctx.memberId
@@ -18,7 +19,6 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
         slot: true,
         displayName: true,
         colorHex: true,
-        defaultShareBp: true,
         household: { select: { id: true, name: true, currency: true, inviteCode: true } },
       },
     })
@@ -28,7 +28,7 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
     ? await prisma.householdMember.findMany({
       where: { householdId: member.household.id },
       orderBy: { slot: 'asc' },
-      select: { id: true, slot: true, displayName: true, colorHex: true, defaultShareBp: true },
+      select: { id: true, slot: true, displayName: true, colorHex: true },
     })
     : [];
 
@@ -39,7 +39,6 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
       slot: member.slot,
       displayName: member.displayName,
       colorHex: member.colorHex,
-      defaultShareBp: member.defaultShareBp,
     },
     household: member?.household ?? null,
     members,

@@ -80,9 +80,6 @@ export const DEFAULT_PAYMENT_METHODS: readonly { name: string; kind: PaymentMeth
 
 /** 구성원 기본값 — slot 0 이 남편, 1 이 와이프. 표시명은 온보딩에서 바꿀 수 있다. */
 export const DEFAULT_MEMBERS = [
-  { slot: 0, displayName: '남편', colorHex: '#1f6feb', defaultShareBp: 5000 },
-  { slot: 1, displayName: '와이프', colorHex: '#d97706', defaultShareBp: 5000 },
+  { slot: 0, displayName: '남편', colorHex: '#1f6feb' },
+  { slot: 1, displayName: '와이프', colorHex: '#d97706' },
 ] as const;
-
-/** 분담률 합계는 항상 이 값이어야 한다 (basis point). */
-export const TOTAL_SHARE_BP = 10_000;

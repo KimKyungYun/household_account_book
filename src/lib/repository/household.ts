@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { conflict, notFound } from '@/lib/api/httpError';
-import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS, TOTAL_SHARE_BP } from '@/lib/seed/defaults';
+import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS } from '@/lib/seed/defaults';
 
 const MAX_MEMBERS = 2;
 
@@ -30,7 +30,6 @@ export async function createHousehold(params: {
         slot: params.slot,
         displayName: params.displayName,
         colorHex: params.slot === 0 ? '#1f6feb' : '#d97706',
-        defaultShareBp: TOTAL_SHARE_BP / MAX_MEMBERS,
       },
     });
 
@@ -106,7 +105,6 @@ export async function joinHousehold(params: { userId: string; inviteCode: string
       slot,
       displayName: params.displayName,
       colorHex: slot === 0 ? '#1f6feb' : '#d97706',
-      defaultShareBp: TOTAL_SHARE_BP / MAX_MEMBERS,
     },
     select: { id: true, householdId: true },
   });

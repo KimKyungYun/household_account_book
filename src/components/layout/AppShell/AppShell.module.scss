@@ -39,15 +39,6 @@
   }
 
   // 모바일 전용 — 좁은 화면에선 사이드바가 없어 분담 저울이 갈 자리가 헤더 아래뿐이다.
-  &__strip {
-    flex-shrink: 0;
-    padding: s.$gap-2 s.$gap-4;
-
-    @include media.tablet-up {
-      display: none;
-    }
-  }
-
   &__content {
     flex: 1;
     min-height: 0;

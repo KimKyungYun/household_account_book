@@ -134,7 +134,6 @@ async function main() {
         slot: member.slot,
         displayName: member.displayName,
         colorHex: member.colorHex,
-        defaultShareBp: member.defaultShareBp,
       },
     });
   }

@@ -10,7 +10,6 @@ export const PATH = {
   CATEGORIES: '/categories',
   BUDGETS: '/budgets',
   RECURRINGS: '/recurrings',
-  SETTLEMENT: '/settlement',
   REPORTS: '/reports',
   SETTINGS: '/settings',
 } as const;

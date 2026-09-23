@@ -73,4 +73,13 @@
     padding-bottom: calc(s.$gap-4 + env(safe-area-inset-bottom));
     background-color: var(--surface-default);
   }
+
+  // 구성원을 못 불러왔을 때 폼 대신 나오는 한 줄.
+  &__blocked {
+    padding: s.$gap-6 0;
+    color: var(--text-secondary);
+    text-align: center;
+
+    @include t.body-medium;
+  }
 }

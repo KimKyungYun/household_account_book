@@ -111,14 +111,4 @@
       display: inline;
     }
   }
-
-  // 아이콘 레일(601~900px)에서는 분담 저울을 숨긴다 — 76px 폭에 들어갈 정보가 아니다.
-  &__footer {
-    display: none;
-    padding: s.$gap-5 s.$gap-3 0;
-
-    @include media.desktop-up {
-      display: block;
-    }
-  }
 }

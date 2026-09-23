@@ -1,13 +1,13 @@
 import AccountSection from './components/AccountSection';
 import HouseholdSection from './components/HouseholdSection';
-import ShareSection from './components/ShareSection';
+import MembersSection from './components/MembersSection';
 import ThemeSection from './components/ThemeSection';
 import styles from './Settings.module.scss';
 
 export default function SettingsPage() {
   return (
     <div className={styles.settings}>
-      <ShareSection />
+      <MembersSection />
       <HouseholdSection />
       <ThemeSection />
       <AccountSection />

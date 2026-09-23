@@ -1,7 +1,6 @@
 import DashboardBudget from './components/DashboardBudget';
 import DashboardCategories from './components/DashboardCategories';
 import DashboardRecent from './components/DashboardRecent';
-import DashboardSettlement from './components/DashboardSettlement';
 import DashboardStats from './components/DashboardStats';
 import DashboardTrend from './components/DashboardTrend';
 import DashboardUpcoming from './components/DashboardUpcoming';
@@ -18,7 +17,6 @@ export default function DashboardPage() {
         <DashboardCategories />
         <DashboardBudget />
         <DashboardUpcoming />
-        <DashboardSettlement />
         <DashboardRecent />
       </div>
     </div>
