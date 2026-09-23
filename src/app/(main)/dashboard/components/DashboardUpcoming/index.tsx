@@ -41,7 +41,7 @@ export default function DashboardUpcoming() {
     queryFn: getRecurringRules,
   });
 
-  if (isPending) return <Skeleton height={200} />;
+  if (isPending) return <Skeleton height={220} />;
 
   const limit = new Date(new Date(`${today}T00:00:00.000Z`).getTime() + WINDOW_DAYS * 86_400_000)
     .toISOString()

@@ -18,10 +18,16 @@
 
     @include media.desktop-up {
       grid-template-columns: 1fr 1fr;
-
-      // 옆 카드에 맞춰 늘어나면 내용이 적은 카드 아래가 통째로 빈다.
-      align-items: start;
       gap: s.$gap-6;
+
+      // align-items 를 건드리지 않는다. 그리드 기본값 stretch 로 두면 같은 줄의
+      // 카드가 그 줄에서 가장 높은 카드에 맞춰 높이를 나란히 한다. start 로 두면
+      // 카드 아랫변이 제각각이라 줄이 어긋나 보인다.
+
+      // 카드가 홀수면 마지막 하나가 왼쪽 반쪽만 차지해 오른쪽이 빈다. 폭을 채운다.
+      > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
     }
   }
 }
