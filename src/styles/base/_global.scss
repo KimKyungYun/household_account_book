@@ -1,6 +1,7 @@
 @use "../tokens/semantic";
 @use "../tokens/typography" as t;
 @use "../tokens/spacing" as s;
+@use "../tokens/motion" as m;
 @use "../utils/media" as media;
 
 :root {
@@ -70,7 +71,6 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--surface-page);
   color: var(--text-primary);
 
   @include t.body-medium;
@@ -79,26 +79,56 @@ body {
 body {
   min-height: 100dvh;
 
-  /*
-    화면의 바탕.
-
-    유리 패널은 뒤에 볼 것이 있어야 유리로 읽힌다. 사진 대신 색 덩어리를 깔았다 —
-    표와 숫자가 빽빽한 화면이라 사진을 두면 글자가 먹힌다.
-    `fixed` 라 본문이 스크롤해도 제자리에 있다.
-  */
-  background-image:
-    radial-gradient(ellipse 58% 42% at 18% 0%, var(--bg-wash-a), transparent 62%),
-    radial-gradient(ellipse 52% 38% at 86% 6%, var(--bg-wash-b), transparent 60%),
-    radial-gradient(ellipse 70% 46% at 62% 104%, var(--bg-wash-a), transparent 66%),
-    radial-gradient(ellipse 46% 34% at 8% 88%, var(--bg-wash-b), transparent 62%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  // 바탕색을 body 에만 둔다. html 에도 색이 있으면 아래 ::before 가 html 배경 뒤로
+  // 가려져 워시가 통째로 사라진다. body 배경은 캔버스로 전파되므로 화면은 같다.
+  background-color: var(--surface-page);
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 
   @include media.reduced-motion {
     transition: none;
+  }
+
+  /*
+    화면의 바탕.
+
+    유리 패널은 뒤에 볼 것이 있어야 유리로 읽힌다. 사진 대신 색 덩어리를 깔았다 —
+    표와 숫자가 빽빽한 화면이라 사진을 두면 글자가 먹힌다.
+
+    본문이 아니라 이 의사 요소에 둔다. transform 으로 움직이면 합성만 다시 하므로
+    background-position 을 흔드는 것보다 훨씬 싸다. 화면보다 크게 잡아 두어
+    움직여도 모서리에 빈 곳이 생기지 않는다.
+  */
+  &::before {
+    content: "";
+    position: fixed;
+    inset: -12%;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(ellipse 58% 42% at 18% 4%, var(--bg-wash-a), transparent 62%),
+      radial-gradient(ellipse 52% 38% at 86% 10%, var(--bg-wash-b), transparent 60%),
+      radial-gradient(ellipse 70% 46% at 62% 96%, var(--bg-wash-a), transparent 66%),
+      radial-gradient(ellipse 46% 34% at 8% 84%, var(--bg-wash-b), transparent 62%);
+    background-repeat: no-repeat;
+
+    // 이 앱에서 끝없이 도는 움직임은 이것 하나다. 눈치채지 못할 만큼 느려야 한다.
+    animation: bg-drift m.$dur-ambient m.$ease-in-out-soft infinite alternate;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+}
+
+@keyframes bg-drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(1.5%, 1.2%, 0) scale(1.04);
   }
 }
 

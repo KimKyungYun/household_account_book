@@ -1,6 +1,8 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/tokens/motion" as m;
 @use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
 
 .btn {
   display: inline-flex;
@@ -15,6 +17,21 @@
   white-space: nowrap;
 
   @include t.label-medium;
+
+  // 색은 부드럽게 갈아 끼우고, 누르면 손끝을 따라 눌린다.
+  transition:
+    background-color m.$dur-quick m.$ease-out,
+    border-color m.$dur-quick m.$ease-out,
+    color m.$dur-quick m.$ease-out,
+    box-shadow m.$dur-quick m.$ease-out;
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+
+  &:not(:disabled) {
+    @include motion.press(0.97);
+  }
 
   &:disabled {
     cursor: not-allowed;

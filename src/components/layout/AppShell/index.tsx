@@ -1,4 +1,5 @@
 import MobileTabBar from '@/components/layout/MobileTabBar';
+import PageTransition from '@/components/layout/PageTransition';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/TopBar';
 import styles from './AppShell.module.scss';
@@ -23,7 +24,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className={styles.appshell__main}>
         <TopBar />
 
-        <main className={styles.appshell__content}>{children}</main>
+        <main className={styles.appshell__content}>
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
 
       <div className={styles.appshell__tabbar}>

@@ -1,0 +1,108 @@
+@use "styles/tokens/motion" as m;
+@use "styles/utils/media" as media;
+
+// 모션 믹스인.
+// 규칙 하나 — **모든 움직임은 prefers-reduced-motion 에서 멈춘다.** 여기 있는
+// 믹스인을 쓰면 그 처리가 딸려 오므로, 화면에서 animation 을 직접 적지 않는다.
+
+/// 아래에서 떠오르며 나타난다. 카드·섹션의 기본 등장.
+@mixin enter($delay: 0s, $shift: 10px) {
+  animation: motion-enter m.$dur-enter m.$ease-out $delay both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+
+  @keyframes motion-enter {
+    from {
+      opacity: 0;
+      transform: translateY($shift);
+    }
+  }
+}
+
+/// 자식들을 순서대로 띄운다. 부모에 걸고 자식은 손대지 않는다.
+/// `$selector` 로 셀 대상을 좁힐 수 있다 (기본: 모든 자식 요소).
+@mixin enter-stagger($selector: "> *", $shift: 10px) {
+  #{$selector} {
+    animation: motion-enter m.$dur-enter m.$ease-out both;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+
+    @for $i from 1 through m.$stagger-max {
+      &:nth-child(#{$i}) {
+        animation-delay: m.$stagger-step * ($i - 1);
+      }
+    }
+
+    // 여섯째를 넘으면 지연을 더 늘리지 않는다. 화면 밖이라 보이지도 않는다.
+    &:nth-child(n + #{m.$stagger-max}) {
+      animation-delay: m.$stagger-step * (m.$stagger-max - 1);
+    }
+  }
+
+  @keyframes motion-enter {
+    from {
+      opacity: 0;
+      transform: translateY($shift);
+    }
+  }
+}
+
+/// 이미 `enter` 를 가진 자식들에게 순서만 준다. 애니메이션을 다시 선언하지 않아
+/// 자식이 제 등장 방식을 그대로 쓴다 — 카드 묶음에 쓰는 것이 이쪽이다.
+@mixin stagger-delay($selector: "> *") {
+  #{$selector} {
+    @for $i from 1 through m.$stagger-max {
+      &:nth-child(#{$i}) {
+        animation-delay: m.$stagger-step * ($i - 1);
+      }
+    }
+
+    &:nth-child(n + #{m.$stagger-max}) {
+      animation-delay: m.$stagger-step * (m.$stagger-max - 1);
+    }
+  }
+}
+
+/// 마우스를 올리면 살짝 들린다. 포인터가 있는 기기에서만.
+@mixin lift($shift: -2px, $shadow: var(--shadow-3)) {
+  transition:
+    transform m.$dur-quick m.$ease-out,
+    box-shadow m.$dur-quick m.$ease-out;
+
+  @include media.hover-supported {
+    &:hover {
+      transform: translateY($shift);
+      box-shadow: $shadow;
+    }
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+/// 누르면 눌린다. 버튼·행처럼 실제로 눌리는 것에만.
+@mixin press($scale: 0.98) {
+  transition: transform m.$dur-instant m.$ease-out;
+
+  &:active {
+    transform: scale($scale);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+

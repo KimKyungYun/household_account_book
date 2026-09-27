@@ -1,0 +1,6 @@
+@use "styles/utils/motion" as motion;
+
+.pagetransition {
+  // 본문은 카드보다 짧게 움직인다. 화면 전체가 크게 흔들리면 멀미가 난다.
+  @include motion.enter(0s, 6px);
+}

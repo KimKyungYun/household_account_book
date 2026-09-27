@@ -1,6 +1,8 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/tokens/motion" as m;
 @use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
 
 .transactionrow {
   display: flex;
@@ -14,6 +16,14 @@
   border: 0;
   border-inline-start: 3px solid transparent;
   cursor: pointer;
+
+  transition: background-color m.$dur-quick m.$ease-out;
+
+  @include motion.press(0.995);
+
+  @include media.reduced-motion {
+    transition: none;
+  }
 
   @include media.hover-supported {
     &:hover {

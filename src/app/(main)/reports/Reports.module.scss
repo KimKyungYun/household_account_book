@@ -1,6 +1,10 @@
 @use "styles/tokens/spacing" as s;
+@use "styles/utils/motion" as motion;
 
 .reports {
+  // 카드는 저마다 등장 애니메이션을 갖고 있다. 여기서는 순서만 준다.
+  @include motion.stagger-delay;
+
   display: flex;
   flex-direction: column;
   gap: s.$gap-5;

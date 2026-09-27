@@ -1,5 +1,6 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/tokens/motion" as m;
 @use "styles/utils/media" as media;
 
 .sidebar {
@@ -54,6 +55,14 @@
 
   &__link {
     position: relative;
+    transition:
+      background-color m.$dur-quick m.$ease-out,
+      color m.$dur-quick m.$ease-out;
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
     display: flex;
     align-items: center;
     gap: s.$gap-4;

@@ -1,7 +1,9 @@
+@use "styles/tokens/motion" as m;
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
 @use "styles/utils/glass" as glass;
 @use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
 
 .card {
   position: relative;
@@ -13,10 +15,17 @@
   @include glass.panel;
 
   // 화면에 들어올 때 한 번만 살짝 떠오른다. 되풀이되는 연출은 금방 성가시다.
-  animation: card-in 0.32s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+  // 부모가 순차 등장을 걸면 animation-delay 만 덮어써 순서가 생긴다.
+  @include motion.enter;
 
-  @include media.reduced-motion {
-    animation: none;
+  // 유리의 윗면에 닿는 빛. 테두리를 한 겹 더 두르는 대신 안쪽에서 밝힌다.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 1px 0 var(--card-highlight);
   }
 
   &__header {
@@ -97,13 +106,6 @@
   &--flush {
     .card__body {
       padding: 0;
-    }
-  }
-
-  @keyframes card-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
     }
   }
 }

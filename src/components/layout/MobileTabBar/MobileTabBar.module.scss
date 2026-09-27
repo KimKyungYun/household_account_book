@@ -1,5 +1,8 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/tokens/motion" as m;
+@use "styles/utils/motion" as motion;
+@use "styles/utils/media" as media;
 
 .mobiletabbar {
   display: grid;
@@ -19,6 +22,13 @@
     gap: 2px;
     height: 100%;
     color: var(--text-tertiary);
+    transition: color m.$dur-quick m.$ease-out;
+
+    @include motion.press(0.94);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
 
     &:focus-visible {
       box-shadow: var(--focus-ring);
@@ -48,6 +58,9 @@
     border: 0;
     border-radius: s.$shape-full;
     box-shadow: var(--shadow-2);
+
+    // 엄지가 가장 자주 닿는 버튼. 눌림이 또렷해야 눌렸다는 걸 안다.
+    @include motion.press(0.92);
 
     &:focus-visible {
       box-shadow: var(--focus-ring);

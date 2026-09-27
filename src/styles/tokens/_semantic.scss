@@ -121,6 +121,12 @@
   --tabbar-bg: rgb(255, 255, 255, 0.6);
 
   // ── Shadow ───────────────────────────────────────────────────
+  // 안쪽으로 파인 면의 깊이. 유리 위에서는 테두리보다 이쪽이 조용하다.
+  // 유리 윗면에 닿는 빛 한 줄.
+  --card-highlight: rgb(255, 255, 255, 0.55);
+  --shadow-inset: inset 0 1px 3px rgb(15, 23, 42, 0.12);
+  // 분류 색 위에 얹는 흰 글자를 읽히게 하는 그림자.
+  --text-shadow-on-color: 0 1px 2px rgb(15, 23, 42, 0.35);
   --shadow-1: 0 2px 10px rgb(15, 23, 42, 0.05);
   --shadow-2: 0 8px 24px rgb(15, 23, 42, 0.07);
   --shadow-3: 0 16px 40px rgb(15, 23, 42, 0.09);
@@ -221,6 +227,9 @@
   --tabbar-bg: rgb(20, 24, 33, 0.64);
 
   // ── Shadow ───────────────────────────────────────────────────
+  --card-highlight: rgb(255, 255, 255, 0.07);
+  --shadow-inset: inset 0 1px 3px rgb(0, 0, 0, 0.45);
+  --text-shadow-on-color: 0 1px 2px rgb(0, 0, 0, 0.5);
   --shadow-1: 0 2px 10px rgb(0, 0, 0, 0.35);
   --shadow-2: 0 8px 24px rgb(0, 0, 0, 0.42);
   --shadow-3: 0 16px 40px rgb(0, 0, 0, 0.5);

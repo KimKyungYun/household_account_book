@@ -1,5 +1,6 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
 
 .dashboard {
   display: flex;
@@ -15,6 +16,9 @@
   &__grid {
     display: grid;
     gap: s.$gap-5;
+
+    // 카드는 저마다 등장 애니메이션을 갖고 있다. 여기서는 순서만 준다.
+    @include motion.stagger-delay;
 
     @include media.desktop-up {
       grid-template-columns: 1fr 1fr;
