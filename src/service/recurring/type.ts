@@ -19,6 +19,8 @@ export interface RecurringRuleDto {
   member: { id: string; displayName: string; colorHex: string };
   category: { id: string; name: string; parentName: string | null } | null;
   paymentMethod: { id: string; name: string } | null;
+  /** 이 돈이 쌓이는 자산. '옮긴 돈' 규칙에만 붙는다. */
+  asset: { id: string; name: string; colorHex: string | null } | null;
   /** 다음 발생 예정일. 끝난 규칙은 null. */
   nextOccurrenceDate: string | null;
 }

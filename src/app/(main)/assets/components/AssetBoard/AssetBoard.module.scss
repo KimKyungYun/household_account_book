@@ -1,0 +1,123 @@
+@use "styles/tokens/motion" as m;
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.assetboard {
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__total {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    margin: 0;
+  }
+
+  &__totallabel {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+  }
+
+  &__month {
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$gap-2;
+    margin: 0;
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // 줄 왼쪽의 색 띠가 어느 자산인지 말한다.
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-5;
+    width: 100%;
+    padding: s.$gap-5 s.$gap-5;
+    border: 0;
+    border-inline-start: 3px solid transparent;
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: transparent;
+    cursor: pointer;
+    text-align: start;
+    transition: background-color m.$dur-quick m.$ease-out;
+
+    @include motion.press(0.995);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &[data-archived="true"] {
+      opacity: 0.6;
+    }
+
+    @include media.tablet-up {
+      padding: s.$gap-5 s.$gap-6;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    min-width: 0;
+  }
+
+  &__name {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-2;
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__meta {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+
+    font-size: 12px;
+  }
+
+  &__goal {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 160px;
+    padding-top: 2px;
+  }
+
+  &__goaltext {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+
+    font-size: 11px;
+  }
+}

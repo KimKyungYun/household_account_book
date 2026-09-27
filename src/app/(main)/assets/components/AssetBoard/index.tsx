@@ -1,0 +1,282 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import Amount from '@/components/common/Amount';
+import Badge from '@/components/common/Badge';
+import Button from '@/components/common/Button';
+import Card from '@/components/common/Card';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
+import CustomEcharts from '@/components/common/CustomEcharts';
+import EmptyState from '@/components/common/EmptyState';
+import Icon from '@/components/common/Icon';
+import ProgressBar from '@/components/common/ProgressBar';
+import Skeleton from '@/components/common/Skeleton';
+import { useCountUp } from '@/hooks/useCountUp';
+import { isApiError } from '@/interface/errorType';
+import { QUERY_KEY } from '@/interface/key/queryKey';
+import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
+import { deleteAsset, getAssets, getAssetTrend } from '@/service/asset';
+import { currentYearMonth, formatYearMonthLabel, shiftYearMonth } from '@/utils/ts/formatDate';
+import type { AssetDto } from '@/service/asset/type';
+import AssetFormModal from '../AssetFormModal';
+import styles from './AssetBoard.module.scss';
+import type { EChartsOption } from 'echarts';
+
+const KIND_LABEL: Record<AssetDto['kind'], string> = {
+  SAVINGS: '적금·예금',
+  INVESTMENT: '투자',
+  CASH: '현금',
+  PENSION: '연금',
+  OTHER: '기타',
+};
+
+const TREND_MONTHS = 11;
+
+export default function AssetBoard() {
+  const [editing, setEditing] = useState<AssetDto | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AssetDto | null>(null);
+  const queryClient = useQueryClient();
+  const { colors, base } = useBaseOption();
+
+  const { data, isPending } = useQuery({
+    queryKey: QUERY_KEY.ASSET.LIST(),
+    queryFn: getAssets,
+  });
+
+  const to = currentYearMonth();
+  const from = shiftYearMonth(to, -TREND_MONTHS);
+  const trendParams = { from, to };
+  const trend = useQuery({
+    queryKey: QUERY_KEY.ASSET.TREND(trendParams),
+    queryFn: () => getAssetTrend(trendParams),
+  });
+
+  const total = data?.totalBalance ?? 0;
+  const countedTotal = useCountUp(total);
+
+  const removal = useMutation({
+    mutationFn: (id: string) => deleteAsset(id),
+    onSuccess: ({ keptTransactionCount }) => {
+      toast.success(
+        keptTransactionCount > 0
+          ? `지웠습니다. 이미 넣은 ${keptTransactionCount}건의 기록은 거래에 그대로 남아 있습니다.`
+          : '지웠습니다.',
+      );
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ASSET.ALL });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
+      setDeleteTarget(null);
+    },
+    onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했습니다.'),
+  });
+
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ASSET.ALL });
+  };
+
+  const points = trend.data ?? [];
+  const trendOption: EChartsOption = {
+    ...base,
+    xAxis: quietCategoryAxis(colors, points.map((point) => `${Number(point.yearMonth.slice(5))}월`)),
+    yAxis: quietValueAxis(colors),
+    series: [
+      {
+        name: '모은 돈',
+        type: 'line',
+        data: points.map((point) => point.balance),
+        smooth: 0.35,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2.5, color: colors.income },
+        itemStyle: { color: colors.income },
+        areaStyle: { opacity: 0.12, color: colors.income },
+      },
+    ],
+  };
+
+  if (isPending) return <Skeleton height={320} />;
+
+  const assets = data?.assets ?? [];
+  const active = assets.filter((asset) => asset.isActive);
+  const archived = assets.filter((asset) => !asset.isActive);
+
+  return (
+    <>
+      <Card
+        tone="feature"
+        title="모은 돈"
+        description="적금·투자처럼 '옮긴 돈'으로 넣은 금액이 자산마다 쌓입니다. 시작 잔액에 그동안 넣은 돈을 더한 값입니다."
+        action={
+          <Button
+            size="sm"
+            iconLeft={<Icon
+              name="plus"
+              size={16}
+            />}
+            onClick={() => setIsCreating(true)}
+          >
+            자산 추가
+          </Button>
+        }
+      >
+        <div className={styles.assetboard__summary}>
+          <p className={styles.assetboard__total}>
+            <span className={styles.assetboard__totallabel}>전체</span>
+            <Amount
+              value={countedTotal}
+              tone="income"
+              size="hero"
+            />
+          </p>
+          {(data?.addedThisMonth ?? 0) > 0 && (
+            <p className={styles.assetboard__month}>
+              {formatYearMonthLabel(to)}에 <Amount
+                value={data?.addedThisMonth ?? 0}
+                tone="income"
+                size="small"
+              /> 넣었습니다.
+            </p>
+          )}
+        </div>
+      </Card>
+
+      {points.some((point) => point.balance !== 0) && (
+        <Card
+          title="모은 돈 추이"
+          description="최근 1년 동안 쌓인 금액입니다. 왼쪽 숫자는 만 원 단위입니다."
+        >
+          <CustomEcharts
+            option={trendOption}
+            height={200}
+            ariaLabel="최근 1년 자산 추이 꺾은선 차트"
+          />
+        </Card>
+      )}
+
+      <Card
+        title="자산 목록"
+        description="줄을 누르면 고치거나 지울 수 있습니다."
+        isFlush
+      >
+        {active.length === 0 ? (
+          <EmptyState
+            title="아직 등록한 자산이 없습니다"
+            description="적금이나 주식처럼 모으는 통을 만들어 두면, 거래를 넣을 때 어디에 모으는지 고를 수 있습니다."
+          />
+        ) : (
+          <ul className={styles.assetboard__list}>
+            {active.map((asset) => (
+              <li key={asset.id}>
+                <button
+                  type="button"
+                  className={styles.assetboard__row}
+                  style={{ borderInlineStartColor: asset.colorHex ?? 'var(--member-a)' }}
+                  onClick={() => setEditing(asset)}
+                >
+                  <span className={styles.assetboard__main}>
+                    <span className={styles.assetboard__name}>
+                      {asset.name}
+                      <Badge tone="neutral">{KIND_LABEL[asset.kind]}</Badge>
+                      {asset.owner && <Badge tone="neutral">{asset.owner.displayName}</Badge>}
+                    </span>
+                    <span className={styles.assetboard__meta}>
+                      {asset.openingBalance > 0 && `시작 ${asset.openingBalance.toLocaleString('ko-KR')}원 · `}
+                      넣은 돈 {asset.addedAmount.toLocaleString('ko-KR')}원
+                      {asset.transactionCount > 0 && ` (${asset.transactionCount}건)`}
+                    </span>
+                    {asset.targetAmount && (
+                      <span className={styles.assetboard__goal}>
+                        <ProgressBar
+                          ratio={asset.balance / asset.targetAmount}
+                          ariaLabel={`${asset.name} 목표 달성률`}
+                        />
+                        <span className={styles.assetboard__goaltext}>
+                          목표 {asset.targetAmount.toLocaleString('ko-KR')}원 중 {Math.min(
+                            Math.round((asset.balance / asset.targetAmount) * 100),
+                            999,
+                          )}%
+                        </span>
+                      </span>
+                    )}
+                  </span>
+                  <Amount
+                    value={asset.balance}
+                    tone="income"
+                    size="medium"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {archived.length > 0 && (
+        <Card
+          title="보관한 자산"
+          description="목록에서 숨긴 자산입니다. 눌러서 다시 꺼낼 수 있습니다."
+          isFlush
+        >
+          <ul className={styles.assetboard__list}>
+            {archived.map((asset) => (
+              <li key={asset.id}>
+                <button
+                  type="button"
+                  className={styles.assetboard__row}
+                  data-archived="true"
+                  onClick={() => setEditing(asset)}
+                >
+                  <span className={styles.assetboard__main}>
+                    <span className={styles.assetboard__name}>{asset.name}</span>
+                  </span>
+                  <Amount
+                    value={asset.balance}
+                    tone="neutral"
+                    size="small"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {(isCreating || editing) && (
+        <AssetFormModal
+          key={editing ? `edit:${editing.id}` : 'create'}
+          isOpen
+          asset={editing}
+          onClose={() => {
+            setIsCreating(false);
+            setEditing(null);
+          }}
+          onDelete={(asset) => {
+            setEditing(null);
+            setDeleteTarget(asset);
+          }}
+          onSaved={() => {
+            setIsCreating(false);
+            setEditing(null);
+            refresh();
+          }}
+        />
+      )}
+
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title={`'${deleteTarget?.name ?? ''}'을(를) 지울까요?`}
+        description={
+          (deleteTarget?.transactionCount ?? 0) > 0
+            ? `이미 넣은 ${deleteTarget?.transactionCount}건의 기록은 거래에 그대로 남습니다. 실제로 나간 돈이라 지우면 지난 달 합계가 바뀝니다.`
+            : '되돌릴 수 없습니다.'
+        }
+        confirmLabel="지우기"
+        isLoading={removal.isPending}
+        onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </>
+  );
+}

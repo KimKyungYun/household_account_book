@@ -16,6 +16,7 @@ import { useRecentCategories } from '@/hooks/useRecentCategories';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryTree } from '@/service/category';
+import { getAssets } from '@/service/asset';
 import { getPaymentMethods } from '@/service/paymentMethod';
 import { createRecurringRule, updateRecurringRule } from '@/service/recurring';
 import { todayInSeoul } from '@/utils/ts/formatDate';
@@ -72,6 +73,7 @@ interface FormState {
   categoryId: string | null;
   paymentMethodId: string;
   splitMode: 'SHARED' | 'PERSONAL';
+  assetId: string;
   freq: 'MONTHLY' | 'WEEKLY' | 'YEARLY';
   interval: number;
   dayOfMonth: number;
@@ -96,6 +98,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
     categoryId: rule?.category?.id ?? null,
     paymentMethodId: rule?.paymentMethod?.id ?? '',
     splitMode: rule?.splitMode === 'PERSONAL' ? 'PERSONAL' : 'SHARED',
+    assetId: rule?.asset?.id ?? '',
     freq: rule?.freq ?? 'MONTHLY',
     interval: rule?.interval ?? 1,
     dayOfMonth: rule?.dayOfMonth ?? 25,
@@ -112,6 +115,12 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
     queryFn: () => getCategoryTree({ kind }),
     enabled: isOpen && form.type !== 'TRANSFER',
   });
+  const assetList = useQuery({
+    queryKey: QUERY_KEY.ASSET.LIST(),
+    queryFn: getAssets,
+  });
+  const assets = (assetList.data?.assets ?? []).filter((asset) => asset.isActive);
+
   const paymentMethods = useQuery({
     queryKey: QUERY_KEY.PAYMENT_METHOD.LIST(),
     queryFn: getPaymentMethods,
@@ -133,6 +142,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
         amount: form.amount ?? 0,
         amountIsFixed: form.amountIsFixed,
         splitMode: form.splitMode,
+        assetId: form.type === 'TRANSFER' ? form.assetId || null : null,
         memo: form.memo || undefined,
         freq: form.freq,
         interval: form.interval,
@@ -394,6 +404,25 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
             )}
           </FormField>
         </div>
+
+        {form.type === 'TRANSFER' && assets.length > 0 && (
+          <FormField
+            label="어디에 모으나"
+            hint="고르면 매달 만들어지는 거래가 이 자산에 쌓입니다."
+          >
+            {({ id }) => (
+              <Select
+                id={id}
+                value={form.assetId}
+                onChange={(event) => patch({ assetId: event.target.value })}
+                options={[
+                  { value: '', label: '고르지 않음' },
+                  ...assets.map((asset) => ({ value: asset.id, label: asset.name })),
+                ]}
+              />
+            )}
+          </FormField>
+        )}
 
         <FormField label={form.type === 'INCOME' ? '입금 계좌' : '결제수단'}>
           {({ id }) => (

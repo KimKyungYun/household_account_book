@@ -29,6 +29,11 @@ export const QUERY_KEY = {
     ALL: ['budget'] as const,
     MONTH: (yearMonth: string) => [...QUERY_KEY.BUDGET.ALL, 'month', yearMonth] as const,
   },
+  ASSET: {
+    ALL: ['asset'] as const,
+    LIST: () => [...QUERY_KEY.ASSET.ALL, 'list'] as const,
+    TREND: (params: unknown) => [...QUERY_KEY.ASSET.ALL, 'trend', params] as const,
+  },
   RECURRING: {
     ALL: ['recurring'] as const,
     LIST: () => [...QUERY_KEY.RECURRING.ALL, 'list'] as const,

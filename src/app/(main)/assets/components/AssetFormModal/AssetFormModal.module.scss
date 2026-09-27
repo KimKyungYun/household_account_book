@@ -1,0 +1,14 @@
+@use "styles/tokens/spacing" as s;
+
+.assetformmodal {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    gap: s.$gap-3;
+    width: 100%;
+  }
+}

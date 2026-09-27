@@ -14,6 +14,8 @@ const baseFields = {
   /** false 면 확인 대기(PENDING) 로 만든다 — 전기요금처럼 매달 금액이 바뀌는 항목. */
   amountIsFixed: z.boolean().default(true),
   splitMode: z.enum(['SHARED', 'PERSONAL']).default('SHARED'),
+  /** 이 돈이 쌓이는 자산. '옮긴 돈' 규칙에만 붙는다. */
+  assetId: z.string().min(1).nullable().optional(),
   memo: z.string().trim().max(200).optional(),
   freq: recurrenceFreqSchema,
   interval: z.number().int().min(1).max(12).default(1),

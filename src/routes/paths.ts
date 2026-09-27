@@ -9,6 +9,7 @@ export const PATH = {
   TRANSACTION_DETAIL: (id: string) => `/transactions/${id}`,
   CATEGORIES: '/categories',
   BUDGETS: '/budgets',
+  ASSETS: '/assets',
   RECURRINGS: '/recurrings',
   REPORTS: '/reports',
   SETTINGS: '/settings',

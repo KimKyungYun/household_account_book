@@ -23,6 +23,7 @@ const RULE_SELECT = {
   amount: true,
   amountIsFixed: true,
   splitMode: true,
+  assetId: true,
   memo: true,
   freq: true,
   interval: true,
@@ -37,6 +38,7 @@ const RULE_SELECT = {
   member: { select: { id: true, displayName: true, colorHex: true } },
   category: { select: { id: true, name: true, parent: { select: { name: true } } } },
   paymentMethod: { select: { id: true, name: true } },
+  asset: { select: { id: true, name: true, colorHex: true } },
 } as const;
 
 function toRule(row: { freq: string; interval: number; dayOfMonth: number | null; weekday: number | null; monthOfYear: number | null; startDate: Date; endDate: Date | null }): RecurrenceRule {
@@ -80,6 +82,7 @@ export async function listRecurringRules(householdId: string): Promise<Recurring
       ? { id: row.category.id, name: row.category.name, parentName: row.category.parent?.name ?? null }
       : null,
     paymentMethod: row.paymentMethod,
+    asset: row.asset,
     nextOccurrenceDate: row.isActive ? nextOccurrence(toRule(row), today) : null,
   }));
 }
@@ -119,6 +122,8 @@ function toData(input: CreateRecurringInput | UpdateRecurringInput) {
     dayOfMonth: input.freq === 'WEEKLY' ? null : input.dayOfMonth ?? null,
     weekday: input.freq === 'WEEKLY' ? input.weekday ?? null : null,
     monthOfYear: input.freq === 'YEARLY' ? input.monthOfYear ?? null : null,
+    // 자산은 '옮긴 돈' 규칙에만 붙는다. 종류가 다르면 DB CHECK 가 막는다.
+    assetId: input.type === 'TRANSFER' ? input.assetId ?? null : null,
     startDate: toDateOnly(input.startDate),
     endDate: input.endDate ? toDateOnly(input.endDate) : null,
   };
@@ -245,6 +250,9 @@ export async function backfillRecurring(
               categoryId: rule.categoryId,
               paymentMethodId: rule.paymentMethodId,
               splitMode: rule.splitMode,
+              // 반복 규칙에 자산이 붙어 있으면 만들어지는 거래도 그 자산으로 쌓인다.
+              // 매달 적금이 자동으로 늘어나는 것이 이 줄이다.
+              assetId: rule.assetId,
               memo: rule.memo,
               // 아직 날짜가 오지 않은 회차와, 금액이 매달 바뀌는 항목은 확정하지 않는다.
               // 둘 다 PENDING 이지만 화면은 날짜로 갈라 '예정'과 '확인 필요'로 달리 적는다.

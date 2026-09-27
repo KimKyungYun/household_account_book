@@ -61,6 +61,8 @@ export const createTransactionSchema = z
     categoryId: z.string().min(1).nullable().optional(),
     paymentMethodId: z.string().min(1).nullable().optional(),
     splitMode: splitModeSchema.optional(),
+    /** 이 돈이 쌓이는 자산. '옮긴 돈'에만 붙는다. */
+    assetId: z.string().min(1).nullable().optional(),
     merchant: z.string().trim().max(60).optional(),
     memo: z.string().trim().max(200).optional(),
     /** 더블 서브밋 멱등키. 모바일 재시도에서 실제로 두 번 들어온다. */
@@ -73,6 +75,10 @@ export const createTransactionSchema = z
   .refine((value) => value.type !== 'TRANSFER' || value.amount > 0, {
     message: '이체 금액은 0보다 커야 합니다.',
     path: ['amount'],
+  })
+  .refine((value) => !value.assetId || value.type === 'TRANSFER', {
+    message: '자산은 옮긴 돈에만 붙일 수 있습니다.',
+    path: ['assetId'],
   });
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 
@@ -83,6 +89,7 @@ export const updateTransactionSchema = z.object({
   categoryId: z.string().min(1).nullable().optional(),
   paymentMethodId: z.string().min(1).nullable().optional(),
   splitMode: splitModeSchema.optional(),
+  assetId: z.string().min(1).nullable().optional(),
   merchant: z.string().trim().max(60).nullable().optional(),
   memo: z.string().trim().max(200).nullable().optional(),
   status: transactionStatusSchema.optional(),

@@ -16,6 +16,7 @@ import { useRecentCategories } from '@/hooks/useRecentCategories';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryTree } from '@/service/category';
+import { getAssets } from '@/service/asset';
 import { getPaymentMethods } from '@/service/paymentMethod';
 import { createTransaction, updateTransaction } from '@/service/transaction';
 import { cn } from '@/utils/ts/cn';
@@ -78,6 +79,7 @@ interface FormState {
   memberId: string;
   paymentMethodId: string;
   splitMode: 'SHARED' | 'PERSONAL';
+  assetId: string;
   merchant: string;
   memo: string;
 }
@@ -107,6 +109,7 @@ export function TransactionForm({
     memberId: transaction?.member.id ?? '',
     paymentMethodId: transaction?.paymentMethod?.id ?? '',
     splitMode: transaction?.splitMode === 'PERSONAL' ? 'PERSONAL' : 'SHARED',
+    assetId: transaction?.asset?.id ?? '',
     merchant: transaction?.merchant ?? '',
     memo: transaction?.memo ?? '',
   }));
@@ -120,6 +123,13 @@ export function TransactionForm({
     queryKey: QUERY_KEY.PAYMENT_METHOD.LIST(),
     queryFn: getPaymentMethods,
   });
+
+  // '옮긴 돈'에서 어디에 모으는지 고르기 위한 목록. 보관한 자산은 고를 수 없다.
+  const assetList = useQuery({
+    queryKey: QUERY_KEY.ASSET.LIST(),
+    queryFn: getAssets,
+  });
+  const assets = (assetList.data?.assets ?? []).filter((asset) => asset.isActive);
 
   const members = me.data?.members ?? [];
   const memberId = form.memberId || me.data?.member?.id || members[0]?.id || '';
@@ -136,6 +146,7 @@ export function TransactionForm({
           categoryId: form.type === 'TRANSFER' ? null : form.categoryId,
           paymentMethodId: form.paymentMethodId || null,
           splitMode: form.type === 'TRANSFER' ? 'PERSONAL' : form.splitMode,
+          assetId: form.type === 'TRANSFER' ? form.assetId || null : null,
           merchant: form.merchant || null,
           memo: form.memo || null,
           version: transaction.version,
@@ -150,6 +161,7 @@ export function TransactionForm({
         categoryId: form.type === 'TRANSFER' ? null : form.categoryId,
         paymentMethodId: form.paymentMethodId || null,
         splitMode: form.type === 'TRANSFER' ? 'PERSONAL' : form.splitMode,
+        assetId: form.type === 'TRANSFER' ? form.assetId || null : null,
         merchant: form.merchant || undefined,
         memo: form.memo || undefined,
         // 같은 화면에서 두 번 눌려도 한 건만 남는다.
@@ -331,8 +343,8 @@ export function TransactionForm({
           label="나누기"
           hint={
             form.splitMode === 'SHARED'
-              ? '설정한 비율대로 나누어 계산합니다.'
-              : '용돈처럼 각자 쓴 돈이므로 나누지 않습니다.'
+              ? '둘의 살림에 들어간 돈으로 표시합니다.'
+              : '용돈처럼 한 사람에게만 속한 돈으로 표시합니다.'
           }
         >
           {() => (
@@ -342,6 +354,26 @@ export function TransactionForm({
               value={form.splitMode}
               onChange={(value) => patch({ splitMode: value as 'SHARED' | 'PERSONAL' })}
               ariaLabel="분담 방식"
+            />
+          )}
+        </FormField>
+      )}
+
+      {form.type === 'TRANSFER' && assets.length > 0 && (
+        <FormField
+          label="어디에 모으나"
+          hint="적금·투자처럼 모으는 돈이면 고릅니다. 고른 자산의 잔액이 이 금액만큼 늘어납니다."
+          error={fieldErrors.assetId}
+        >
+          {({ id }) => (
+            <Select
+              id={id}
+              value={form.assetId}
+              onChange={(event) => patch({ assetId: event.target.value })}
+              options={[
+                { value: '', label: '고르지 않음' },
+                ...assets.map((asset) => ({ value: asset.id, label: asset.name })),
+              ]}
             />
           )}
         </FormField>

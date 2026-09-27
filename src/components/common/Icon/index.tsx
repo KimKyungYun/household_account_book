@@ -4,7 +4,7 @@ export type IconName =
   | 'dashboard'
   | 'ledger'
   | 'plus'
-  | 'scale'
+  | 'wallet'
   | 'more'
   | 'budget'
   | 'repeat'
@@ -28,8 +28,9 @@ const PATHS: Record<IconName, string> = {
   // 거래 — 영수증
   ledger: 'M6 3.5h12a1 1 0 0 1 1 1v15.2a.3.3 0 0 1-.46.26L16 18.5l-2.5 1.5L11 18.5 8.5 20 6 18.5l-1.54.96A.3.3 0 0 1 4 19.2V4.5a1 1 0 0 1 1-1h1ZM8 8h8M8 12h5',
   plus: 'M12 5.5v13M5.5 12h13',
+  // 자산 — 지갑. 오른쪽의 짧은 획이 카드가 드나드는 자리다.
+  wallet: 'M4 8.5A2 2 0 0 1 6 6.5h11A2 2 0 0 1 19 8.5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9Zm0 0V6.8a1.3 1.3 0 0 1 1.05-1.28l9.2-1.5M15 13.5h2.5',
   // 분담 — 하나를 둘로 가른 막대
-  scale: 'M4 12h16M8 12V7.5M16 12v4.5M6 5h4M14 19h4',
   more: 'M5.5 12h.01M12 12h.01M18.5 12h.01',
   // 예산 — 부채꼴 하나만 있는 원
   budget: 'M12 3.5a8.5 8.5 0 1 0 8.5 8.5H12V3.5Z',

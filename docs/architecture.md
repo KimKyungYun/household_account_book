@@ -4,7 +4,7 @@
 스키마를 고칠 때 같이 고친다. 화면(프론트) 구조는 다루지 않는다.
 
 - 확인 기준: 마이그레이션 `20260922112916_fix_recurring_rule_shape` 시점
-- 앱 테이블 14개(+ Prisma 관리 테이블 1개) / enum 7개 / API 엔드포인트 23개
+- 앱 테이블 13개(+ Prisma 관리 테이블 1개) / enum 7개 / API 엔드포인트 25개
 
 ---
 
@@ -189,7 +189,7 @@ Auth.js 표준 테이블(`Account` `Session` `VerificationToken`)은 어댑터�
 | `Budget` | 월 예산 | `(householdId, categoryId, yearMonth)` 유니크 |
 | `RecurringRule` | 반복 규칙 | 주기를 **구조화 필드**로 저장 (cron 문자열 아님) |
 | `RecurringOccurrence` | 회차 원장 | `(ruleId, occurrenceDate)` 유니크. **이게 없으면 지운 거래가 되살아난다** |
-| `MonthlySettlement` | 정산 확정 스냅샷 | 성능이 아니라 "합의한 사실을 동결"하는 것이 목적. 현재 API 미구현 |
+| `Asset` | 모으는 자산 | '청년미래적금', '주식' 처럼 사람이 이름 붙인 통. **잔액을 저장하지 않고** `openingBalance` + 연결된 거래의 합으로 계산한다 |
 
 ### enum
 
@@ -239,6 +239,18 @@ Postgres 가 bigint 로 승격하므로 합계 오버플로도 없다.
 - 거래 목록의 기본 `type` 필터가 `['INCOME', 'EXPENSE']` — 이체는 명시적으로 골라야 보인다
 - 정산·예산·통계 쿼리에서 모두 제외한다
 - DB CHECK 가 이체의 `splitMode` 를 `PERSONAL` 로 못 박는다 (정산 대상이 될 수 없다)
+
+### 자산은 잔액을 저장하지 않는다
+
+`Asset.openingBalance` 에서 시작해 그 자산에 연결된 거래를 더해 잔액을 낸다.
+저장해 두면 거래를 고칠 때마다 맞춰야 하고, 한 번 어긋나면 어느 쪽이 맞는지 알 수 없다.
+
+- 자산은 **`TRANSFER` 에만** 붙는다 (`tx_asset_transfer_only` CHECK). 수입·지출에 붙이면
+  그 돈이 합계에도 들어가고 자산에도 쌓여 같은 금액을 두 번 세게 된다.
+- 반복 규칙에도 자산을 붙일 수 있다. 매달 만들어지는 거래가 그 자산으로 쌓인다 —
+  적금이 자동으로 늘어나는 것이 이 고리다.
+- 자산을 지워도 **거래는 남는다.** 실제로 통장에서 나간 기록이라 함께 지우면 지난 달
+  합계가 통째로 바뀐다. `assetId` 만 `SetNull` 로 끊긴다.
 
 ### 삭제 정책
 
@@ -427,6 +439,9 @@ Docker 개발에서는 아예 돌지 않아 테스트 경로가 갈라지기** �
 | GET | `/api/payment-methods` | 결제수단 목록 |
 | GET POST | `/api/transactions` | 목록(필터·페이지·합계) / 생성 |
 | GET PATCH DELETE | `/api/transactions/[id]` | 단건 / 수정(낙관적 락) / 삭제 |
+| GET POST | `/api/assets` | 자산 목록 + 잔액 / 생성 |
+| PATCH DELETE | `/api/assets/[id]` | 수정 / 삭제(거래는 남김) |
+| GET | `/api/assets/trend` | 월별 누적 잔액 추이 |
 | GET PUT | `/api/budgets` | 예산 대비 실적 / 배치 upsert |
 | POST | `/api/budgets/copy` | 전월 예산 복사 |
 | GET POST | `/api/recurring-rules` | 목록(다음 발생일 포함) / 생성 |
@@ -490,9 +505,9 @@ yarn dev
 
 | | 상태 |
 | --- | --- |
-| 정산 확정 | 테이블(`MonthlySettlement`)은 있고 API·화면이 없다 |
 | 영수증 사진 | 스토리지가 필요해 보류 |
 | CSV 임포트 | `TransactionSource.IMPORT` 만 예약 |
-| 계좌 잔액 | `PaymentMethod` 에 잔액 개념이 없다 |
+| 빚(대출) | 자산은 되지만 상환은 잔액이 줄어드는 방향이라 '옮긴 돈'(양수만)으로 표현할 수 없다 |
+| 결제수단 잔액 | `PaymentMethod` 자체에는 잔액이 없다. 모으는 돈만 `Asset` 이 다룬다 |
 | 이체 짝 거래 | `transferPeerId` 필드와 삭제 방어만 있고 짝 생성 API 미구현 |
 | 회계월 | `Household.fiscalStartDay` 필드만 있고 v1 은 달력월 고정 |

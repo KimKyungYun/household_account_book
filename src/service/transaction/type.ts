@@ -9,6 +9,8 @@ export interface TransactionListItemDto {
   member: { id: string; displayName: string; colorHex: string };
   category: { id: string; name: string; parentName: string | null; colorHex: string | null } | null;
   paymentMethod: { id: string; name: string } | null;
+  /** 이 돈이 쌓이는 자산. '옮긴 돈'에만 붙는다. */
+  asset: { id: string; name: string; colorHex: string | null } | null;
   splitMode: SplitMode;
   merchant: string | null;
   memo: string | null;
