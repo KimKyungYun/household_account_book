@@ -34,22 +34,25 @@
 
 ## 2. 먼저 알아야 할 함정
 
-### `prisma generate` 를 빌드 전에 돌려야 한다
+### `prisma generate` 는 설치 뒤에 저절로 돈다 — 건드리지 않는다
 
 Prisma 클라이언트가 `node_modules` 가 아니라 **`src/generated/prisma`** 로 나오고,
 그 경로는 `.gitignore` 에 있다. 코드가 `@/generated/prisma/client` 를 import 하므로
-새로 clone 한 환경에서는 생성 없이 빌드가 실패한다.
+새로 clone 한 환경에서 생성을 건너뛰면 빌드가 이렇게 깨진다.
 
-```bash
-yarn prisma generate && yarn build
+```
+Error: Module not found: Can't resolve '@/generated/prisma/client'
 ```
 
-`package.json` 에 `postinstall` 이 없으므로 **자동으로 돌지 않는다.** 배포 플랫폼의
-빌드 명령을 위와 같이 적거나, 아래 한 줄을 `package.json` 에 더해 둔다.
+그래서 `package.json` 에 이 줄을 두었다. `yarn install` 뒤에 자동으로 돌므로
+배포 플랫폼의 빌드 명령은 기본값(`next build`)으로 두면 된다.
 
 ```json
 "postinstall": "prisma generate"
 ```
+
+**이 줄을 지우면 배포가 깨진다.** 로컬에는 이미 생성된 파일이 남아 있어 눈치채지 못하고,
+새 환경에서만 터진다.
 
 ### `AUTH_URL` 을 실제 주소로 바꾼다
 
@@ -123,11 +126,7 @@ DIRECT_DATABASE_URL="<neon direct url>" yarn prisma migrate deploy
 ### 4-3. Vercel 연결
 
 1. GitHub 저장소를 Vercel 에 연결한다. 프레임워크는 자동으로 Next 로 잡힌다.
-2. **빌드 명령을 바꾼다** — 2번의 이유로 기본값(`next build`)이면 실패한다.
-   ```
-   prisma generate && next build
-   ```
-   `postinstall` 을 추가했다면 기본값 그대로 둬도 된다.
+2. 빌드 명령은 **기본값 그대로** 둔다. `postinstall` 이 Prisma 클라이언트를 만든다.
 3. 환경변수를 넣는다(3번 표). `AUTH_URL` 은 배포 후 받은 도메인으로 다시 맞춘다.
 4. 배포.
 
@@ -366,6 +365,8 @@ docker compose -f docker-compose.prod.yml exec -T db \
 | `GET /icon.svg` | 200 |
 | `GET /fonts/Pretendard/Pretendard-Bold.woff2` | 200 |
 | `GET /api/me` (미인증) | 401 |
+| `src/generated` 를 지운 채 빌드 | `Module not found` 로 실패 — 위 함정이 실재함을 확인 |
+| 같은 상태에서 `yarn install` 후 빌드 | 성공 — `postinstall` 이 클라이언트를 만든다 |
 
 정적 자산을 복사하지 않으면 화면은 뜨지만 스타일과 폰트가 404 가 된다.
 
