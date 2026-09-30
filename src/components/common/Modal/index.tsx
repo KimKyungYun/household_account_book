@@ -13,6 +13,15 @@ interface ModalProps {
   title: string;
   description?: string;
   size?: 'md' | 'lg';
+  /**
+   * 판이 어디서 나오는지.
+   *  - `center` 기본. 가운데(≤600px 에서는 아래에서 올라오는 시트).
+   *  - `drawer` 화면 오른쪽에서 옆으로 밀려 나오는 전체 높이 패널.
+   *
+   * 배치만 다를 뿐 포커스 가둠·Esc 처리·배경 스크롤 잠금은 그대로 쓴다.
+   * 드로어를 따로 만들면 그 셋을 한 벌 더 관리하게 된다.
+   */
+  placement?: 'center' | 'drawer';
   children?: ReactNode;
   footer?: ReactNode;
 }
@@ -33,7 +42,16 @@ const OPENED: object[] = [];
  * 접근성 모달. 열려 있는 동안 배경 스크롤을 막고 포커스를 안에 가둔다.
  * **600px 이하에서는 아래에서 올라오는 바텀시트로 형태를 바꾼다** — 거래 등록이 이 형태로 뜬다.
  */
-export function Modal({ isOpen, onClose, title, description, size = 'md', children, footer }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  size = 'md',
+  placement = 'center',
+  children,
+  footer,
+}: ModalProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -116,7 +134,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
   if (!isOpen) return null;
 
   return createPortal(
-    <div className={styles.modal}>
+    <div className={cn(styles.modal, styles[`modal--${placement}`])}>
       <button
         type="button"
         className={styles.modal__backdrop}

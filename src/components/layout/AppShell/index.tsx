@@ -1,3 +1,4 @@
+import MobileMenu from '@/components/layout/MobileMenu';
 import MobileTabBar from '@/components/layout/MobileTabBar';
 import PageTransition from '@/components/layout/PageTransition';
 import Sidebar from '@/components/layout/Sidebar';
@@ -32,6 +33,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className={styles.appshell__tabbar}>
         <MobileTabBar />
       </div>
+
+      <MobileMenu />
     </div>
   );
 }

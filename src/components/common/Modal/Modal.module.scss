@@ -23,6 +23,37 @@
     padding: 0;
   }
 
+  // 옆에서 밀려 나오는 전체 높이 패널. 모바일 전체 메뉴가 이 형태로 뜬다.
+  // 판 자체의 배치만 바꾸고 포커스 가둠·Esc·스크롤 잠금은 가운데 판과 똑같이 쓴다.
+  &--drawer {
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+
+    @include media.mobile {
+      align-items: stretch;
+    }
+
+    .modal__panel {
+      width: min(86vw, 320px);
+      max-height: none;
+      border-top: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-radius: s.$shape-3xl 0 0 s.$shape-3xl;
+      animation: modal-drawer-in 0.24s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+      @include media.reduced-motion {
+        animation: none;
+      }
+
+      @include media.mobile {
+        max-height: none;
+        border-radius: s.$shape-3xl 0 0 s.$shape-3xl;
+      }
+    }
+  }
+
   &__backdrop {
     position: absolute;
     inset: 0;
@@ -164,5 +195,17 @@
       opacity: 0;
       transform: translateY(16px) scale(0.99);
     }
+  }
+}
+
+@keyframes modal-drawer-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

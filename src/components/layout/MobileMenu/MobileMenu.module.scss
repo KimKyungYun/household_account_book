@@ -1,0 +1,69 @@
+@use "styles/tokens/motion" as m;
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.mobilemenu {
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-1;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-4;
+
+    // 손가락이 닿는 최소 크기. 목록이 아홉 줄이라 하나라도 좁으면 옆줄이 눌린다.
+    min-height: 48px;
+    padding: 0 s.$gap-4;
+    border-radius: s.$shape-xl;
+    color: var(--text-secondary);
+    transition: background-color m.$dur-quick m.$ease-out, color m.$dur-quick m.$ease-out;
+
+    @include t.label-medium;
+    @include motion.press(0.98);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+        color: var(--text-primary);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--active {
+      background-color: var(--surface-muted);
+      color: var(--text-primary);
+    }
+  }
+
+  // 하단탭의 가운데 버튼이 가려진 동안에도 등록으로 바로 갈 수 있게 둔다.
+  &__cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: s.$gap-2;
+    min-height: 48px;
+    margin-top: s.$gap-5;
+    border-radius: s.$shape-xl;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+
+    @include t.label-medium;
+    @include motion.press(0.98);
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+  }
+}

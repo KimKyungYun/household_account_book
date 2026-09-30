@@ -33,6 +33,38 @@
     gap: s.$gap-3;
   }
 
+  // 넓은 화면에는 라벨이 붙은 사이드바가 이미 보인다. 메뉴 버튼은 좁을 때만 필요하다.
+  &__menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    // 손가락이 닿는 최소 크기.
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: s.$shape-full;
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+        color: var(--text-primary);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    @include media.tablet-up {
+      display: none;
+    }
+  }
+
   // 모바일에서는 하단탭 가운데의 등록 버튼이 이 역할을 한다.
   &__cta {
     display: none;

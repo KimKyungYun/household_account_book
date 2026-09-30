@@ -7,6 +7,7 @@ export type IconName =
   | 'wallet'
   | 'calendar'
   | 'more'
+  | 'menu'
   | 'budget'
   | 'repeat'
   | 'report'
@@ -35,6 +36,8 @@ const PATHS: Record<IconName, string> = {
   wallet: 'M4 8.5A2 2 0 0 1 6 6.5h11A2 2 0 0 1 19 8.5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9Zm0 0V6.8a1.3 1.3 0 0 1 1.05-1.28l9.2-1.5M15 13.5h2.5',
   // 분담 — 하나를 둘로 가른 막대
   more: 'M5.5 12h.01M12 12h.01M18.5 12h.01',
+  // 전체 메뉴 — 가운데 줄을 짧게 둬 점 세 개(more)와 작은 크기에서도 구분된다.
+  menu: 'M4 7h16M4 12h10M4 17h16',
   // 예산 — 부채꼴 하나만 있는 원
   budget: 'M12 3.5a8.5 8.5 0 1 0 8.5 8.5H12V3.5Z',
   repeat: 'M4.5 9.5A5 5 0 0 1 9.5 4.5h9m0 0-3-3m3 3-3 3M19.5 14.5a5 5 0 0 1-5 5h-9m0 0 3 3m-3-3 3-3',

@@ -20,12 +20,16 @@ export const SIDEBAR_NAV: readonly NavItem[] = [
   { href: PATH.SETTINGS, label: '설정', icon: 'settings' },
 ];
 
-/** 모바일 하단탭 — 엄지로 닿는 자리에 다섯 개까지. 가운데는 등록 버튼이다. */
+/**
+ * 모바일 하단탭 — 엄지로 닿는 자리에 네 개. 가운데는 등록 버튼이다.
+ *
+ * 나머지 화면(예산·자산·반복 거래·리포트·분류·설정)은 마지막 '메뉴' 자리에서 열리는
+ * 전체 메뉴 드로어가 맡는다. 그래서 여기는 **링크 세 개**뿐이다.
+ */
 export const MOBILE_NAV: readonly NavItem[] = [
   { href: PATH.DASHBOARD, label: '대시보드', icon: 'dashboard' },
   { href: PATH.CALENDAR, label: '달력', icon: 'calendar' },
   { href: PATH.TRANSACTIONS, label: '거래', icon: 'ledger' },
-  { href: PATH.SETTINGS, label: '더보기', icon: 'more' },
 ];
 
 const TITLE_BY_PATH: Record<string, string> = {
