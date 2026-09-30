@@ -84,7 +84,7 @@ AUTH_ALLOWED_EMAILS="husband@example.com,wife@example.com"
 | 변수 | 필수 | 설명 |
 | --- | --- | --- |
 | `DATABASE_URL` | ✅ | 앱이 쓰는 접속 문자열. 서버리스면 **pooled** 엔드포인트 |
-| `DIRECT_DATABASE_URL` | 마이그레이션 시 | 마이그레이션 전용 직결 주소. 없으면 `DATABASE_URL` 을 쓴다 |
+| `DIRECT_DATABASE_URL` | ✅ | 마이그레이션 전용. 빌드가 `migrate deploy` 를 돌리므로 없으면 배포가 실패한다 |
 | `AUTH_SECRET` | ✅ | `openssl rand -base64 32`. 바꾸면 모든 세션이 끊긴다 |
 | `AUTH_URL` | ✅ | 배포 도메인 (`https://` 포함) |
 | `AUTH_ALLOWED_EMAILS` | ✅ | 가입을 허용할 이메일. 콤마로 구분 |
@@ -112,16 +112,19 @@ AUTH_ALLOWED_EMAILS="husband@example.com,wife@example.com"
 서버리스는 요청마다 커넥션을 새로 열기 때문에 앱은 반드시 pooled 를 써야 한다.
 마이그레이션은 세션 수준 잠금을 잡으므로 direct 여야 한다.
 
-### 4-2. 첫 마이그레이션
+### 4-2. 마이그레이션은 빌드가 적용한다
 
-로컬에서 프로덕션 DB 를 향해 한 번 적용한다.
+`build` 스크립트가 `prisma migrate deploy && next build` 다. 배포할 때마다 밀린
+마이그레이션이 먼저 적용되고, 실패하면 빌드가 거기서 멈춘다 — 코드와 DB 가 어긋난 채
+배포되는 일이 없다.
 
-```bash
-DIRECT_DATABASE_URL="<neon direct url>" yarn prisma migrate deploy
-```
+그래서 **`DIRECT_DATABASE_URL` 을 반드시 넣어야 한다.** 마이그레이션은 세션 수준 잠금을
+잡기 때문에 transaction pooler(6543) 로는 돌지 않는다. 없으면 `prisma.config.ts` 가
+`DATABASE_URL` 로 넘어가 빌드가 실패한다.
 
-`migrate dev` 가 아니라 **`migrate deploy`** 다. `dev` 는 스키마 변화를 감지해
-새 마이그레이션을 만들려 하고 대화형 프롬프트에서 멈춘다.
+> 이 자동화가 없던 동안 실제로 사고가 났다. 대출 기능을 배포했는데 마이그레이션을
+> 손으로 돌리는 것을 빠뜨려 `Loan` 테이블이 없는 DB 를 새 코드가 읽었고,
+> `/api/loans` 만 500 이 났다.
 
 ### 4-3. Vercel 연결
 
@@ -296,8 +299,9 @@ yarn prisma migrate dev --name <이름>
 
 # 3. 로컬에서 확인한 뒤 커밋
 
-# 4. 프로덕션에 적용
-DIRECT_DATABASE_URL="<direct url>" yarn prisma migrate deploy
+# 4. 푸시하면 끝 — 배포 빌드가 migrate deploy 를 먼저 돌린다.
+#    급히 먼저 적용해야 하면 손으로도 돌릴 수 있다:
+#    yarn prisma migrate deploy
 ```
 
 **컬럼을 지우거나 이름을 바꾸는 마이그레이션은 앱 배포보다 먼저 돌리지 않는다.**
