@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** 감속 곡선. 끝에서 천천히 멎어야 숫자가 '멈췄다'고 느껴진다. */
 function easeOut(t: number): number {
@@ -25,11 +25,12 @@ function prefersMotion(): boolean {
  */
 export function useCountUp(target: number, duration = 800): number {
   const [progress, setProgress] = useState(() => (prefersMotion() ? 0 : 1));
-  const hasStarted = useRef(false);
 
+  // '한 번만 센다'를 ref 로 막지 않는다. deps 가 duration 하나뿐이라 이 효과는 마운트할 때
+  // 한 번만 도는데, ref 로 또 막으면 Strict Mode 가 mount→cleanup→mount 로 두 번 돌릴 때
+  // 두 번째에서 rAF 를 걸지 않아 **숫자가 0 에 멈춘다.** 실제로 화면에 0원이 떴다.
   useEffect(() => {
-    if (hasStarted.current || !prefersMotion()) return undefined;
-    hasStarted.current = true;
+    if (!prefersMotion()) return undefined;
 
     let frame = 0;
     const start = performance.now();
