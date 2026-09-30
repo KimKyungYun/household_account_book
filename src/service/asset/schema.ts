@@ -2,6 +2,19 @@ import { z } from 'zod';
 
 export const assetKindSchema = z.enum(['SAVINGS', 'INVESTMENT', 'CASH', 'PENSION', 'OTHER']);
 
+/**
+ * 매달 자동으로 넣기.
+ *
+ * 분류·결제자 같은 나머지 항목은 서버가 기본값으로 채운다 — 자산을 만들면서
+ * 고를 것이 늘면 정작 자산 등록이 무거워진다. 세밀한 조정은 반복 거래 화면에서 한다.
+ */
+export const autoDepositSchema = z.object({
+  amount: z.number().int().positive('넣을 금액을 입력해 주세요.'),
+  /** 31 은 말일을 겸한다 — 그 달 일수로 클램프된다. */
+  dayOfMonth: z.number().int().min(1, '1~31 사이로 정해 주세요.').max(31, '1~31 사이로 정해 주세요.'),
+});
+export type AutoDepositInput = z.infer<typeof autoDepositSchema>;
+
 export const createAssetSchema = z.object({
   name: z.string().trim().min(1, '이름을 입력해 주세요.').max(30),
   kind: assetKindSchema,
@@ -10,6 +23,8 @@ export const createAssetSchema = z.object({
   openingBalance: z.number().int().min(0, '시작 잔액은 0원 이상이어야 합니다.').default(0),
   targetAmount: z.number().int().positive('목표액은 0원보다 커야 합니다.').nullable().optional(),
   memo: z.string().trim().max(200).nullable().optional(),
+  /** null 이면 자동 적립을 끈다(규칙이 있으면 중지). 생략하면 건드리지 않는다. */
+  autoDeposit: autoDepositSchema.nullable().optional(),
 });
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 

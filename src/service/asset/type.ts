@@ -1,5 +1,15 @@
 import type { AssetKind } from '@/generated/prisma/enums';
 
+/** 이 자산에 매달 저절로 들어오는 돈. 반복 규칙 한 건을 자산 쪽에서 본 모습이다. */
+export interface AutoDepositDto {
+  ruleId: string;
+  amount: number;
+  /** 1~31. 31 은 말일을 겸한다. */
+  dayOfMonth: number;
+  /** 이 자산에 붙은 활성 규칙이 둘 이상인지. 그러면 자산 폼에서 다루지 않는다. */
+  hasMany: boolean;
+}
+
 export interface AssetDto {
   id: string;
   name: string;
@@ -18,6 +28,8 @@ export interface AssetDto {
   balance: number;
   /** 이 자산에 붙은 거래 건수. 지울 수 있는지 판단에 쓴다. */
   transactionCount: number;
+  /** 매달 자동으로 넣는 설정. 없으면 null. */
+  autoDeposit: AutoDepositDto | null;
 }
 
 export interface AssetSummaryDto {

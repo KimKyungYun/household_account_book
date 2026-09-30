@@ -1,9 +1,31 @@
 @use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
 
 .assetformmodal {
   display: flex;
   flex-direction: column;
   gap: s.$gap-5;
+
+  // 금액과 날짜는 짝으로 읽힌다. 좁은 화면에서는 그대로 쌓인다.
+  &__pair {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include media.tablet-up {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__notice {
+    margin: 0;
+    padding: s.$gap-4;
+    border-radius: s.$shape-lg;
+    background-color: var(--surface-muted);
+    color: var(--text-secondary);
+
+    @include t.body-small;
+  }
 
   &__actions {
     display: flex;

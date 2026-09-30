@@ -180,6 +180,12 @@ export default function AssetBoard() {
                       {asset.name}
                       <Badge tone="neutral">{KIND_LABEL[asset.kind]}</Badge>
                       {asset.owner && <Badge tone="neutral">{asset.owner.displayName}</Badge>}
+                      {asset.autoDeposit && (
+                        <Badge tone="primary">
+                          매월 {asset.autoDeposit.dayOfMonth}일{' '}
+                          {asset.autoDeposit.amount.toLocaleString('ko-KR')}원
+                        </Badge>
+                      )}
                     </span>
                     <span className={styles.assetboard__meta}>
                       {asset.openingBalance > 0 && `시작 ${asset.openingBalance.toLocaleString('ko-KR')}원 · `}

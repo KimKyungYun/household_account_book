@@ -8,4 +8,4 @@ export const dynamic = 'force-dynamic';
 export const GET = withHandler({}, (ctx) => listAssets(ctx.householdId, { includeInactive: true }));
 
 export const POST = withHandler({ body: createAssetSchema }, (ctx, { body }) =>
-  createAsset(ctx.householdId, body));
+  createAsset(ctx.householdId, ctx.memberId, body));

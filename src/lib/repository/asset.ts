@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import { currentYearMonth, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
-import type { CreateAssetInput, UpdateAssetInput } from '@/service/asset/schema';
+import type { AutoDepositInput, CreateAssetInput, UpdateAssetInput } from '@/service/asset/schema';
 import type { AssetDto, AssetSummaryDto, AssetTrendPointDto } from '@/service/asset/type';
 
 const ASSET_SELECT = {
@@ -39,17 +40,78 @@ async function sumByAsset(householdId: string, before?: string) {
   );
 }
 
+/**
+ * 자산마다 붙은 '매달 자동으로 넣기' 규칙을 한 번에 가져온다.
+ *
+ * 자산별로 따로 세면 자산 수만큼 쿼리가 나간다. 한 번에 읽고 자산 id 로 묶는다.
+ * 둘 이상 붙어 있으면 `hasMany` 로 표시만 하고 폼에서는 다루지 않는다 —
+ * 폼이 임의로 하나를 골라 고치면 나머지가 조용히 남는다.
+ */
+async function autoDepositsByAsset(householdId: string) {
+  const rules = await prisma.recurringRule.findMany({
+    where: { householdId, isActive: true, assetId: { not: null }, freq: 'MONTHLY' },
+    select: { id: true, assetId: true, amount: true, dayOfMonth: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  const grouped = new Map<string, { ruleId: string; amount: number; dayOfMonth: number; hasMany: boolean }>();
+  for (const rule of rules) {
+    const key = rule.assetId as string;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.hasMany = true;
+      continue;
+    }
+    grouped.set(key, {
+      ruleId: rule.id,
+      amount: rule.amount,
+      dayOfMonth: rule.dayOfMonth ?? 1,
+      hasMany: false,
+    });
+  }
+
+  return grouped;
+}
+
+/**
+ * 자동 적립 규칙이 쓸 기본 분류 — 이체 › 저축/투자 › 예적금.
+ *
+ * 자산 등록 폼에서 분류를 묻지 않기로 했으므로 서버가 고른다. 시드에서 만들어지는
+ * 이름을 먼저 찾고, 사용자가 지웠다면 아무 이체 소분류나 쓴다. 그것마저 없으면
+ * 규칙을 만들 수 없다고 알린다 — 말없이 건너뛰면 '켰는데 안 쌓이는' 상태가 된다.
+ */
+async function defaultTransferCategoryId(householdId: string): Promise<string> {
+  const preferred = await prisma.category.findFirst({
+    where: { householdId, kind: 'TRANSFER', isActive: true, name: '예적금' },
+    select: { id: true },
+  });
+  if (preferred) return preferred.id;
+
+  const fallback = await prisma.category.findFirst({
+    where: { householdId, kind: 'TRANSFER', isActive: true, parentId: { not: null } },
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true },
+  });
+  if (fallback) return fallback.id;
+
+  throw badRequest(
+    '자동으로 넣을 때 쓸 이체 분류가 없습니다. 분류 화면에서 이체 분류를 하나 만들어 주세요.',
+    { autoDeposit: '이체 분류가 없습니다.' },
+  );
+}
+
 export async function listAssets(
   householdId: string,
   options: { includeInactive?: boolean } = {},
 ): Promise<AssetSummaryDto> {
-  const [rows, added] = await Promise.all([
+  const [rows, added, autoDeposits] = await Promise.all([
     prisma.asset.findMany({
       where: { householdId, ...(options.includeInactive ? {} : { isActive: true }) },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
       select: ASSET_SELECT,
     }),
     sumByAsset(householdId),
+    autoDepositsByAsset(householdId),
   ]);
 
   const assets: AssetDto[] = rows.map((row) => {
@@ -61,6 +123,7 @@ export async function listAssets(
       addedAmount,
       balance: row.openingBalance + addedAmount,
       transactionCount: hit?.count ?? 0,
+      autoDeposit: autoDeposits.get(row.id) ?? null,
     };
   });
 
@@ -149,7 +212,65 @@ export async function assertAssetUsable(householdId: string, assetId: string) {
   if (!asset.isActive) throw badRequest('보관한 자산입니다.', { assetId: '보관한 자산입니다.' });
 }
 
-export async function createAsset(householdId: string, input: CreateAssetInput) {
+/**
+ * 자산에 붙은 '매달 자동으로 넣기' 규칙을 요청대로 맞춘다.
+ *
+ * 규칙은 `TRANSFER` 로 만든다 — 적금에 넣는 돈은 쓴 돈이 아니라 자리를 옮긴 돈이라
+ * 수입·지출 집계에서 빠져야 한다. 백필이 `assetId` 를 거래에 그대로 넘겨 잔액이 쌓인다.
+ *
+ * 규칙이 둘 이상 붙어 있으면 아무것도 하지 않는다. 어느 것을 고칠지 폼이 정할 수 없다.
+ */
+async function syncAutoDeposit(
+  tx: Prisma.TransactionClient,
+  ctx: { householdId: string; memberId: string; assetId: string; assetName: string },
+  input: AutoDepositInput | null,
+) {
+  const existing = await tx.recurringRule.findMany({
+    where: { householdId: ctx.householdId, assetId: ctx.assetId, isActive: true },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  if (existing.length > 1) return;
+
+  const current = existing[0];
+
+  if (!input) {
+    // 끈다 — 규칙을 지우지 않고 멈춘다. 지금까지 쌓인 거래와 회차 기록이 남아야 한다.
+    if (current) await tx.recurringRule.update({ where: { id: current.id }, data: { isActive: false } });
+
+    return;
+  }
+
+  const shape = {
+    name: `${ctx.assetName} 자동 적립`,
+    type: 'TRANSFER' as const,
+    amount: input.amount,
+    freq: 'MONTHLY' as const,
+    interval: 1,
+    dayOfMonth: input.dayOfMonth,
+    splitMode: 'PERSONAL' as const,
+    assetId: ctx.assetId,
+  };
+
+  if (current) {
+    await tx.recurringRule.update({ where: { id: current.id }, data: shape });
+
+    return;
+  }
+
+  await tx.recurringRule.create({
+    data: {
+      householdId: ctx.householdId,
+      memberId: ctx.memberId,
+      categoryId: await defaultTransferCategoryId(ctx.householdId),
+      // 시작일을 이번 달 1일로 둬야 이번 달 회차부터 만들어진다.
+      startDate: new Date(`${currentYearMonth()}-01T00:00:00.000Z`),
+      ...shape,
+    },
+  });
+}
+
+export async function createAsset(householdId: string, memberId: string, input: CreateAssetInput) {
   await assertOwnerUsable(householdId, input.ownerMemberId);
 
   const duplicated = await prisma.asset.findFirst({
@@ -164,23 +285,37 @@ export async function createAsset(householdId: string, input: CreateAssetInput) 
     select: { sortOrder: true },
   });
 
-  return prisma.asset.create({
-    data: {
-      householdId,
-      name: input.name,
-      kind: input.kind,
-      ownerMemberId: input.ownerMemberId ?? null,
-      colorHex: input.colorHex ?? null,
-      openingBalance: input.openingBalance,
-      targetAmount: input.targetAmount ?? null,
-      memo: input.memo ?? null,
-      sortOrder: (last?.sortOrder ?? -1) + 1,
-    },
-    select: { id: true },
+  // 자산과 자동 적립 규칙을 한 트랜잭션에 묶는다. 따로 만들면 자산만 생기고 규칙이
+  // 실패한 상태가 남아, 사용자는 켰다고 생각하는데 돈이 쌓이지 않는다.
+  return prisma.$transaction(async (tx) => {
+    const asset = await tx.asset.create({
+      data: {
+        householdId,
+        name: input.name,
+        kind: input.kind,
+        ownerMemberId: input.ownerMemberId ?? null,
+        colorHex: input.colorHex ?? null,
+        openingBalance: input.openingBalance,
+        targetAmount: input.targetAmount ?? null,
+        memo: input.memo ?? null,
+        sortOrder: (last?.sortOrder ?? -1) + 1,
+      },
+      select: { id: true },
+    });
+
+    if (input.autoDeposit) {
+      await syncAutoDeposit(
+        tx,
+        { householdId, memberId, assetId: asset.id, assetName: input.name },
+        input.autoDeposit,
+      );
+    }
+
+    return asset;
   });
 }
 
-export async function updateAsset(householdId: string, id: string, input: UpdateAssetInput) {
+export async function updateAsset(householdId: string, memberId: string, id: string, input: UpdateAssetInput) {
   const current = await prisma.asset.findFirst({ where: { id, householdId }, select: { id: true } });
   if (!current) throw notFound('자산을 찾을 수 없습니다.');
   await assertOwnerUsable(householdId, input.ownerMemberId);
@@ -193,18 +328,30 @@ export async function updateAsset(householdId: string, id: string, input: Update
     if (duplicated) throw conflict('같은 이름의 자산이 이미 있습니다.');
   }
 
-  await prisma.asset.update({
-    where: { id },
-    data: {
-      ...(input.name === undefined ? {} : { name: input.name }),
-      ...(input.kind === undefined ? {} : { kind: input.kind }),
-      ...(input.ownerMemberId === undefined ? {} : { ownerMemberId: input.ownerMemberId }),
-      ...(input.colorHex === undefined ? {} : { colorHex: input.colorHex }),
-      ...(input.openingBalance === undefined ? {} : { openingBalance: input.openingBalance }),
-      ...(input.targetAmount === undefined ? {} : { targetAmount: input.targetAmount }),
-      ...(input.memo === undefined ? {} : { memo: input.memo }),
-      ...(input.isActive === undefined ? {} : { isActive: input.isActive }),
-    },
+  await prisma.$transaction(async (tx) => {
+    const updated = await tx.asset.update({
+      where: { id },
+      data: {
+        ...(input.name === undefined ? {} : { name: input.name }),
+        ...(input.kind === undefined ? {} : { kind: input.kind }),
+        ...(input.ownerMemberId === undefined ? {} : { ownerMemberId: input.ownerMemberId }),
+        ...(input.colorHex === undefined ? {} : { colorHex: input.colorHex }),
+        ...(input.openingBalance === undefined ? {} : { openingBalance: input.openingBalance }),
+        ...(input.targetAmount === undefined ? {} : { targetAmount: input.targetAmount }),
+        ...(input.memo === undefined ? {} : { memo: input.memo }),
+        ...(input.isActive === undefined ? {} : { isActive: input.isActive }),
+      },
+      select: { name: true },
+    });
+
+    // 생략하면 건드리지 않는다 — 이름만 고치러 온 요청이 적립 설정을 끄면 안 된다.
+    if (input.autoDeposit !== undefined) {
+      await syncAutoDeposit(
+        tx,
+        { householdId, memberId, assetId: id, assetName: updated.name },
+        input.autoDeposit,
+      );
+    }
   });
 
   return { id };

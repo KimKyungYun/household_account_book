@@ -42,6 +42,9 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
   const [targetAmount, setTargetAmount] = useState<number | null>(asset?.targetAmount ?? null);
   const [memo, setMemo] = useState(asset?.memo ?? '');
   const [isActive, setIsActive] = useState(asset?.isActive ?? true);
+  const [isAuto, setIsAuto] = useState(Boolean(asset?.autoDeposit));
+  const [autoAmount, setAutoAmount] = useState<number | null>(asset?.autoDeposit?.amount ?? null);
+  const [autoDay, setAutoDay] = useState(String(asset?.autoDeposit?.dayOfMonth ?? 25));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { mutateAsync, isPending } = useMutation({
@@ -53,6 +56,10 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
         openingBalance: openingBalance ?? 0,
         targetAmount: targetAmount || null,
         memo: memo || null,
+        // 규칙이 둘 이상이면 폼이 손대지 않는다 — 어느 것을 고칠지 정할 수 없다.
+        ...(asset?.autoDeposit?.hasMany
+          ? {}
+          : { autoDeposit: isAuto ? { amount: autoAmount ?? 0, dayOfMonth: Number(autoDay) } : null }),
       };
 
       return asset ? updateAsset(asset.id, { ...payload, isActive }) : createAsset(payload);
@@ -65,6 +72,12 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
     if (!name.trim()) {
       setErrors({ name: '이름을 입력해 주세요.' });
+
+      return;
+    }
+
+    if (isAuto && !asset?.autoDeposit?.hasMany && (!autoAmount || autoAmount <= 0)) {
+      setErrors({ autoAmount: '매달 넣을 금액을 입력해 주세요.' });
 
       return;
     }
@@ -192,6 +205,67 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
             />
           )}
         </FormField>
+
+        {asset?.autoDeposit?.hasMany ? (
+          <p className={styles.assetformmodal__notice}>
+            이 자산에는 자동으로 넣는 설정이 두 개 넘게 있습니다. 어느 것을 고칠지 여기서
+            정할 수 없어 그대로 둡니다 — 반복 거래 화면에서 관리해 주세요.
+          </p>
+        ) : (
+          <>
+            <FormField
+              label="매달 자동으로 넣기"
+              hint="켜면 정한 날짜마다 '옮긴 돈' 거래가 만들어져 이 자산에 쌓입니다. 분류는 이체 › 예적금으로 들어갑니다."
+            >
+              {({ id }) => (
+                <Select
+                  id={id}
+                  value={isAuto ? 'yes' : 'no'}
+                  onChange={(event) => setIsAuto(event.target.value === 'yes')}
+                  options={[
+                    { value: 'no', label: '직접 넣기' },
+                    { value: 'yes', label: '매달 자동으로 넣기' },
+                  ]}
+                />
+              )}
+            </FormField>
+
+            {isAuto && (
+              <div className={styles.assetformmodal__pair}>
+                <FormField
+                  label="매달 넣을 금액"
+                  error={errors.autoAmount}
+                >
+                  {({ id }) => (
+                    <MoneyInput
+                      id={id}
+                      value={autoAmount}
+                      onChange={setAutoAmount}
+                    />
+                  )}
+                </FormField>
+
+                <FormField
+                  label="넣는 날"
+                  hint="31 은 말일을 겸합니다."
+                  error={errors.autoDay}
+                >
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      max="31"
+                      value={autoDay}
+                      onChange={(event) => setAutoDay(event.target.value)}
+                    />
+                  )}
+                </FormField>
+              </div>
+            )}
+          </>
+        )}
 
         <FormField label="메모">
           {({ id }) => (
