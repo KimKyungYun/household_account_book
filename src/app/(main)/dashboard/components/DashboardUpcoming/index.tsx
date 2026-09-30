@@ -87,7 +87,10 @@ export default function DashboardUpcoming() {
         />
       }
     >
-      <ul className={styles.dashboardupcoming}>
+      <ul
+        className={styles.dashboardupcoming}
+        role="list"
+      >
         {upcoming.map((rule) => (
           <li
             key={rule.id}

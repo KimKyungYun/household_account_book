@@ -158,7 +158,7 @@ export default function CategoryBoard() {
                         >
                           {child.name}
                         </button>
-                        <span className={styles.categoryboard__count}>
+                        <span className={styles.categoryboard__childcount}>
                           {child.transactionCount === 0 ? '' : `${child.transactionCount}건`}
                         </span>
                         <Button

@@ -58,9 +58,18 @@
     gap: s.$gap-2;
   }
 
+  // 대분류 머리줄(flex)에서 오른쪽으로 밀어 두는 건수.
   &__count {
     margin-left: auto;
     color: var(--text-tertiary);
+
+    @include a.amount-small;
+  }
+
+  // 세부 분류 줄(grid)의 건수. 칸이 고정이라 밀 필요 없이 오른쪽에 붙인다.
+  &__childcount {
+    color: var(--text-tertiary);
+    text-align: right;
 
     @include a.amount-small;
   }
@@ -76,9 +85,12 @@
     }
   }
 
+  // 건수 칸을 고정폭으로 둔다. auto 로 두면 '3건'과 '1,234건'의 폭이 달라
+  // 옆 항목끼리 '지우기' 버튼 위치가 어긋난다. 부모가 2열 격자라 자식을 거기에
+  // 태울 수 없어(subgrid 로도 열 수가 맞지 않는다) 폭을 직접 정한다.
   &__child {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: minmax(0, 1fr) 56px auto;
     align-items: center;
     gap: s.$gap-3;
     padding: s.$gap-2 s.$gap-3;

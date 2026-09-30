@@ -36,24 +36,24 @@
     font-size: 10px;
   }
 
+  // 목록 전체가 하나의 그리드다. 행마다 그리드를 따로 두면 금액 길이에 따라 열 폭이
+  // 제각각이 되어 아래위 줄의 숫자가 어긋난다. 자식(li)을 부모 격자에 직접 태운다.
   &__legend {
-    display: flex;
-    flex-direction: column;
-    gap: s.$gap-3;
-  }
-
-  // 비중 막대는 태블릿부터만 보인다. display:none 은 그리드 트랙까지 없애므로
-  // 트랙 수를 폭마다 따로 적는다 — 한 벌로 두면 남은 칸이 밀려 금액이 34px 칸에
-  // 들어가고, 넘친 글자가 옆 칸의 `100%` 위로 올라탄다.
-  &__item {
     display: grid;
-    grid-template-columns: 8px minmax(0, 1fr) 40px auto;
     align-items: center;
     gap: s.$gap-3;
+    grid-template-columns: 8px minmax(0, 1fr) 40px auto;
 
     @include media.tablet-up {
       grid-template-columns: 8px minmax(56px, 1fr) minmax(0, 96px) 40px auto;
     }
+  }
+
+  // 행은 칸을 차지하지 않고 자식만 부모 격자에 올린다.
+  // 비중 막대는 태블릿부터만 보이고, display:none 은 트랙을 차지하지 않으므로
+  // 부모의 트랙 수도 폭마다 따로 적어 두었다.
+  &__item {
+    display: contents;
   }
 
   &__dot {

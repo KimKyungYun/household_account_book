@@ -98,7 +98,10 @@ export default function DashboardCategories() {
           </div>
         </div>
 
-        <ul className={styles.dashboardcategories__legend}>
+        <ul
+          className={styles.dashboardcategories__legend}
+          role="list"
+        >
           {rows.map((row, index) => (
             <li
               key={row.categoryId}
@@ -117,10 +120,12 @@ export default function DashboardCategories() {
                 />
               </span>
               <span className={styles.dashboardcategories__share}>{(row.share * 100).toFixed(0)}%</span>
+              {/* 이름·비중과 한 줄을 나눠 쓰는 좁은 칸이다. 줄여 적고 정확한 금액은 마우스를 올리면 뜬다. */}
               <Amount
                 value={row.amount}
                 size="small"
                 withUnit={false}
+                isCompact
                 className={styles.dashboardcategories__amount}
               />
             </li>

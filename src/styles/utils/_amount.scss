@@ -9,11 +9,17 @@
   letter-spacing: -0.02em;
 }
 
+// 각 크기는 제 치수를 변수로도 남긴다. 자릿수가 많을 때 Amount 가
+// `calc(var(--amount-font-size) * 0.85)` 로 줄이는데, em 을 쓰면 부모 글자 크기를
+// 기준으로 삼아 40px 가 13px 로 무너진다.
+
 // 화면에 단 하나만 쓰는 크기. 그 달의 결론이 되는 숫자다.
 @mixin amount-hero {
   @include amount-base;
 
-  font-size: 40px;
+  --amount-font-size: 40px;
+
+  font-size: var(--amount-font-size);
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -22,7 +28,9 @@
 @mixin amount-display {
   @include amount-base;
 
-  font-size: 32px;
+  --amount-font-size: 32px;
+
+  font-size: var(--amount-font-size);
   font-weight: 600;
   line-height: 1.15;
 }
@@ -30,7 +38,9 @@
 @mixin amount-large {
   @include amount-base;
 
-  font-size: 22px;
+  --amount-font-size: 22px;
+
+  font-size: var(--amount-font-size);
   font-weight: 600;
   line-height: 1.2;
 }
@@ -38,7 +48,9 @@
 @mixin amount-medium {
   @include amount-base;
 
-  font-size: 16px;
+  --amount-font-size: 16px;
+
+  font-size: var(--amount-font-size);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -46,7 +58,9 @@
 @mixin amount-small {
   @include amount-base;
 
-  font-size: 13px;
+  --amount-font-size: 13px;
+
+  font-size: var(--amount-font-size);
   font-weight: 500;
   line-height: 1.4;
 }

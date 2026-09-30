@@ -2,15 +2,14 @@
 @use "styles/tokens/typography" as t;
 
 .dashboardupcoming {
-  display: flex;
-  flex-direction: column;
-  gap: s.$gap-4;
+  // 목록 전체가 하나의 그리드다. 행마다 따로 두면 금액 길이에 따라 열이 어긋난다.
+  display: grid;
+  align-items: center;
+  gap: s.$gap-4 s.$gap-3;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
 
   &__item {
-    display: grid;
-    grid-template-columns: 54px 1fr auto;
-    align-items: center;
-    gap: s.$gap-3;
+    display: contents;
   }
 
   &__when {

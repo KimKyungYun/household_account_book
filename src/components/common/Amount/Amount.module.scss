@@ -42,4 +42,15 @@
   &--small {
     @include a.amount-small;
   }
+
+  // 자릿수가 늘면 글자를 줄인다. 고정폭 서체라 한 자가 늘 때마다 폭이 그만큼 커지고,
+  // 40px 로 두면 12억이 모바일 카드를 17px 넘어간다(실측).
+  // 제 크기의 배수로 줄인다 — em 은 부모 기준이라 40px 가 13px 로 무너진다.
+  &[data-scale="tight"] {
+    font-size: calc(var(--amount-font-size) * 0.85);
+  }
+
+  &[data-scale="tighter"] {
+    font-size: calc(var(--amount-font-size) * 0.72);
+  }
 }
