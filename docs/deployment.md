@@ -130,7 +130,14 @@ DIRECT_DATABASE_URL="<neon direct url>" yarn prisma migrate deploy
 3. 환경변수를 넣는다(3번 표). `AUTH_URL` 은 배포 후 받은 도메인으로 다시 맞춘다.
 4. 배포.
 
-`output: 'standalone'` 은 Vercel 에서 무시되므로 그대로 둬도 무방하다.
+> **`output: 'standalone'` 은 Vercel 에서 반드시 꺼야 한다.** 그대로 두면 빌드가
+> `ENOENT: .next/next-server.js.nft.json` 으로 죽는다 —
+> Vercel 빌더가 설정에서 `standalone` 을 떼어내는데, Turbopack 은 그 옵션이 있을 때만
+> 그 파일을 쓰고, Vercel 의 `onBuildComplete` 는 그 파일을 읽는다
+> (Next 16.3 의 알려진 버그, vercel/next.js#96646).
+>
+> `next.config.ts` 가 `VERCEL` 환경변수로 이미 분기해 둔다 —
+> Vercel 에서는 빠지고, Docker/VPS 빌드에서는 그대로 만들어진다. 손댈 것은 없다.
 
 ### 4-4. 첫 사용자 만들기
 
@@ -146,8 +153,8 @@ DIRECT_DATABASE_URL="<neon direct url>" yarn prisma migrate deploy
 
 ## 5. 경로 B — 직접 서버에 올리기 (Docker / VPS)
 
-집 서버나 VPS 에 두고 싶을 때. `next.config.ts` 에 `output: 'standalone'` 이 이미
-켜져 있어 준비는 돼 있다.
+집 서버나 VPS 에 두고 싶을 때. `next.config.ts` 가 Vercel 이 아닌 빌드에서
+`output: 'standalone'` 을 켜므로 준비는 돼 있다.
 
 ### 5-1. standalone 이 무엇을 만드나
 
