@@ -34,6 +34,11 @@ export const QUERY_KEY = {
     LIST: () => [...QUERY_KEY.ASSET.ALL, 'list'] as const,
     TREND: (params: unknown) => [...QUERY_KEY.ASSET.ALL, 'trend', params] as const,
   },
+  LOAN: {
+    ALL: ['loan'] as const,
+    LIST: () => [...QUERY_KEY.LOAN.ALL, 'list'] as const,
+    SCHEDULE: (id: string) => [...QUERY_KEY.LOAN.ALL, 'schedule', id] as const,
+  },
   RECURRING: {
     ALL: ['recurring'] as const,
     LIST: () => [...QUERY_KEY.RECURRING.ALL, 'list'] as const,

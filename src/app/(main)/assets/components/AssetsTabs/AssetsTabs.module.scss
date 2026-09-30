@@ -1,0 +1,49 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.assetstabs {
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-4;
+
+    @include media.tablet-up {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: s.$gap-6;
+    }
+  }
+
+  &__breakdown {
+    display: grid;
+
+    // 세 칸이 같은 너비라야 금액 자릿수가 달라도 세로선이 맞는다.
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: s.$gap-3 s.$gap-5;
+    margin: 0;
+
+    @include media.tablet-up {
+      display: flex;
+      gap: s.$gap-6;
+    }
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-1;
+    min-width: 0;
+
+    dt {
+      @include t.label-small;
+
+      color: var(--text-tertiary);
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+}

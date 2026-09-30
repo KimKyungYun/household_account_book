@@ -16,6 +16,7 @@ import { QUERY_KEY } from '@/interface/key/queryKey';
 import { deleteRecurringRule, getRecurringRules, runRecurring, setRecurringRuleActive } from '@/service/recurring';
 import { formatDateLabel } from '@/utils/ts/formatDate';
 import type { RecurringRuleDto } from '@/service/recurring/type';
+import LoanNotice from '../LoanNotice';
 import RecurringFormModal from '../RecurringFormModal';
 import styles from './RecurringBoard.module.scss';
 
@@ -100,6 +101,8 @@ export default function RecurringBoard() {
 
   return (
     <>
+      <LoanNotice />
+
       <Card
         isFlush
         title="매달 반복되는 돈"

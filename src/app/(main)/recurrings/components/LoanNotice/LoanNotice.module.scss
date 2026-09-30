@@ -1,0 +1,29 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.loannotice {
+  &__text {
+    margin: 0 0 s.$gap-3;
+    color: var(--text-secondary);
+
+    @include t.body-small;
+
+    strong {
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__link {
+    color: var(--text-link);
+
+    @include t.label-small;
+
+    @include media.hover-supported {
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

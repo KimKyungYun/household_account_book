@@ -1,0 +1,59 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.loanformmodal {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    gap: s.$gap-3;
+    width: 100%;
+  }
+
+  // 금리/기간처럼 짝으로 읽히는 값은 한 줄에 둔다. 좁은 화면에서는 그대로 쌓인다.
+  &__pair {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include media.tablet-up {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  // 조건을 다 채우면 바로 아래에서 결과가 보인다. 저장을 눌러 봐야 아는 것을 없앤다.
+  &__preview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$gap-4;
+    margin: 0;
+    padding: s.$gap-4 s.$gap-5;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-lg;
+    background-color: var(--surface-muted);
+  }
+
+  &__previewitem {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-1;
+    min-width: 0;
+
+    dt {
+      @include t.label-small;
+
+      color: var(--text-tertiary);
+    }
+
+    dd {
+      @include t.label-medium;
+
+      margin: 0;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}

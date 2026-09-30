@@ -101,6 +101,7 @@ model Household {
   budgets        Budget[]
   recurringRules RecurringRule[]
   assets         Asset[]
+  loans          Loan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,6 +123,7 @@ model HouseholdMember {
   paymentMethods PaymentMethod[]
   recurringRules RecurringRule[]
   assets         Asset[]
+  loans          Loan[]
 
   joinedAt DateTime @default(now())
 
@@ -173,6 +175,8 @@ model Category {
   transactions   Transaction[]
   budgets        Budget[]
   recurringRules RecurringRule[]
+  loanInterests  Loan[]          @relation("LoanInterestCategory")
+  loanPrincipals Loan[]          @relation("LoanPrincipalCategory")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,6 +214,7 @@ model PaymentMethod {
   owner          HouseholdMember? @relation(fields: [ownerMemberId], references: [id])
   transactions   Transaction[]
   recurringRules RecurringRule[]
+  loans          Loan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -255,6 +260,8 @@ model Transaction {
   /// 이 돈이 쌓이는 자산. '옮긴 돈'에만 붙는다 (DB CHECK).
   /// 적금·투자처럼 나가서 모이는 돈을 자산 잔액으로 잇는 고리다.
   assetId         String?
+  /// 이 거래를 만든 대출. 상환 회차에서 생성된 이자·원금 거래에 붙는다.
+  loanId          String?
   /// 계좌간 이동의 짝 거래. 수정·삭제는 항상 쌍으로 처리한다.
   transferPeerId  String? @unique
   refundOfId      String?
@@ -273,9 +280,12 @@ model Transaction {
   recurringRule RecurringRule?     @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
   asset         Asset?             @relation(fields: [assetId], references: [id], onDelete: SetNull)
   createdBy     User               @relation("TxCreatedBy", fields: [createdById], references: [id])
+  loan          Loan?              @relation(fields: [loanId], references: [id], onDelete: SetNull)
   refundOf      Transaction?       @relation("Refund", fields: [refundOfId], references: [id])
   refunds       Transaction[]      @relation("Refund")
   occurrence    RecurringOccurrence?
+  loanInterestOf  LoanPayment?     @relation("LoanInterestTx")
+  loanPrincipalOf LoanPayment?     @relation("LoanPrincipalTx")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -291,6 +301,7 @@ model Transaction {
   @@index([paymentMethodId])
   @@index([refundOfId])
   @@index([householdId, assetId, date])
+  @@index([loanId])
 }
 
 
@@ -453,4 +464,109 @@ model Asset {
   @@unique([householdId, name])
   @@index([householdId, isActive])
   @@index([ownerMemberId])
+}
+
+/// 갚고 있는 빚. 자산(Asset)과 부호가 반대이고 금리·만기·상환방식처럼 자산에 없는 필드가
+/// 붙으므로 `AssetKind` 에 종류를 더하지 않고 따로 둔다.
+model Loan {
+  id          String   @id @default(cuid())
+  householdId String
+  name        String
+  kind        LoanKind
+  /// 최초 원금 (원).
+  principal   Int
+  /// 연 금리 basis point. 4.25% → 425. float 로 두면 360 회차를 누적하며 원 단위가 어긋난다.
+  annualRateBp Int
+  repaymentType RepaymentType
+  /// 거치를 포함한 전체 상환 개월.
+  termMonths        Int
+  /// 이자만 내는 앞 구간. termMonths 에 포함된다.
+  gracePeriodMonths Int @default(0)
+  /// 첫 상환일. 이 날짜의 '일' 이 매달 되풀이된다(31 은 말일을 겸한다).
+  firstPaymentDate  DateTime @db.Date
+
+  /// 상환을 맡은 구성원. 생성되는 거래의 결제자가 된다.
+  memberId            String
+  paymentMethodId     String?
+  /// 이자가 기록될 지출 카테고리 (EXPENSE).
+  interestCategoryId  String
+  /// 원금이 기록될 이체 카테고리 (TRANSFER). 원금 상환은 비용이 아니라 부채 감소다.
+  principalCategoryId String
+
+  colorHex  String?
+  memo      String?
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+  /// 순자산(모은 돈 − 갚을 돈)에 이 대출을 셀지.
+  /// 전세대출처럼 짝이 되는 자산을 앱에 넣지 않았다면 빼야 순자산이 실제보다 낮게 보이지 않는다.
+  includeInNetWorth Boolean @default(true)
+
+  household         Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  member            HouseholdMember @relation(fields: [memberId], references: [id])
+  paymentMethod     PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  interestCategory  Category        @relation("LoanInterestCategory", fields: [interestCategoryId], references: [id])
+  principalCategory Category        @relation("LoanPrincipalCategory", fields: [principalCategoryId], references: [id])
+  payments          LoanPayment[]
+  transactions      Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, name])
+  @@index([householdId, isActive])
+  @@index([memberId])
+  @@index([interestCategoryId])
+  @@index([principalCategoryId])
+  @@index([paymentMethodId])
+}
+
+/// 상환 스케줄 한 회차. `RecurringOccurrence` 와 같은 역할을 한다 —
+/// 회차를 먼저 잡고 성공했을 때만 거래를 만들어 중복 생성을 DB 가 막는다.
+model LoanPayment {
+  id            String   @id @default(cuid())
+  loanId        String
+  installmentNo Int
+  dueDate       DateTime @db.Date
+  /// 이 회차에 갚는 원금. 거치 구간에서는 0 이다.
+  principalAmount Int
+  interestAmount  Int
+  /// 이 회차를 갚고 난 뒤 남는 원금. 마지막 회차에서 0 이다.
+  balanceAfter    Int
+  /// 만들어진 거래 두 건. 이자는 지출, 원금은 이체로 따로 기록된다.
+  interestTxId    String? @unique
+  principalTxId   String? @unique
+  /// 사용자가 건너뛰거나 생성분을 지운 회차.
+  skipped         Boolean @default(false)
+
+  loan        Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  interestTx  Transaction? @relation("LoanInterestTx", fields: [interestTxId], references: [id], onDelete: SetNull)
+  principalTx Transaction? @relation("LoanPrincipalTx", fields: [principalTxId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([loanId, installmentNo])
+  @@index([loanId, dueDate])
+}
+
+enum LoanKind {
+  /// 주택담보대출
+  MORTGAGE
+  /// 전세자금대출
+  JEONSE
+  /// 신용대출
+  CREDIT
+  /// 자동차 할부·오토론
+  CAR
+  /// 학자금
+  STUDENT
+  OTHER
+}
+
+enum RepaymentType {
+  /// 원리금균등 — 매달 내는 총액이 같다.
+  EQUAL_PAYMENT
+  /// 원금균등 — 매달 갚는 원금이 같고 총액은 줄어든다.
+  EQUAL_PRINCIPAL
+  /// 만기일시 — 매달 이자만 내고 만기에 원금을 한 번에 갚는다.
+  INTEREST_ONLY
 }

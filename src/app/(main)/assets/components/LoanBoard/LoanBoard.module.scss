@@ -1,0 +1,149 @@
+@use "styles/tokens/motion" as m;
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.loanboard {
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  // 줄 왼쪽의 색 띠가 어느 대출인지 말한다. 자산 목록과 같은 골격이되
+  // 기본색만 두 번째 구성원 색(주황)이다 — 모으는 돈과 갚는 돈을 색으로 가른다.
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-5;
+    width: 100%;
+    padding: s.$gap-5 s.$gap-5;
+    border: 0;
+    border-inline-start: 3px solid transparent;
+    background-color: transparent;
+    cursor: pointer;
+    text-align: start;
+    transition: background-color m.$dur-quick m.$ease-out;
+
+    @include motion.press(0.995);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &[data-archived="true"] {
+      opacity: 0.6;
+    }
+
+    @include media.tablet-up {
+      padding: s.$gap-5 s.$gap-6;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    min-width: 0;
+  }
+
+  &__name {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-2;
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__meta {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+
+    font-size: 12px;
+  }
+
+  &__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 160px;
+    padding-top: 2px;
+  }
+
+  &__progresstext {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+
+    font-size: 11px;
+  }
+
+  // 금액 쪽은 오른쪽 정렬로 묶어 둔다. 줄마다 자릿수가 달라도 세로선이 맞는다.
+  &__amounts {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-end;
+    gap: s.$gap-1;
+  }
+
+  &__sub {
+    color: var(--text-tertiary);
+    white-space: nowrap;
+
+    @include t.label-small;
+
+    font-size: 11px;
+  }
+
+  // 상환 계획은 줄 전체를 누르는 동작(수정)과 겹치면 안 되므로 따로 뺀다.
+  &__schedule {
+    align-self: flex-start;
+    margin: 0 s.$gap-5 s.$gap-4;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: var(--text-link);
+    cursor: pointer;
+
+    @include t.label-small;
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    @include media.tablet-up {
+      margin-inline: s.$gap-6;
+    }
+  }
+}

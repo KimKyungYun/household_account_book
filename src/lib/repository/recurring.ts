@@ -283,7 +283,7 @@ export async function backfillRecurring(
 /**
  * 규칙 하나의 지난 회차를 **지금 바로** 채운다.
  *
- * 규칙을 등록·수정·재개한 직후에 부른다. `ensureRecurringUpToDate` 의 스로틀은 가구 단위
+ * 규칙을 등록·수정·재개한 직후에 부른다. `ensureAutoEntriesUpToDate` 의 스로틀은 가구 단위
  * 하루 한 번이라, 오늘 이미 돌았다면 오늘 만든 규칙을 그대로 건너뛴다. 그러면 이번 달에
  * 이미 지나간 결제일이 거래로 들어오지 않아 대시보드 합계에서 빠진다.
  *
@@ -292,25 +292,4 @@ export async function backfillRecurring(
  */
 export function backfillRecurringRule(ctx: { householdId: string; userId: string }, ruleId: string) {
   return backfillRecurring(ctx, monthEnd(currentYearMonth()), { ruleId });
-}
-
-/**
- * 하루에 한 번만 백필을 돌린다.
- * 화면을 옮길 때마다 돌면 레이아웃 렌더가 느려지고 DB 를 계속 두드린다.
- */
-export async function ensureRecurringUpToDate(ctx: { householdId: string; userId: string }) {
-  const today = todayInSeoul();
-  const household = await prisma.household.findUnique({
-    where: { id: ctx.householdId },
-    select: { lastRecurringRunOn: true },
-  });
-  if (household?.lastRecurringRunOn && toDateString(household.lastRecurringRunOn) >= today) return null;
-
-  const result = await backfillRecurring(ctx, today);
-  await prisma.household.update({
-    where: { id: ctx.householdId },
-    data: { lastRecurringRunOn: toDateOnly(today) },
-  });
-
-  return result;
 }
