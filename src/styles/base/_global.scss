@@ -31,6 +31,15 @@
 
   // 앱 유일의 font-family 선언.
   font-family: var(--font-app);
+
+  /*
+    터치했을 때 요소를 통째로 덮는 반투명 파란 판을 없앤다.
+    모바일 브라우저의 기본값이라 버튼·탭·차트 어디를 눌러도 한 번씩 번쩍인다.
+    이 앱은 눌림을 scale 로 직접 표현하므로(utils/motion 의 press) 기본 효과는 겹칠 뿐이다.
+
+    키보드 포커스 링(:focus-visible 의 --focus-ring)과는 무관하다 — 그쪽은 그대로 둔다.
+  */
+  -webkit-tap-highlight-color: transparent;
 }
 
 // ─── 공통 스크롤바 ────────────────────────────────────────────────
@@ -130,6 +139,21 @@ body {
   to {
     transform: translate3d(1.5%, 1.2%, 0) scale(1.04);
   }
+}
+
+/*
+  누르는 것들은 길게 눌러도 글자가 파랗게 잡히지 않게 한다.
+  탭바나 카드의 라벨이 드래그로 선택되면 눌렀는지 끌었는지 알기 어렵다.
+  본문 글자와 금액은 그대로 둔다 — 복사할 수 있어야 한다.
+*/
+button,
+a,
+[role="button"],
+summary {
+  user-select: none;
+
+  // 링크를 길게 누를 때 뜨는 iOS 미리보기 메뉴도 이 자리에서는 방해가 된다.
+  -webkit-touch-callout: none;
 }
 
 a {
