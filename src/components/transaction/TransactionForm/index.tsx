@@ -28,6 +28,8 @@ import styles from './TransactionForm.module.scss';
 interface TransactionFormProps {
   mode: 'create' | 'edit';
   transaction?: TransactionListItemDto;
+  /** 등록 폼을 열 때 미리 채울 날짜. 달력에서 날짜를 눌러 들어올 때 쓴다. */
+  defaultDate?: string;
   onSuccess: () => void;
   /** 모달·시트에서 쓸 때 제출 버튼을 바깥(푸터)에 두기 위한 폼 id. */
   formId?: string;
@@ -93,6 +95,7 @@ interface FormState {
 export function TransactionForm({
   mode,
   transaction,
+  defaultDate,
   onSuccess,
   formId = 'transaction-form',
   withSubmitButton = false,
@@ -104,7 +107,7 @@ export function TransactionForm({
   const [form, setForm] = useState<FormState>(() => ({
     type: transaction?.type ?? 'EXPENSE',
     amount: transaction ? Math.abs(transaction.amount) : null,
-    date: transaction?.date ?? todayInSeoul(),
+    date: transaction?.date ?? defaultDate ?? todayInSeoul(),
     categoryId: transaction?.category?.id ?? null,
     memberId: transaction?.member.id ?? '',
     paymentMethodId: transaction?.paymentMethod?.id ?? '',

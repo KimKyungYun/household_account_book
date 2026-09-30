@@ -68,7 +68,6 @@ interface FormState {
   name: string;
   type: TransactionType;
   amount: number | null;
-  amountIsFixed: boolean;
   memberId: string;
   categoryId: string | null;
   paymentMethodId: string;
@@ -93,7 +92,6 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
     name: rule?.name ?? '',
     type: rule?.type ?? 'EXPENSE',
     amount: rule?.amount ?? null,
-    amountIsFixed: rule?.amountIsFixed ?? true,
     memberId: rule?.member.id ?? '',
     categoryId: rule?.category?.id ?? null,
     paymentMethodId: rule?.paymentMethod?.id ?? '',
@@ -140,7 +138,6 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
         categoryId: form.type === 'TRANSFER' ? null : form.categoryId,
         paymentMethodId: form.paymentMethodId || null,
         amount: form.amount ?? 0,
-        amountIsFixed: form.amountIsFixed,
         splitMode: form.splitMode,
         assetId: form.type === 'TRANSFER' ? form.assetId || null : null,
         memo: form.memo || undefined,
@@ -186,8 +183,8 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
 
     // 서버가 이번 달 회차를 거래로 만든다. 몇 건이 들어갔는지 말해 주지 않으면
     // 사용자는 합계가 왜 늘었는지 모른다.
-    const { created, pending, upcoming } = saved.backfill;
-    const filled = created + pending + upcoming;
+    const { created, upcoming } = saved.backfill;
+    const filled = created + upcoming;
     const detail = upcoming > 0 ? ` (아직 날짜가 오지 않은 ${upcoming}건 포함)` : '';
     toast.success(
       filled === 0
@@ -263,24 +260,6 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
               value={form.amount}
               onChange={(value) => patch({ amount: value })}
               isInvalid={Boolean(errors.amount)}
-            />
-          )}
-        </FormField>
-
-        <FormField
-          label="금액"
-          hint="'매번 다름'을 고르면 만들어질 때 금액을 확인하라고 알려 줍니다."
-        >
-          {() => (
-            <SegmentedControl
-              name="recurring-fixed"
-              options={[
-                { value: 'fixed', label: '매달 같은 금액' },
-                { value: 'variable', label: '매달 다른 금액' },
-              ]}
-              value={form.amountIsFixed ? 'fixed' : 'variable'}
-              onChange={(value) => patch({ amountIsFixed: value === 'fixed' })}
-              ariaLabel="금액 확정 여부"
             />
           )}
         </FormField>

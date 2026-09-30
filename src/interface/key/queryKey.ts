@@ -42,6 +42,7 @@ export const QUERY_KEY = {
   STATS: {
     ALL: ['stats'] as const,
     OVERVIEW: (yearMonth: string) => [...QUERY_KEY.STATS.ALL, 'overview', yearMonth] as const,
+    DAILY: (yearMonth: string) => [...QUERY_KEY.STATS.ALL, 'daily', yearMonth] as const,
     MONTHLY: (params: unknown) => [...QUERY_KEY.STATS.ALL, 'monthly', params] as const,
     CATEGORIES: (params: unknown) => [...QUERY_KEY.STATS.ALL, 'categories', params] as const,
     MEMBERS: (params: unknown) => [...QUERY_KEY.STATS.ALL, 'members', params] as const,

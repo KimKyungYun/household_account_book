@@ -199,7 +199,6 @@ Auth.js 표준 테이블(`Account` `Session` `VerificationToken`)은 어댑터�
 | `SplitMode` | `SHARED` `PERSONAL` `CUSTOM` |
 | `TransactionType` | `INCOME` `EXPENSE` `TRANSFER` |
 | `TransactionSource` | `MANUAL` `RECURRING` `IMPORT` |
-| `TransactionStatus` | `CONFIRMED` `PENDING` |
 | `PaymentMethodKind` | `CASH` `DEBIT_CARD` `CREDIT_CARD` `BANK_TRANSFER` `EASY_PAY` `GIFT_CARD` `OTHER` |
 | `RecurrenceFreq` | `WEEKLY` `MONTHLY` `YEARLY` |
 
@@ -392,7 +391,7 @@ Docker 개발에서는 아예 돌지 않아 테스트 경로가 갈라지기** �
 ```
 
 - 중복 생성은 `(ruleId, occurrenceDate)` 유니크가 **DB 수준에서** 막는다
-- `amountIsFixed = false` 면 `status = PENDING` 으로 만든다 (전기요금처럼 매달 금액이 바뀌는 항목)
+- 아직 날짜가 오지 않은 회차도 만든다. 화면은 상태값이 아니라 **날짜로** '예정'을 가른다
 - 사용자가 생성분을 지우면 `Occurrence.skipped = true` 로 남겨 **다음 백필에서 되살아나지 않게** 한다
 - 한 회차가 실패해도 나머지는 계속 만든다. 다음 진입에서 재시도된다
 - 설정 화면의 수동 버튼(`POST /api/recurring-rules/run`)이 같은 함수를 쓴다

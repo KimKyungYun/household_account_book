@@ -11,8 +11,6 @@ const baseFields = {
   categoryId: z.string().min(1).nullable().optional(),
   paymentMethodId: z.string().min(1).nullable().optional(),
   amount: z.number().int().positive('금액을 입력해 주세요.'),
-  /** false 면 확인 대기(PENDING) 로 만든다 — 전기요금처럼 매달 금액이 바뀌는 항목. */
-  amountIsFixed: z.boolean().default(true),
   splitMode: z.enum(['SHARED', 'PERSONAL']).default('SHARED'),
   /** 이 돈이 쌓이는 자산. '옮긴 돈' 규칙에만 붙는다. */
   assetId: z.string().min(1).nullable().optional(),

@@ -8,19 +8,17 @@
   flex-direction: column;
   gap: s.$gap-3;
 
-  // 띠. 안쪽으로 파인 한 줄에 쓴 돈이 왼쪽부터 채워진다.
+  // 띠. 얇게 둔다 — 이 그림이 말하는 것은 '얼마나 썼나' 하나뿐이라
+  // 두꺼워질수록 옆의 숫자에서 눈을 뺏는다.
   &__track {
     display: flex;
-    height: 44px;
+    height: 14px;
     overflow: hidden;
     background-color: var(--surface-muted);
-    border-radius: s.$shape-lg;
-
-    // 유리 위에 놓이므로 테두리 대신 안쪽 그림자로 깊이를 준다.
+    border-radius: s.$shape-full;
     box-shadow: var(--shadow-inset);
 
-    // 띠가 왼쪽에서 오른쪽으로 열린다. 칸마다 폭을 애니메이션하면 인라인 style 을
-    // 이기려고 !important 를 써야 하고, scaleX 는 안의 글자까지 늘린다.
+    // 왼쪽에서 오른쪽으로 열린다.
     animation: flow-open m.$dur-reveal m.$ease-out both;
 
     @include media.reduced-motion {
@@ -28,42 +26,19 @@
     }
 
     @include media.tablet-up {
-      height: 52px;
+      height: 16px;
     }
   }
 
-  // 쓴 돈 한 칸. 분류 색을 그대로 입는다.
   &__spent {
-    position: relative;
-    display: flex;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
     min-width: 3px;
-    overflow: hidden;
-  }
-
-  &__segmentname {
-    padding: 0 s.$gap-2;
-    overflow: hidden;
-    color: var(--text-on-primary);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-shadow: var(--text-shadow-on-color);
-
-    @include t.label-small;
-
-    font-size: 11px;
   }
 
   // 남은 몫. 아직 쓰지 않은 돈이라 채우지 않고 빛만 둔다.
   &__left {
-    display: flex;
     flex: 1;
-    align-items: center;
-    justify-content: flex-end;
     min-width: 0;
-    padding-inline-end: s.$gap-3;
     background:
       linear-gradient(
         90deg,
@@ -73,19 +48,8 @@
       );
   }
 
-  &__leftlabel {
-    overflow: hidden;
-    color: var(--text-tertiary);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    @include t.label-small;
-
-    font-size: 11px;
-  }
-
-  &__caption {
-    color: var(--text-tertiary);
+  &__warning {
+    color: var(--amount-expense);
 
     @include t.body-small;
 

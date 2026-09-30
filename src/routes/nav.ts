@@ -11,6 +11,7 @@ export interface NavItem {
 export const SIDEBAR_NAV: readonly NavItem[] = [
   { href: PATH.DASHBOARD, label: '대시보드', icon: 'dashboard' },
   { href: PATH.TRANSACTIONS, label: '거래', icon: 'ledger' },
+  { href: PATH.CALENDAR, label: '달력', icon: 'calendar' },
   { href: PATH.BUDGETS, label: '예산', icon: 'budget' },
   { href: PATH.ASSETS, label: '자산', icon: 'wallet' },
   { href: PATH.RECURRINGS, label: '반복 거래', icon: 'repeat' },
@@ -22,14 +23,15 @@ export const SIDEBAR_NAV: readonly NavItem[] = [
 /** 모바일 하단탭 — 엄지로 닿는 자리에 다섯 개까지. 가운데는 등록 버튼이다. */
 export const MOBILE_NAV: readonly NavItem[] = [
   { href: PATH.DASHBOARD, label: '대시보드', icon: 'dashboard' },
+  { href: PATH.CALENDAR, label: '달력', icon: 'calendar' },
   { href: PATH.TRANSACTIONS, label: '거래', icon: 'ledger' },
-  { href: PATH.BUDGETS, label: '예산', icon: 'budget' },
   { href: PATH.SETTINGS, label: '더보기', icon: 'more' },
 ];
 
 const TITLE_BY_PATH: Record<string, string> = {
   [PATH.DASHBOARD]: '대시보드',
   [PATH.TRANSACTIONS]: '거래',
+  [PATH.CALENDAR]: '달력',
   [PATH.TRANSACTION_NEW]: '거래 등록',
   [PATH.BUDGETS]: '예산',
   [PATH.ASSETS]: '자산',

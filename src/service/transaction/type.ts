@@ -1,4 +1,4 @@
-import type { SplitMode, TransactionStatus, TransactionType } from '@/generated/prisma/enums';
+import type { SplitMode, TransactionType } from '@/generated/prisma/enums';
 
 export interface TransactionListItemDto {
   id: string;
@@ -14,7 +14,6 @@ export interface TransactionListItemDto {
   splitMode: SplitMode;
   merchant: string | null;
   memo: string | null;
-  status: TransactionStatus;
   version: number;
 }
 

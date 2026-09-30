@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { monthRange, shiftYearMonth, todayInSeoul } from '@/utils/ts/formatDate';
-import type { CategoryShareDto, MemberStatDto, MonthlyPointDto, OverviewDto } from '@/service/stats/type';
+import { monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
+import type { CategoryShareDto, DailyTotalDto, MemberStatDto, MonthlyPointDto, OverviewDto } from '@/service/stats/type';
 
 /**
  * 집계는 전부 그때그때 계산한다. 2인 가구는 10년이면 3만 행 수준이라
@@ -24,21 +24,9 @@ async function totalsOf(householdId: string, yearMonth: string) {
 }
 
 export async function getOverview(householdId: string, yearMonth: string): Promise<OverviewDto> {
-  const { from, toExclusive } = monthRange(yearMonth);
-
-  const [current, prev, pendingCount] = await Promise.all([
+  const [current, prev] = await Promise.all([
     totalsOf(householdId, yearMonth),
     totalsOf(householdId, shiftYearMonth(yearMonth, -1)),
-    // 금액을 확인해야 하는 건수 — **날짜가 지난 것만** 센다.
-    // 반복 거래는 이번 달 끝까지 미리 만들어지므로 미래 회차도 PENDING 이다. 그건
-    // 아직 일어나지 않아 확인할 것이 없고, 거래 목록에서 '예정' 배지로 이미 보인다.
-    prisma.transaction.count({
-      where: {
-        householdId,
-        status: 'PENDING',
-        date: { gte: new Date(from), lt: new Date(toExclusive), lte: new Date(todayInSeoul()) },
-      },
-    }),
   ]);
 
   return {
@@ -47,7 +35,6 @@ export async function getOverview(householdId: string, yearMonth: string): Promi
     prev,
     // 전월이 0원이면 증감률을 낼 수 없다. 화면에서 Infinity 를 만들지 않게 서버가 null 로 정한다.
     expenseDeltaRate: prev.expense === 0 ? null : (current.expense - prev.expense) / prev.expense,
-    pendingCount,
   };
 }
 
@@ -168,4 +155,37 @@ export async function getMemberStats(householdId: string, yearMonth: string): Pr
       personalPaid: expenses.filter((row) => row.splitMode === 'PERSONAL').reduce((sum, row) => sum + row.amount, 0),
     };
   });
+}
+
+/**
+ * 그 달의 날짜별 수입·지출.
+ *
+ * 달력이 칸마다 숫자를 적으려면 하루치씩 서른 번 묻는 대신 한 번에 받아야 한다.
+ * 거래가 없는 날은 결과에 들어가지 않는다 — 화면이 0 으로 채운다.
+ */
+export async function getDailyTotals(householdId: string, yearMonth: string): Promise<DailyTotalDto[]> {
+  const { from, toExclusive } = monthRange(yearMonth);
+
+  const rows = await prisma.transaction.groupBy({
+    by: ['date', 'type'],
+    where: { householdId, date: { gte: new Date(from), lt: new Date(toExclusive) } },
+    _sum: { amount: true },
+    _count: { _all: true },
+  });
+
+  const byDate = new Map<string, DailyTotalDto>();
+  for (const row of rows) {
+    const date = row.date.toISOString().slice(0, 10);
+    const hit = byDate.get(date) ?? { date, income: 0, expense: 0, transfer: 0, count: 0 };
+    const amount = row._sum.amount ?? 0;
+
+    if (row.type === 'INCOME') hit.income += amount;
+    else if (row.type === 'EXPENSE') hit.expense += amount;
+    else hit.transfer += amount;
+
+    hit.count += row._count._all;
+    byDate.set(date, hit);
+  }
+
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }

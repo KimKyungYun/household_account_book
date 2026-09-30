@@ -1,0 +1,29 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.calendar {
+  // 카드는 저마다 등장 애니메이션을 갖고 있다. 여기서는 순서만 준다.
+  @include motion.stagger-delay;
+
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+  max-width: s.$container-max;
+  margin: 0 auto;
+
+  @include media.tablet-up {
+    gap: s.$gap-6;
+  }
+
+  // 넓은 화면에서는 달력과 그날 목록을 나란히 둔다. 세로로 쌓으면 달력 하나로
+  // 화면이 다 차고, 고른 날짜의 거래를 보려면 스크롤을 내려야 한다.
+  @include media.desktop-up {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+
+    // 두 카드는 성격이 다르다 — 달력은 높이가 정해져 있고 목록은 날짜마다 길이가
+    // 크게 달라진다. 억지로 맞추면 한쪽에 빈 자리가 남는다.
+    align-items: start;
+  }
+}

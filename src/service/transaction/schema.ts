@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const transactionTypeSchema = z.enum(['INCOME', 'EXPENSE', 'TRANSFER']);
 export const splitModeSchema = z.enum(['SHARED', 'PERSONAL']);
-export const transactionStatusSchema = z.enum(['CONFIRMED', 'PENDING']);
 
 const dateSchema = z
   .string()
@@ -37,7 +36,6 @@ export const transactionListQuerySchema = z
     type: csvEnum(TRANSACTION_TYPES),
     paymentMethodId: csvIds,
     splitMode: csvEnum(SPLIT_MODES),
-    status: transactionStatusSchema.optional(),
     minAmount: z.coerce.number().int().nonnegative().optional(),
     maxAmount: z.coerce.number().int().nonnegative().optional(),
     q: z.string().trim().max(100).optional(),
@@ -92,7 +90,6 @@ export const updateTransactionSchema = z.object({
   assetId: z.string().min(1).nullable().optional(),
   merchant: z.string().trim().max(60).nullable().optional(),
   memo: z.string().trim().max(200).nullable().optional(),
-  status: transactionStatusSchema.optional(),
   /** 낙관적 락 — 상대가 먼저 고쳤으면 409 로 막는다. */
   version: z.number().int().min(0),
 });

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { conflict, notFound } from '@/lib/api/httpError';
+import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import { currentYearMonth, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
 import type { CreateAssetInput, UpdateAssetInput } from '@/service/asset/schema';
 import type { AssetDto, AssetSummaryDto, AssetTrendPointDto } from '@/service/asset/type';
@@ -131,6 +131,22 @@ export async function getAssetTrend(
 
     return { yearMonth, balance: running, added };
   });
+}
+
+/**
+ * 이 가구의 자산이 맞는지 확인한다.
+ *
+ * `assetId` 는 요청 본문으로 들어오므로 남의 가구 id 를 적어 보낼 수 있다. 막지 않으면
+ * 그 거래가 남의 자산을 가리키고, 거래를 조회할 때 **남의 자산 이름이 응답에 실린다.**
+ * 카테고리·결제수단과 같은 규칙으로 가구를 대조한다.
+ */
+export async function assertAssetUsable(householdId: string, assetId: string) {
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, householdId },
+    select: { id: true, isActive: true },
+  });
+  if (!asset) throw badRequest('자산을 찾을 수 없습니다.', { assetId: '자산을 찾을 수 없습니다.' });
+  if (!asset.isActive) throw badRequest('보관한 자산입니다.', { assetId: '보관한 자산입니다.' });
 }
 
 export async function createAsset(householdId: string, input: CreateAssetInput) {

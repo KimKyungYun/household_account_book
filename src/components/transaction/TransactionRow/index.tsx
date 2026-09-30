@@ -12,7 +12,7 @@ interface TransactionRowProps {
 /** 모바일 목록의 한 줄. 왼쪽 색 띠가 '누가 냈는지'를 말한다. */
 export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   // 반복 거래는 이번 달 끝까지 미리 만들어지므로 아직 오지 않은 날짜의 건이 섞인다.
-  // 둘 다 PENDING 이지만 뜻이 다르다 — 미래는 '예정', 지난 건은 금액 '확인 필요'다.
+  // 상태값을 따로 두지 않고 날짜로 가른다 — 미래면 아직 일어나지 않은 일이다.
   const isUpcoming = transaction.date > todayInSeoul();
 
   return (
@@ -47,9 +47,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
           signMode="tone"
         />
         <span className={styles.transactionrow__badges}>
-          {transaction.status === 'PENDING' && (
-            <Badge tone={isUpcoming ? 'neutral' : 'warning'}>{isUpcoming ? '예정' : '확인 필요'}</Badge>
-          )}
+          {isUpcoming && <Badge tone="neutral">예정</Badge>}
           {transaction.splitMode === 'PERSONAL' && transaction.type !== 'TRANSFER' && <Badge tone="neutral">개인</Badge>}
         </span>
       </span>

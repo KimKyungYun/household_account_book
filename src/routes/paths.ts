@@ -4,6 +4,7 @@ export const PATH = {
   SIGNUP: '/signup',
   ONBOARDING: '/onboarding',
   DASHBOARD: '/dashboard',
+  CALENDAR: '/calendar',
   TRANSACTIONS: '/transactions',
   TRANSACTION_NEW: '/transactions/new',
   TRANSACTION_DETAIL: (id: string) => `/transactions/${id}`,

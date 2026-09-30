@@ -6,11 +6,25 @@
   display: flex;
   flex-direction: column;
   gap: s.$gap-5;
-  max-width: s.$container-wide;
+  max-width: s.$container-max;
   margin: 0 auto;
 
   @include media.tablet-up {
     gap: s.$gap-6;
+  }
+
+  // 앞으로 오갈 돈과 모은 돈은 나란히 둔다. 둘 다 '앞으로'를 말하는 카드라
+  // 한 줄에서 같이 읽힌다.
+  &__pair {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include motion.stagger-delay;
+
+    @include media.desktop-up {
+      grid-template-columns: 1fr 1fr;
+      gap: s.$gap-6;
+    }
   }
 
   &__grid {

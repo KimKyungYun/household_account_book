@@ -234,11 +234,6 @@ enum TransactionSource {
   IMPORT
 }
 
-enum TransactionStatus {
-  CONFIRMED
-  /// 금액이 매달 바뀌는 반복 거래(전기요금 등)가 확인을 기다리는 상태.
-  PENDING
-}
 
 model Transaction {
   id          String @id @default(cuid())
@@ -255,7 +250,6 @@ model Transaction {
   splitMode       SplitMode         @default(SHARED)
   merchant        String?
   memo            String?
-  status          TransactionStatus @default(CONFIRMED)
   source          TransactionSource @default(MANUAL)
   recurringRuleId String?
   /// 이 돈이 쌓이는 자산. '옮긴 돈'에만 붙는다 (DB CHECK).
@@ -348,8 +342,6 @@ model RecurringRule {
   categoryId      String?
   paymentMethodId String?
   amount          Int
-  /// false 면 PENDING 으로 생성한다 (전기요금처럼 매달 금액이 바뀌는 항목).
-  amountIsFixed   Boolean   @default(true)
   splitMode       SplitMode @default(SHARED)
   /// 이 돈이 쌓이는 자산. '옮긴 돈' 규칙에만 붙는다.
   assetId         String?

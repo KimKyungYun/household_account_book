@@ -1,0 +1,154 @@
+@use "styles/tokens/motion" as m;
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.monthgrid {
+  // 일곱 칸 고정. 요일 줄과 날짜가 같은 격자를 써야 아래위가 맞는다.
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+
+  &__weekday {
+    padding-bottom: s.$gap-2;
+    color: var(--text-tertiary);
+    text-align: center;
+
+    @include t.label-small;
+
+    font-size: 11px;
+
+    // 주말은 한 톤 짚어 준다 — 달력에서 눈이 먼저 찾는 자리다.
+    &:first-child {
+      color: var(--amount-expense);
+    }
+
+    &:last-child {
+      color: var(--primary);
+    }
+  }
+
+  &__blank {
+    aspect-ratio: 1;
+  }
+
+  // 날짜·수입·지출이 각자 제 줄을 갖는다. flex 로 쌓으면 수입이 없는 날의 지출이
+  // 한 줄 위로 올라와, 옆으로 훑을 때 빨간 숫자가 칸마다 다른 높이에 나타난다.
+  &__day {
+    display: grid;
+    grid-template-rows: auto 1fr 1fr;
+    justify-items: center;
+    align-content: start;
+    gap: 1px;
+
+    // 폰에서는 정사각형이 자연스럽다. 넓은 화면에서 그대로 두면 칸이 커지는 만큼
+    // 세로도 자라 6주짜리 달이 화면을 넘는다(1440px 에서 946px 까지 잰 값이다).
+    aspect-ratio: 1;
+    padding: s.$gap-2 2px;
+    overflow: hidden;
+    border: 1px solid transparent;
+    border-radius: s.$shape-md;
+    background-color: transparent;
+    cursor: pointer;
+    transition:
+      background-color m.$dur-quick m.$ease-out,
+      border-color m.$dur-quick m.$ease-out;
+
+    @include motion.press(0.96);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    // 오늘은 테두리로, 고른 날은 면으로. 둘이 겹쳐도 서로를 가리지 않는다.
+    &[data-today="true"] {
+      border-color: var(--primary);
+    }
+
+    &[data-selected="true"] {
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+    }
+
+    // 아직 오지 않은 날. 예정된 반복 거래가 적혀 있어도 지난 날과 같아 보이면 안 된다.
+    &[data-future="true"] {
+      opacity: 0.55;
+    }
+  }
+
+  &__daynum {
+    color: var(--text-primary);
+
+    @include t.label-small;
+
+    font-size: 12px;
+  }
+
+  // 칸이 좁다. 넘치면 줄이 깨지므로 한 줄로 자른다.
+  &__daymoney {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  // 줄을 못 박는다. 수입이 없어도 지출은 언제나 셋째 줄이다.
+  &__dayincome {
+    grid-row: 2;
+  }
+
+  &__dayexpense {
+    grid-row: 3;
+  }
+
+  // 달력 화면 — 넓은 화면에서 정사각형을 버리고 높이를 묶는다.
+  &[data-variant="full"] {
+    @include media.tablet-up {
+      .monthgrid__day,
+      .monthgrid__blank {
+        aspect-ratio: auto;
+        min-height: 76px;
+      }
+
+      .monthgrid__day {
+        padding: s.$gap-2;
+      }
+    }
+  }
+
+  // 대시보드에 곁들이는 작은 달력. 한 달이 카드 하나에 들어가야 한다.
+  &[data-variant="compact"] {
+    .monthgrid__day,
+    .monthgrid__blank {
+      aspect-ratio: auto;
+      min-height: 46px;
+    }
+
+    .monthgrid__daymoney {
+      font-size: 9px;
+    }
+
+    // 카드가 화면 폭을 다 쓰더라도 달력까지 늘리지 않는다. 칸만 넓어지고
+    // 눈이 훑을 거리가 길어질 뿐이라, 가운데로 모아 둔다.
+    @include media.tablet-up {
+      max-width: 760px;
+      margin: 0 auto;
+
+      .monthgrid__day,
+      .monthgrid__blank {
+        min-height: 62px;
+      }
+    }
+  }
+}

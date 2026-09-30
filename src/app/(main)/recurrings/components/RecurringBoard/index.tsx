@@ -56,7 +56,7 @@ export default function RecurringBoard() {
   const toggle = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => setRecurringRuleActive(id, isActive),
     onSuccess: ({ backfill }, variables) => {
-      const filled = backfill ? backfill.created + backfill.pending + backfill.upcoming : 0;
+      const filled = backfill ? backfill.created + backfill.upcoming : 0;
       toast.success(
         variables.isActive
           ? filled === 0
@@ -85,12 +85,9 @@ export default function RecurringBoard() {
 
   const run = useMutation({
     mutationFn: runRecurring,
-    onSuccess: ({ created, pending, upcoming, skipped }) => {
-      const filled = created + pending + upcoming;
-      const notes = [
-        upcoming > 0 ? `아직 날짜가 오지 않은 ${upcoming}건 포함` : '',
-        pending > 0 ? `금액 확인이 필요한 ${pending}건 포함` : '',
-      ].filter(Boolean);
+    onSuccess: ({ created, upcoming, skipped }) => {
+      const filled = created + upcoming;
+      const notes = [upcoming > 0 ? `아직 날짜가 오지 않은 ${upcoming}건 포함` : ''].filter(Boolean);
       toast.success(
         filled === 0
           ? '새로 만들 거래가 없습니다.'
@@ -164,7 +161,6 @@ export default function RecurringBoard() {
                   <span className={styles.recurringboard__name}>
                     {rule.name}
                     {!rule.isActive && <Badge tone="neutral">중지</Badge>}
-                    {!rule.amountIsFixed && <Badge tone="warning">금액 확인</Badge>}
                     {rule.splitMode === 'PERSONAL' && rule.type !== 'TRANSFER' && <Badge tone="neutral">개인</Badge>}
                   </span>
                   <span className={styles.recurringboard__meta}>

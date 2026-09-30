@@ -4,6 +4,8 @@ const yearMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM
 
 export const overviewQuerySchema = z.object({ yearMonth });
 
+export const dailyQuerySchema = z.object({ yearMonth });
+
 export const monthlyQuerySchema = z
   .object({ from: yearMonth, to: yearMonth })
   .refine((value) => value.from <= value.to, { message: '시작 월이 종료 월보다 늦습니다.', path: ['from'] });

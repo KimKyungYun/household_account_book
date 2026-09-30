@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import { assertAssetUsable } from '@/lib/repository/asset';
+import { assertMemberUsable, assertPaymentMethodUsable } from '@/lib/repository/reference';
 import { badRequest, notFound } from '@/lib/api/httpError';
 import { logger } from '@/lib/logger';
 import { nextOccurrence, occurrencesBetween } from '@/lib/domain/recurring';
@@ -21,7 +23,6 @@ const RULE_SELECT = {
   isActive: true,
   type: true,
   amount: true,
-  amountIsFixed: true,
   splitMode: true,
   assetId: true,
   memo: true,
@@ -67,7 +68,6 @@ export async function listRecurringRules(householdId: string): Promise<Recurring
     isActive: row.isActive,
     type: row.type,
     amount: row.amount,
-    amountIsFixed: row.amountIsFixed,
     splitMode: row.splitMode,
     memo: row.memo,
     freq: row.freq,
@@ -87,12 +87,11 @@ export async function listRecurringRules(householdId: string): Promise<Recurring
   }));
 }
 
-async function assertReferences(householdId: string, input: { memberId: string; categoryId?: string | null; paymentMethodId?: string | null; type: string }) {
-  const member = await prisma.householdMember.findFirst({
-    where: { id: input.memberId, householdId },
-    select: { id: true },
-  });
-  if (!member) throw badRequest('구성원을 찾을 수 없습니다.', { memberId: '구성원을 찾을 수 없습니다.' });
+async function assertReferences(householdId: string, input: { memberId: string; categoryId?: string | null; paymentMethodId?: string | null; assetId?: string | null; type: string }) {
+  await assertMemberUsable(householdId, input.memberId);
+  if (input.paymentMethodId) await assertPaymentMethodUsable(householdId, input.paymentMethodId);
+  // 자산은 '옮긴 돈' 규칙에만 붙는다. 종류가 다르면 어차피 저장 때 떨어뜨리므로 그때만 본다.
+  if (input.type === 'TRANSFER' && input.assetId) await assertAssetUsable(householdId, input.assetId);
 
   if (input.categoryId) {
     const category = await prisma.category.findFirst({
@@ -113,7 +112,6 @@ function toData(input: CreateRecurringInput | UpdateRecurringInput) {
     categoryId: input.type === 'TRANSFER' ? null : input.categoryId ?? null,
     paymentMethodId: input.paymentMethodId ?? null,
     amount: input.amount,
-    amountIsFixed: input.amountIsFixed,
     splitMode: input.type === 'TRANSFER' ? ('PERSONAL' as const) : input.splitMode,
     memo: input.memo || null,
     freq: input.freq,
@@ -178,8 +176,6 @@ export async function deleteRecurringRule(householdId: string, id: string) {
 export interface BackfillResult {
   /** 날짜가 지났고 금액이 고정된 회차 — 확정 거래로 넣었다. */
   created: number;
-  /** 날짜는 지났지만 금액이 매달 바뀌는 회차 — 금액 확인이 필요하다. */
-  pending: number;
   /** 아직 날짜가 오지 않은 이번 달 회차 — 예정으로 넣었다. */
   upcoming: number;
   /** 이미 만들었거나 사용자가 지운 회차 — 건드리지 않았다. */
@@ -192,7 +188,7 @@ export interface BackfillResult {
  * **상한은 오늘이 아니라 이번 달 말일이다.** 25일 월급이 22일에도 이번 달 수입에 잡혀야
  * 한 달을 통째로 볼 수 있다. 아직 오지 않은 날짜의 거래를 미리 만들어 두면 대시보드·예산·
  * 정산·엑셀이 모두 같은 데이터를 세므로, 집계 쿼리마다 예정액을 따로 더하다가 화면끼리
- * 숫자가 갈리는 일이 없다. 미래 회차는 `PENDING` 이라 실제 발생분과 구분된다.
+ * 숫자가 갈리는 일이 없다. 아직 오지 않은 회차는 날짜로 구분한다.
  *
  * 별도 스케줄러를 두지 않는다 — Vercel Cron 은 Hobby 에서 하루 한 번이고 로컬 Docker 개발에서는
  * 아예 돌지 않아 테스트 경로가 갈라진다. 대신 앱에 들어올 때 이 함수가 돈다.
@@ -215,7 +211,7 @@ export async function backfillRecurring(
     select: { ...RULE_SELECT, lastGeneratedOn: true },
   });
 
-  const result: BackfillResult = { created: 0, pending: 0, upcoming: 0, skipped: 0 };
+  const result: BackfillResult = { created: 0, upcoming: 0, skipped: 0 };
 
   for (const rule of rules) {
     const from = rule.lastGeneratedOn
@@ -254,9 +250,6 @@ export async function backfillRecurring(
               // 매달 적금이 자동으로 늘어나는 것이 이 줄이다.
               assetId: rule.assetId,
               memo: rule.memo,
-              // 아직 날짜가 오지 않은 회차와, 금액이 매달 바뀌는 항목은 확정하지 않는다.
-              // 둘 다 PENDING 이지만 화면은 날짜로 갈라 '예정'과 '확인 필요'로 달리 적는다.
-              status: date > today || !rule.amountIsFixed ? 'PENDING' : 'CONFIRMED',
               source: 'RECURRING',
               recurringRuleId: rule.id,
               createdById: ctx.userId,
@@ -270,8 +263,7 @@ export async function backfillRecurring(
           });
 
           if (date > today) result.upcoming += 1;
-          else if (rule.amountIsFixed) result.created += 1;
-          else result.pending += 1;
+          else result.created += 1;
         });
       } catch (error) {
         // 한 회차가 실패해도 나머지는 계속 만든다. 다음 진입에서 다시 시도된다.

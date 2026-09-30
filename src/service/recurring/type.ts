@@ -6,7 +6,6 @@ export interface RecurringRuleDto {
   isActive: boolean;
   type: TransactionType;
   amount: number;
-  amountIsFixed: boolean;
   splitMode: SplitMode;
   memo: string | null;
   freq: RecurrenceFreq;
@@ -29,8 +28,6 @@ export interface RecurringRuleDto {
 export interface BackfillResult {
   /** 날짜가 지났고 금액이 고정돼 확정으로 넣은 건수. */
   created: number;
-  /** 날짜는 지났지만 금액이 매달 바뀌어 확인이 필요한 건수. */
-  pending: number;
   /** 아직 날짜가 오지 않아 예정으로 넣은 이번 달 건수. */
   upcoming: number;
   /** 이미 처리한(만들었거나 사용자가 지운) 회차라 건너뛴 건수. */

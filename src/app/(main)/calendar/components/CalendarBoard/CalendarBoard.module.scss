@@ -1,0 +1,36 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.calendarboard {
+  &__nav {
+    display: flex;
+    gap: s.$gap-2;
+  }
+
+  &__summary {
+    display: flex;
+    gap: s.$gap-6;
+    padding-bottom: s.$gap-5;
+  }
+
+  &__summaryitem {
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$gap-2;
+    color: var(--text-secondary);
+
+    @include t.label-small;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+    width: 100%;
+  }
+}

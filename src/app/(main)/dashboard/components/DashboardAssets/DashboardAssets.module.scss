@@ -1,0 +1,54 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.dashboardassets {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__total {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    margin: 0;
+  }
+
+  &__totallabel {
+    color: var(--text-tertiary);
+
+    @include t.label-small;
+  }
+
+  // 목록 전체가 하나의 격자다. 행마다 따로 두면 금액 길이에 따라 열이 어긋난다.
+  &__list {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__item {
+    display: contents;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+  }
+
+  &__name {
+    overflow: hidden;
+    color: var(--text-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include t.body-small;
+
+    font-size: 13px;
+  }
+
+  &__amount {
+    justify-content: flex-end;
+  }
+}

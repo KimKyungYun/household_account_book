@@ -33,5 +33,15 @@ export interface OverviewDto {
   prev: { income: number; expense: number; net: number };
   /** 전월 대비 지출 증감. 전월이 0이면 null. */
   expenseDeltaRate: number | null;
-  pendingCount: number;
+}
+
+/** 달력 한 칸이 필요로 하는 하루치 요약. */
+export interface DailyTotalDto {
+  /** 'YYYY-MM-DD' */
+  date: string;
+  income: number;
+  expense: number;
+  /** 옮긴 돈. 합계에는 넣지 않지만 그 날 무언가 있었다는 표시로 쓴다. */
+  transfer: number;
+  count: number;
 }

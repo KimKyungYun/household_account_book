@@ -5,12 +5,12 @@
 .dashboardstats {
   display: flex;
   flex-direction: column;
-  gap: s.$gap-6;
+  gap: s.$gap-5;
 
   &__hero {
     display: flex;
     flex-direction: column;
-    gap: s.$gap-2;
+    gap: 2px;
     margin: 0;
   }
 
@@ -20,22 +20,23 @@
     @include t.label-small;
   }
 
+  // 번 돈과 쓴 돈. 띠 바로 아래 한 줄에 둬서 띠와 한 덩이로 읽히게 한다.
   &__pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: s.$gap-5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$gap-4 s.$gap-6;
     margin: 0;
 
-    @include media.desktop-up {
-      grid-template-columns: repeat(2, minmax(140px, max-content));
-      gap: s.$gap-11;
+    @include media.tablet-up {
+      gap: s.$gap-4 s.$gap-11;
     }
   }
 
+  // 라벨과 금액을 세로로 쌓지 않고 한 줄에 놓는다 — 두 줄이면 카드가 그만큼 길어진다.
   &__item {
-    display: flex;
-    flex-direction: column;
-    gap: s.$gap-2;
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$gap-3;
 
     dt {
       display: inline-flex;
@@ -47,18 +48,18 @@
     }
 
     dd {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: s.$gap-2;
       margin: 0;
     }
   }
 
   // 차트 범례와 같은 색 표식 — 화면 전체에서 초록=수입, 빨강=지출이 한 뜻이 된다.
   &__mark {
-    width: 8px;
-    height: 8px;
-    border-radius: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
 
     &[data-kind="income"] {
       background-color: var(--amount-income);

@@ -172,7 +172,6 @@ function addDetailSheet(workbook: ExcelJS.Workbook, rows: Row[]) {
     { header: '같이/개인', width: 11 },
     { header: '가맹점', width: 22 },
     { header: '메모', width: 28 },
-    { header: '상태', width: 10 },
   ];
   styleHeaderRow(sheet.getRow(1));
   // 머리글을 고정하고 자동 필터를 건다 — 받는 쪽이 바로 걸러 볼 수 있게.
@@ -190,7 +189,6 @@ function addDetailSheet(workbook: ExcelJS.Workbook, rows: Row[]) {
       SPLIT_LABEL[row.splitMode] ?? row.splitMode,
       row.merchant ?? '',
       row.memo ?? '',
-      row.status === 'PENDING' ? '확인 필요' : '확정',
     ]);
     added.getCell(1).numFmt = DATE_FORMAT;
     added.getCell(6).numFmt = MONEY_FORMAT;

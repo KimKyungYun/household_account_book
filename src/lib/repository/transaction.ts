@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import { assertAssetUsable } from '@/lib/repository/asset';
+import { assertMemberUsable, assertPaymentMethodUsable } from '@/lib/repository/reference';
 import { badRequest, conflict, notFound, staleWrite } from '@/lib/api/httpError';
 import { monthRange } from '@/utils/ts/formatDate';
 import type { Prisma } from '@/generated/prisma/client';
@@ -54,7 +56,6 @@ async function buildWhere(householdId: string, query: TransactionListQuery): Pro
     ...(categoryIds ? { categoryId: { in: [...categoryIds] } } : {}),
     ...(query.paymentMethodId ? { paymentMethodId: { in: [...query.paymentMethodId] } } : {}),
     ...(query.splitMode ? { splitMode: { in: [...query.splitMode] } } : {}),
-    ...(query.status ? { status: query.status } : {}),
     ...(query.q
       ? {
         OR: [
@@ -75,7 +76,6 @@ const LIST_SELECT = {
   asset: { select: { id: true, name: true, colorHex: true } },
   merchant: true,
   memo: true,
-  status: true,
   version: true,
   member: { select: { id: true, displayName: true, colorHex: true } },
   category: { select: { id: true, name: true, colorHex: true, parent: { select: { name: true } } } },
@@ -97,7 +97,6 @@ function toListItem(row: Prisma.TransactionGetPayload<{ select: typeof LIST_SELE
     asset: row.asset,
     merchant: row.merchant,
     memo: row.memo,
-    status: row.status,
     version: row.version,
   };
 }
@@ -196,12 +195,10 @@ export async function createTransaction(
   }
 
   const category = input.categoryId ? await assertCategoryUsable(ctx.householdId, input.categoryId, input.type) : null;
+  if (input.type === 'TRANSFER' && input.assetId) await assertAssetUsable(ctx.householdId, input.assetId);
 
-  const member = await prisma.householdMember.findFirst({
-    where: { id: input.memberId, householdId: ctx.householdId },
-    select: { id: true },
-  });
-  if (!member) throw badRequest('구성원을 찾을 수 없습니다.', { memberId: '구성원을 찾을 수 없습니다.' });
+  await assertMemberUsable(ctx.householdId, input.memberId);
+  if (input.paymentMethodId) await assertPaymentMethodUsable(ctx.householdId, input.paymentMethodId);
 
   // 이체는 정산 대상이 아니므로 분담 모드를 가질 수 없다(DB CHECK 와 같은 규칙).
   const splitMode = input.type === 'TRANSFER'
@@ -238,6 +235,9 @@ export async function updateTransaction(householdId: string, id: string, input: 
   if (current.version !== input.version) throw staleWrite();
 
   if (input.categoryId) await assertCategoryUsable(householdId, input.categoryId, current.type);
+  if (input.assetId) await assertAssetUsable(householdId, input.assetId);
+  if (input.memberId) await assertMemberUsable(householdId, input.memberId);
+  if (input.paymentMethodId) await assertPaymentMethodUsable(householdId, input.paymentMethodId);
 
   const updated = await prisma.transaction.updateMany({
     where: { id, householdId, version: input.version },
@@ -251,7 +251,6 @@ export async function updateTransaction(householdId: string, id: string, input: 
       ...(input.assetId === undefined ? {} : { assetId: input.assetId }),
       ...(input.merchant === undefined ? {} : { merchant: input.merchant }),
       ...(input.memo === undefined ? {} : { memo: input.memo }),
-      ...(input.status === undefined ? {} : { status: input.status }),
       version: { increment: 1 },
     },
   });

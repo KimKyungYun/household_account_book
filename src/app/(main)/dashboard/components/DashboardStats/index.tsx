@@ -1,16 +1,13 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
 import { useMemo } from 'react';
 import Amount from '@/components/common/Amount';
-import Badge from '@/components/common/Badge';
 import Card from '@/components/common/Card';
 import MoneyFlow from '@/components/common/MoneyFlow';
 import Skeleton from '@/components/common/Skeleton';
 import { useCountUp } from '@/hooks/useCountUp';
 import { QUERY_KEY } from '@/interface/key/queryKey';
-import { PATH } from '@/routes/paths';
 import { getCategoryShares, getOverview } from '@/service/stats';
 import { currentYearMonth, formatYearMonthLabel } from '@/utils/ts/formatDate';
 import styles from './DashboardStats.module.scss';
@@ -55,20 +52,12 @@ export default function DashboardStats() {
   if (isPending) return <Skeleton height={240} />;
 
   const delta = data?.expenseDeltaRate ?? null;
-  const pending = data?.pendingCount ?? 0;
 
   return (
     <Card
       tone="feature"
-      title={`${formatYearMonthLabel(yearMonth)} 요약`}
-      description="아직 날짜가 오지 않은 반복 거래까지 더한 이번 달 전체입니다. 계좌끼리 옮긴 금액과 카드값은 '옮긴 돈'이라 합계에서 빠집니다."
-      action={
-        pending > 0 ? (
-          <Link href={PATH.TRANSACTIONS}>
-            <Badge tone="warning">금액 확인 {pending}건</Badge>
-          </Link>
-        ) : undefined
-      }
+      title={formatYearMonthLabel(yearMonth)}
+      description="아직 날짜가 오지 않은 거래까지 더한 이번 달 전체입니다."
     >
       <div className={styles.dashboardstats}>
         {/* 이 달의 한 문장. 번 것에서 쓴 것을 뺀 값이 이 화면의 결론이다. */}
@@ -88,6 +77,7 @@ export default function DashboardStats() {
           segments={segments}
         />
 
+        {/* 띠가 말한 것을 숫자로 받는다. 한 줄에 둬야 띠와 한 덩이로 읽힌다. */}
         <dl className={styles.dashboardstats__pair}>
           <div className={styles.dashboardstats__item}>
             <dt>
@@ -102,7 +92,7 @@ export default function DashboardStats() {
               <Amount
                 value={income}
                 tone="income"
-                size="large"
+                size="medium"
               />
             </dd>
           </div>
@@ -120,7 +110,7 @@ export default function DashboardStats() {
               <Amount
                 value={expense}
                 tone="expense"
-                size="large"
+                size="medium"
               />
               {delta !== null && (
                 <span className={styles.dashboardstats__delta}>
