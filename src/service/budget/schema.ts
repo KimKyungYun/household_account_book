@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const budgetQuerySchema = z.object({
-  yearMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 합니다.'),
+  yearMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 해요.'),
 });
 
 export const putBudgetsSchema = z.object({

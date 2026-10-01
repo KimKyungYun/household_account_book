@@ -85,9 +85,9 @@ export async function createCategory(
       where: { id: input.parentId, householdId },
       select: { level: true, kind: true },
     });
-    if (!parent) throw notFound('상위 카테고리를 찾을 수 없습니다.');
-    if (parent.level !== 1) throw badRequest('소분류 아래에는 더 만들 수 없습니다.');
-    if (parent.kind !== input.kind) throw badRequest('상위 카테고리와 종류가 다릅니다.');
+    if (!parent) throw notFound('상위 카테고리를 찾을 수 없어요.');
+    if (parent.level !== 1) throw badRequest('소분류 아래에는 더 만들 수 없어요.');
+    if (parent.kind !== input.kind) throw badRequest('상위 카테고리와 종류가 달라요.');
     level = 2;
   }
 
@@ -95,7 +95,7 @@ export async function createCategory(
     where: { householdId, parentId: input.parentId ?? null, name: input.name },
     select: { id: true },
   });
-  if (duplicate) throw conflict('같은 이름이 이미 있습니다.', { name: '같은 이름이 이미 있습니다.' });
+  if (duplicate) throw conflict('같은 이름이 이미 있어요.', { name: '같은 이름이 이미 있어요.' });
 
   const last = await prisma.category.findFirst({
     where: { householdId, parentId: input.parentId ?? null },
@@ -127,14 +127,14 @@ export async function updateCategory(
     where: { id, householdId },
     select: { id: true, parentId: true, name: true, level: true },
   });
-  if (!current) throw notFound('카테고리를 찾을 수 없습니다.');
+  if (!current) throw notFound('카테고리를 찾을 수 없어요.');
 
   if (input.name && input.name !== current.name) {
     const duplicate = await prisma.category.findFirst({
       where: { householdId, parentId: current.parentId, name: input.name, id: { not: id } },
       select: { id: true },
     });
-    if (duplicate) throw conflict('같은 이름이 이미 있습니다.', { name: '같은 이름이 이미 있습니다.' });
+    if (duplicate) throw conflict('같은 이름이 이미 있어요.', { name: '같은 이름이 이미 있어요.' });
   }
 
   // 대분류를 보관하면 딸린 소분류도 함께 보관한다 — 부모만 사라져 고아가 남는 상태를 막는다.
@@ -169,13 +169,13 @@ export async function deleteCategory(householdId: string, id: string) {
       _count: { select: { transactions: true, children: true, budgets: true, recurringRules: true } },
     },
   });
-  if (!category) throw notFound('카테고리를 찾을 수 없습니다.');
-  if (category.isSystem) throw forbidden('기본 카테고리는 삭제할 수 없습니다. 보관 처리해 주세요.');
-  if (category._count.children > 0) throw conflict('소분류가 남아 있습니다. 먼저 정리해 주세요.');
+  if (!category) throw notFound('카테고리를 찾을 수 없어요.');
+  if (category.isSystem) throw forbidden('기본 카테고리는 삭제할 수 없어요. 보관 처리해 주세요.');
+  if (category._count.children > 0) throw conflict('소분류가 남아 있어요. 먼저 정리해 주세요.');
   if (category._count.transactions > 0) {
-    throw conflict(`이 카테고리에 거래 ${category._count.transactions}건이 있습니다. 다른 카테고리로 옮긴 뒤 삭제하세요.`);
+    throw conflict(`이 카테고리에 거래 ${category._count.transactions}건이 있어요. 다른 카테고리로 옮긴 뒤 지워 주세요.`);
   }
-  if (category._count.recurringRules > 0) throw conflict('이 카테고리를 쓰는 반복 거래가 있습니다.');
+  if (category._count.recurringRules > 0) throw conflict('이 카테고리를 쓰는 반복 거래가 있어요.');
 
   await prisma.$transaction([
     prisma.budget.deleteMany({ where: { categoryId: id } }),
@@ -185,15 +185,15 @@ export async function deleteCategory(householdId: string, id: string) {
 
 /** 거래·예산·반복규칙을 다른 카테고리로 통째로 옮기고 원본을 보관한다. */
 export async function mergeCategory(householdId: string, id: string, intoCategoryId: string) {
-  if (id === intoCategoryId) throw badRequest('같은 카테고리로는 옮길 수 없습니다.');
+  if (id === intoCategoryId) throw badRequest('같은 카테고리로는 옮길 수 없어요.');
 
   const [source, target] = await Promise.all([
     prisma.category.findFirst({ where: { id, householdId }, select: { id: true, kind: true, isSystem: true } }),
     prisma.category.findFirst({ where: { id: intoCategoryId, householdId }, select: { id: true, kind: true, level: true } }),
   ]);
-  if (!source || !target) throw notFound('카테고리를 찾을 수 없습니다.');
-  if (source.kind !== target.kind) throw badRequest('종류가 다른 카테고리로는 옮길 수 없습니다.');
-  if (target.level !== 2) throw badRequest('소분류로만 옮길 수 있습니다.');
+  if (!source || !target) throw notFound('카테고리를 찾을 수 없어요.');
+  if (source.kind !== target.kind) throw badRequest('종류가 다른 카테고리로는 옮길 수 없어요.');
+  if (target.level !== 2) throw badRequest('소분류로만 옮길 수 있어요.');
 
   await prisma.$transaction(async (tx) => {
     await tx.transaction.updateMany({ where: { householdId, categoryId: id }, data: { categoryId: intoCategoryId } });

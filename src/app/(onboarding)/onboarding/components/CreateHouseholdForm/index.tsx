@@ -62,7 +62,7 @@ export default function CreateHouseholdForm() {
     >
       <FormField
         label="어떻게 쓰나요?"
-        hint="나중에 설정에서 바꿀 수 있습니다."
+        hint="나중에 설정에서 바꿀 수 있어요."
       >
         {() => (
           <KindPicker
@@ -90,7 +90,7 @@ export default function CreateHouseholdForm() {
       <div className={styles.createhouseholdform__row}>
         <FormField
           label="내 이름"
-          hint="거래 목록과 차트에 표시됩니다."
+          hint="거래 목록과 차트에 이 이름으로 보여요."
           error={formState.errors.displayName?.message}
         >
           {({ id, describedBy }) => (

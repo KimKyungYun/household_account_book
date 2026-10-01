@@ -25,7 +25,7 @@ export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string>;
 
   constructor(status: number, body: Partial<ApiErrorBody>) {
-    super(body.message ?? '오류가 발생했습니다.');
+    super(body.message ?? '문제가 생겼어요. 잠시 후 다시 시도해 주세요.');
     this.name = 'ApiError';
     this.status = status;
     this.code = body.code ?? 'INTERNAL';

@@ -24,10 +24,10 @@ const KIND_OPTIONS = [
 ] as const;
 
 const KIND_HINT: Record<CategoryKind, string> = {
-  EXPENSE: '나간 금액을 기록하는 분류입니다.',
-  INCOME: '들어온 금액을 기록하는 분류입니다. 급여, 상여 등.',
+  EXPENSE: '쓴 돈을 나누어 적는 분류예요.',
+  INCOME: '번 돈을 나누어 적는 분류예요. 급여, 상여처럼요.',
   TRANSFER:
-    '계좌끼리 옮긴 금액, 카드값, 적금 납입액입니다. 쓴 것도 번 것도 아니므로 모든 합계에서 제외됩니다.',
+    '계좌끼리 옮긴 돈, 카드값, 적금 납입처럼 쓴 것도 번 것도 아닌 돈이에요. 합계에서는 빠져요.',
 };
 
 type FormTarget =
@@ -66,7 +66,7 @@ export default function CategoryBoard() {
     <>
       <Card
         title="분류"
-        description="큰 분류 아래에 세부 분류를 만듭니다. 거래는 세부 분류에만 등록됩니다."
+        description="큰 분류 아래에 세부 분류를 만들어요. 거래는 세부 분류로 적어요."
         action={
           <Button
             size="sm"
@@ -98,8 +98,8 @@ export default function CategoryBoard() {
             />
           ) : groups.length === 0 ? (
             <EmptyState
-              title="분류가 없습니다"
-              description="큰 분류를 먼저 만드세요."
+              title="분류가 없어요"
+              description="큰 분류부터 만들어 주세요."
               action={
                 <Button
                   size="sm"
@@ -172,7 +172,7 @@ export default function CategoryBoard() {
                     ))}
                     {parent.children.length === 0 && (
                       <li className={styles.categoryboard__nochild}>
-                        세부 분류가 없어 이 분류로는 거래를 등록할 수 없습니다.
+                        세부 분류가 없어 이 분류로는 거래를 등록할 수 없어요.
                       </li>
                     )}
                   </ul>

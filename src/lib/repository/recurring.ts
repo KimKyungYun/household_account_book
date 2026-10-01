@@ -99,8 +99,8 @@ async function assertReferences(householdId: string, input: { memberId: string; 
       where: { id: input.categoryId, householdId },
       select: { kind: true, level: true },
     });
-    if (!category) throw badRequest('카테고리를 찾을 수 없습니다.', { categoryId: '카테고리를 찾을 수 없습니다.' });
-    if (category.kind !== input.type) throw badRequest('카테고리 종류가 맞지 않습니다.', { categoryId: '카테고리 종류가 맞지 않습니다.' });
+    if (!category) throw badRequest('카테고리를 찾을 수 없어요.', { categoryId: '카테고리를 찾을 수 없어요.' });
+    if (category.kind !== input.type) throw badRequest('카테고리 종류가 맞지 않아요.', { categoryId: '카테고리 종류가 맞지 않아요.' });
     if (category.level !== 2) throw badRequest('소분류를 골라 주세요.', { categoryId: '소분류를 골라 주세요.' });
   }
 }
@@ -136,7 +136,7 @@ export async function createRecurringRule(householdId: string, input: CreateRecu
 
 export async function updateRecurringRule(householdId: string, id: string, input: UpdateRecurringInput) {
   const current = await prisma.recurringRule.findFirst({ where: { id, householdId }, select: { id: true } });
-  if (!current) throw notFound('반복 거래를 찾을 수 없습니다.');
+  if (!current) throw notFound('반복 거래를 찾을 수 없어요.');
   await assertReferences(householdId, input);
 
   // 규칙을 고쳐도 이미 만들어진 거래는 그대로 둔다. 미래 회차만 새 규칙을 따른다.
@@ -150,7 +150,7 @@ export async function updateRecurringRule(householdId: string, id: string, input
 /** 중지 — 규칙만 멈춘다. 되살릴 수 있고 이미 만든 거래는 그대로다. */
 export async function setRecurringRuleActive(householdId: string, id: string, isActive: boolean) {
   const current = await prisma.recurringRule.findFirst({ where: { id, householdId }, select: { id: true } });
-  if (!current) throw notFound('반복 거래를 찾을 수 없습니다.');
+  if (!current) throw notFound('반복 거래를 찾을 수 없어요.');
 
   await prisma.recurringRule.update({ where: { id }, data: { isActive } });
 }
@@ -167,7 +167,7 @@ export async function deleteRecurringRule(householdId: string, id: string) {
     where: { id, householdId },
     select: { id: true, _count: { select: { transactions: true } } },
   });
-  if (!current) throw notFound('반복 거래를 찾을 수 없습니다.');
+  if (!current) throw notFound('반복 거래를 찾을 수 없어요.');
 
   await prisma.recurringRule.delete({ where: { id } });
 

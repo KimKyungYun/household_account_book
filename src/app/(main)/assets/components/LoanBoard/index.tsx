@@ -55,21 +55,21 @@ export default function LoanBoard() {
     onSuccess: ({ keptTransactionCount }) => {
       toast.success(
         keptTransactionCount > 0
-          ? `지웠습니다. 이미 갚은 ${keptTransactionCount}건의 기록은 거래에 그대로 남아 있습니다.`
-          : '지웠습니다.',
+          ? `지웠어요. 이미 갚은 ${keptTransactionCount}건은 거래에 그대로 남아 있어요.`
+          : '지웠어요.',
       );
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.LOAN.ALL });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
       setDeleteTarget(null);
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했어요.'),
   });
 
   if (isPending) {
     return (
       <Card
         title="대출"
-        description="상환일마다 이자는 지출로, 원금은 이체로 나뉘어 기록됩니다."
+        description="갚는 날마다 이자는 지출로, 원금은 이체로 나눠서 적어 드려요."
         isFlush
       >
         <SkeletonRows count={2} />
@@ -87,8 +87,8 @@ export default function LoanBoard() {
         title="대출"
         description={
           active.length > 0
-            ? `남은 원금 ${(data?.totalOutstandingAll ?? 0).toLocaleString('ko-KR')}원. 상환일마다 이자는 지출로, 원금은 이체로 나뉘어 기록됩니다.`
-            : '조건을 넣어 두면 매달 상환일에 이자와 원금이 자동으로 기록됩니다. 이자는 지출로, 원금은 이체로 나뉘어 들어갑니다.'
+            ? `남은 원금 ${(data?.totalOutstandingAll ?? 0).toLocaleString('ko-KR')}원. 갚는 날마다 이자는 지출로, 원금은 이체로 나눠서 적어 드려요.`
+            : '대출 조건만 넣어 두면 매달 갚는 날에 이자와 원금을 자동으로 적어 드려요.'
         }
         action={
           <Button
@@ -106,8 +106,8 @@ export default function LoanBoard() {
       >
         {active.length === 0 ? (
           <EmptyState
-            title="등록한 대출이 없습니다"
-            description="원금·금리·기간을 한 번 넣어 두면 매달 갚는 금액을 따로 적지 않아도 됩니다."
+            title="등록한 대출이 없어요"
+            description="원금·금리·기간을 한 번만 넣어 두면 매달 따로 적지 않아도 돼요."
           />
         ) : (
           <ul className={styles.loanboard__list}>
@@ -134,7 +134,7 @@ export default function LoanBoard() {
                       {REPAYMENT_LABEL[loan.repaymentType]} · {loan.member.displayName}
                       {loan.nextPayment
                         ? ` · 다음 ${formatDateLabel(loan.nextPayment.dueDate)}`
-                        : ' · 다 갚았습니다'}
+                        : ' · 다 갚았어요'}
                     </span>
 
                     <span className={styles.loanboard__progress}>
@@ -181,7 +181,7 @@ export default function LoanBoard() {
       {archived.length > 0 && (
         <Card
           title="보관한 대출"
-          description="목록에서 숨긴 대출입니다. 눌러서 다시 꺼낼 수 있습니다."
+          description="목록에서 숨긴 대출이에요. 누르면 다시 꺼낼 수 있어요"
           isFlush
         >
           <ul className={styles.loanboard__list}>
@@ -243,7 +243,7 @@ export default function LoanBoard() {
         <ConfirmDialog
           isOpen
           title={`'${deleteTarget.name}' 을 지울까요?`}
-          description="대출만 사라집니다. 이미 갚은 기록은 거래에 그대로 남습니다. 다 갚은 대출이라면 지우는 대신 '보관'해 두면 기록과 함께 남습니다."
+          description="대출만 사라지고, 이미 갚은 기록은 거래에 그대로 남아요. 다 갚은 대출이라면 지우는 대신 '보관'해 두는 걸 추천해요."
           confirmLabel="지우기"
           isDestructive
           isLoading={removal.isPending}

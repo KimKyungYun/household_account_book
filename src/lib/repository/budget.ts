@@ -107,7 +107,7 @@ export async function putBudgets(householdId: string, input: PutBudgetsInput) {
     where: { id: { in: ids }, householdId, kind: 'EXPENSE' },
     select: { id: true },
   });
-  if (owned.length !== new Set(ids).size) throw badRequest('카테고리를 찾을 수 없습니다.');
+  if (owned.length !== new Set(ids).size) throw badRequest('카테고리를 찾을 수 없어요.');
 
   // 항목마다 upsert 를 돌면 카테고리 수만큼 왕복한다. 이번에 손댄 카테고리의 행을 지우고
   // 값이 있는 것만 다시 넣으면 항목 수와 무관하게 두 번이면 된다(copyBudgets 와 같은 방식).
@@ -128,7 +128,7 @@ export async function copyBudgets(householdId: string, input: CopyBudgetInput) {
     where: { householdId, yearMonth: input.fromYearMonth },
     select: { categoryId: true, amount: true },
   });
-  if (source.length === 0) throw badRequest('가져올 예산이 없습니다.');
+  if (source.length === 0) throw badRequest('가져올 예산이 없어요.');
 
   await prisma.$transaction(async (tx) => {
     if (input.overwrite) {

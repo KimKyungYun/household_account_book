@@ -15,29 +15,29 @@ const loanFields = {
   principal: z
     .number()
     .int()
-    .positive('원금은 0원보다 커야 합니다.')
-    .max(2_000_000_000, '원금이 너무 큽니다.'),
+    .positive('원금은 0원보다 커야 해요.')
+    .max(2_000_000_000, '원금이 너무 커요.'),
   /** 4.25% → 425. 화면에서 % 를 받아 100 배로 바꿔 보낸다. */
   annualRateBp: z
     .number()
-    .int('금리는 소수 둘째 자리까지 넣을 수 있습니다.')
-    .min(0, '금리는 0% 이상이어야 합니다.')
-    .max(10_000, '금리는 100% 를 넘을 수 없습니다.'),
+    .int('금리는 소수 둘째 자리까지 넣을 수 있어요.')
+    .min(0, '금리는 0% 이상이어야 해요.')
+    .max(10_000, '금리는 100% 를 넘을 수 없어요.'),
   repaymentType: repaymentTypeSchema,
   termMonths: z
     .number()
     .int()
     .positive('상환 기간을 입력해 주세요.')
-    .max(MAX_TERM_MONTHS, '상환 기간은 40년(480개월)까지 넣을 수 있습니다.'),
-  gracePeriodMonths: z.number().int().min(0, '거치 기간은 0개월 이상이어야 합니다.').default(0),
-  firstPaymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '첫 상환일은 YYYY-MM-DD 형식이어야 합니다.'),
+    .max(MAX_TERM_MONTHS, '상환 기간은 40년(480개월)까지 넣을 수 있어요.'),
+  gracePeriodMonths: z.number().int().min(0, '거치 기간은 0개월 이상이어야 해요.').default(0),
+  firstPaymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '첫 상환일은 YYYY-MM-DD 형식이어야 해요.'),
   memberId: z.string().min(1, '상환하는 사람을 골라 주세요.'),
   paymentMethodId: z.string().min(1).nullable().optional(),
   interestCategoryId: z.string().min(1, '이자를 기록할 분류를 골라 주세요.'),
   principalCategoryId: z.string().min(1, '원금을 기록할 분류를 골라 주세요.'),
   colorHex: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 합니다.')
+    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 해요.')
     .nullable()
     .optional(),
   memo: z.string().trim().max(200).nullable().optional(),
@@ -49,7 +49,7 @@ const graceWithinTerm = (value: { termMonths: number; gracePeriodMonths?: number
   (value.gracePeriodMonths ?? 0) <= value.termMonths;
 
 export const createLoanSchema = z.object(loanFields).refine(graceWithinTerm, {
-  message: '거치 기간은 전체 상환 기간보다 길 수 없습니다.',
+  message: '거치 기간은 전체 상환 기간보다 길 수 없어요.',
   path: ['gracePeriodMonths'],
 });
 export type CreateLoanInput = z.infer<typeof createLoanSchema>;
@@ -63,7 +63,7 @@ export const updateLoanSchema = z
   .partial()
   .extend({ isActive: z.boolean().optional() })
   .refine((value) => value.termMonths === undefined || graceWithinTerm(value as never), {
-    message: '거치 기간은 전체 상환 기간보다 길 수 없습니다.',
+    message: '거치 기간은 전체 상환 기간보다 길 수 없어요.',
     path: ['gracePeriodMonths'],
   });
 export type UpdateLoanInput = z.infer<typeof updateLoanSchema>;

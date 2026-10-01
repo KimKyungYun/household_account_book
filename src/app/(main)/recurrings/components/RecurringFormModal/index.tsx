@@ -179,7 +179,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
 
         return;
       }
-      toast.error('저장하지 못했습니다.');
+      toast.error('저장하지 못했어요.');
 
       return;
     }
@@ -188,11 +188,11 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
     // 사용자는 합계가 왜 늘었는지 모른다.
     const { created, upcoming } = saved.backfill;
     const filled = created + upcoming;
-    const detail = upcoming > 0 ? ` (아직 날짜가 오지 않은 ${upcoming}건 포함)` : '';
+    const detail = upcoming > 0 ? ` (다가올 ${upcoming}건 포함)` : '';
     toast.success(
       filled === 0
-        ? rule ? '수정했습니다.' : '추가했습니다.'
-        : `${rule ? '수정했습니다' : '추가했습니다'}. 이번 달 ${filled}건을 거래로 넣었습니다.${detail}`,
+        ? rule ? '수정했어요.' : '추가했어요.'
+        : `${rule ? '수정했어요' : '추가했어요'}. 이번 달 거래 ${filled}건을 넣어 뒀어요.${detail}`,
     );
     onSaved();
   };
@@ -202,7 +202,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
       isOpen={isOpen}
       onClose={onClose}
       title={rule ? '반복되는 돈 수정' : '매달 반복되는 돈'}
-      description="월급, 월세처럼 매달 같은 날 들어오거나 나가는 금액입니다. 앱을 열면 지난 날짜의 거래가 자동으로 만들어집니다."
+      description="월급, 월세처럼 매달 같은 날 오가는 돈이에요. 날짜가 되면 거래를 자동으로 적어 드려요."
       footer={
         <div className={styles.recurringformmodal__actions}>
           <Button
@@ -393,7 +393,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
         {form.type === 'TRANSFER' && assets.length > 0 && (
           <FormField
             label="어디에 모으나"
-            hint="고르면 매달 만들어지는 거래가 이 자산에 쌓입니다."
+            hint="고르면 매달 적히는 금액이 이 자산에 쌓여요."
           >
             {({ id }) => (
               <Select

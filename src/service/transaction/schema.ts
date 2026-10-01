@@ -5,7 +5,7 @@ export const splitModeSchema = z.enum(['SHARED', 'PERSONAL']);
 
 const dateSchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, '날짜는 YYYY-MM-DD 형식이어야 합니다.');
+  .regex(/^\d{4}-\d{2}-\d{2}$/, '날짜는 YYYY-MM-DD 형식이어야 해요.');
 
 /** csv 로 온 파라미터를 배열로 바꾼다. 빈 값은 undefined 로 떨군다. */
 const csvIds = z
@@ -19,7 +19,7 @@ function csvEnum<T extends string>(values: readonly T[]) {
     .string()
     .optional()
     .transform((value) => (value ? value.split(',').filter(Boolean) : undefined))
-    .refine((list) => !list || list.every((item) => (values as readonly string[]).includes(item)), '값이 올바르지 않습니다.')
+    .refine((list) => !list || list.every((item) => (values as readonly string[]).includes(item)), '값이 올바르지 않아요.')
     .transform((list) => list as T[] | undefined);
 }
 
@@ -44,7 +44,7 @@ export const transactionListQuerySchema = z
     pageSize: z.coerce.number().int().min(1).max(200).default(50),
   })
   .refine((value) => !(value.from && value.to) || value.from <= value.to, {
-    message: '시작일이 종료일보다 늦습니다.',
+    message: '시작일이 종료일보다 늦어요.',
     path: ['from'],
   });
 export type TransactionListQuery = z.infer<typeof transactionListQuerySchema>;
@@ -71,11 +71,11 @@ export const createTransactionSchema = z
     path: ['categoryId'],
   })
   .refine((value) => value.type !== 'TRANSFER' || value.amount > 0, {
-    message: '이체 금액은 0보다 커야 합니다.',
+    message: '이체 금액은 0보다 커야 해요.',
     path: ['amount'],
   })
   .refine((value) => !value.assetId || value.type === 'TRANSFER', {
-    message: '자산은 옮긴 돈에만 붙일 수 있습니다.',
+    message: '자산은 옮긴 돈에만 붙일 수 있어요.',
     path: ['assetId'],
   });
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

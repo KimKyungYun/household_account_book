@@ -63,12 +63,12 @@ export default function CategoryDeleteModal({ category, groups, onClose, onDone 
     try {
       await mutateAsync();
     } catch (error) {
-      toast.error(isApiError(error) ? error.message : '지우지 못했습니다.');
+      toast.error(isApiError(error) ? error.message : '지우지 못했어요.');
 
       return;
     }
 
-    toast.success(hasTransactions ? `거래 ${count}건을 옮기고 지웠습니다.` : '지웠습니다.');
+    toast.success(hasTransactions ? `거래 ${count}건을 옮기고 지웠어요.` : '지웠어요.');
     onDone();
   };
 
@@ -79,8 +79,8 @@ export default function CategoryDeleteModal({ category, groups, onClose, onDone 
       title={`'${category?.name ?? ''}' 지우기`}
       description={
         hasTransactions
-          ? `이 분류에 거래가 ${count}건 있습니다. 거래를 지우지 않고 다른 분류로 옮긴 뒤 이 분류를 없앱니다.`
-          : '이 분류를 없앱니다. 되돌릴 수 없습니다.'
+          ? `이 분류에 거래가 ${count}건 있어요. 거래는 다른 분류로 옮기고 이 분류만 없앨게요.`
+          : '이 분류를 없앨게요. 되돌릴 수 없어요.'
       }
       footer={
         <div className={styles.categorydeletemodal__actions}>
@@ -103,7 +103,7 @@ export default function CategoryDeleteModal({ category, groups, onClose, onDone 
       {hasTransactions && (
         <FormField
           label="거래를 옮길 곳"
-          hint="지난달 통계도 옮긴 분류로 함께 계산됩니다."
+          hint="지난달 통계도 옮긴 분류로 함께 계산돼요."
           isRequired
         >
           {({ id }) => (

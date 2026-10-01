@@ -68,7 +68,7 @@ export function Table<T>({
                 className={styles.table__empty}
                 colSpan={columns.length}
               >
-                {emptyContent ?? '내역이 없습니다.'}
+                {emptyContent ?? '내역이 없어요.'}
               </td>
             </tr>
           ) : (

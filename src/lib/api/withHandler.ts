@@ -75,7 +75,7 @@ async function parse<TBody, TQuery, TParams>(
     try {
       raw = await request.json();
     } catch {
-      throw badRequest('요청 본문을 읽을 수 없습니다.');
+      throw badRequest('요청을 읽을 수 없어요.');
     }
     body = runSchema(schemas.body, raw, '');
   }
@@ -111,7 +111,7 @@ function toResponse(error: unknown): Response {
   // 예상 못 한 오류는 서버에만 남기고 바깥에는 내용을 흘리지 않는다.
   logger.error('처리하지 못한 오류', error);
 
-  return Response.json({ code: 'INTERNAL', message: '오류가 발생했습니다.' }, { status: 500 });
+  return Response.json({ code: 'INTERNAL', message: '문제가 생겼어요. 잠시 후 다시 시도해 주세요.' }, { status: 500 });
 }
 
 function toResult(result: unknown): Response {

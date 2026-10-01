@@ -91,12 +91,12 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
         return;
       }
-      toast.error('저장하지 못했습니다.');
+      toast.error('저장하지 못했어요.');
 
       return;
     }
 
-    toast.success(asset ? '고쳤습니다.' : '자산을 만들었습니다.');
+    toast.success(asset ? '고쳤어요.' : '자산을 만들었어요.');
     onSaved();
   };
 
@@ -105,7 +105,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
       isOpen={isOpen}
       onClose={onClose}
       title={asset ? '자산 고치기' : '자산 만들기'}
-      description="적금·주식처럼 돈을 모으는 통입니다. 거래를 '옮긴 돈'으로 넣을 때 여기서 고른 자산에 쌓입니다."
+      description="적금·주식처럼 돈을 모으는 통이에요. '옮긴 돈'으로 적은 거래가 여기에 쌓여요."
       footer={
         <div className={styles.assetformmodal__actions}>
           {asset && (
@@ -165,7 +165,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
         {members.length > 1 && (
           <FormField
             label="누구의 돈인가요"
-            hint="함께 모으면 '공동'으로 둡니다."
+            hint="함께 모으는 돈이면 '공동'으로 두세요."
           >
             {({ id }) => (
               <Select
@@ -183,7 +183,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
         <FormField
           label="시작 잔액"
-          hint="이 앱에 적기 전에 이미 모여 있던 금액입니다. 여기서부터 거래를 더합니다."
+          hint="앱을 쓰기 전에 이미 모아 둔 금액이에요. 여기서부터 더해 나가요."
           error={errors.openingBalance}
         >
           {({ id }) => (
@@ -197,7 +197,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
         <FormField
           label="목표액"
-          hint="정하면 목록에 달성률이 보입니다. 비워 두어도 됩니다."
+          hint="정해 두면 목록에서 달성률을 볼 수 있어요. 비워 둬도 괜찮아요."
           error={errors.targetAmount}
         >
           {({ id }) => (
@@ -211,14 +211,14 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
         {asset?.autoDeposit?.hasMany ? (
           <p className={styles.assetformmodal__notice}>
-            이 자산에는 자동으로 넣는 설정이 두 개 넘게 있습니다. 어느 것을 고칠지 여기서
-            정할 수 없어 그대로 둡니다 — 반복 거래 화면에서 관리해 주세요.
+            이 자산에는 자동으로 넣는 설정이 두 개 넘게 있어서 여기서는 고칠 수 없어요.
+            반복 거래 화면에서 관리해 주세요.
           </p>
         ) : (
           <>
             <FormField
               label="매달 자동으로 넣기"
-              hint="켜면 정한 날짜마다 '옮긴 돈' 거래가 만들어져 이 자산에 쌓입니다. 분류는 이체 › 예적금으로 들어갑니다."
+              hint="켜 두면 정한 날마다 이 자산에 자동으로 돈이 쌓여요. 분류는 이체 › 예적금으로 들어가요."
             >
               {({ id }) => (
                 <Select
@@ -250,7 +250,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
                 <FormField
                   label="넣는 날"
-                  hint="31 은 말일을 겸합니다."
+                  hint="31일로 정하면 매달 말일에 넣어요."
                   error={errors.autoDay}
                 >
                   {({ id }) => (
@@ -283,7 +283,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
         {asset && (
           <FormField
             label="목록에 보이기"
-            hint="끄면 목록에서 숨깁니다. 이미 넣은 기록은 그대로 남습니다."
+            hint="끄면 목록에서 숨겨요. 이미 넣은 기록은 그대로 남아요."
           >
             {({ id }) => (
               <Select

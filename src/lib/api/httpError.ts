@@ -30,10 +30,10 @@ export class HttpError extends Error {
 
 export const badRequest = (message: string, fieldErrors?: Record<string, string>) =>
   new HttpError('VALIDATION', message, fieldErrors);
-export const unauthorized = (message = '로그인이 필요합니다.') => new HttpError('UNAUTHORIZED', message);
-export const forbidden = (message = '권한이 없습니다.') => new HttpError('FORBIDDEN', message);
-export const notFound = (message = '대상을 찾을 수 없습니다.') => new HttpError('NOT_FOUND', message);
+export const unauthorized = (message = '로그인이 필요해요.') => new HttpError('UNAUTHORIZED', message);
+export const forbidden = (message = '권한이 없어요.') => new HttpError('FORBIDDEN', message);
+export const notFound = (message = '찾을 수 없어요.') => new HttpError('NOT_FOUND', message);
 export const conflict = (message: string, fieldErrors?: Record<string, string>) =>
   new HttpError('CONFLICT', message, fieldErrors);
-export const staleWrite = (message = '다른 곳에서 먼저 수정했습니다. 새로 불러온 뒤 다시 저장해 주세요.') =>
+export const staleWrite = (message = '다른 곳에서 먼저 고쳤어요. 새로 불러온 뒤 다시 저장해 주세요.') =>
   new HttpError('STALE_WRITE', message);

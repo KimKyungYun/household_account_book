@@ -91,7 +91,7 @@ export default function CalendarBoard() {
       <Card
         tone="feature"
         title={`${formatYearMonthLabel(yearMonth)} 달력`}
-        description="날짜를 누르면 그날 쓰고 번 돈을 보고, 바로 등록할 수 있습니다."
+        description="날짜를 누르면 그날 오간 돈을 보고 바로 적을 수 있어요"
         action={
           <div className={styles.calendarboard__nav}>
             <Button
@@ -160,7 +160,7 @@ export default function CalendarBoard() {
 
       <Card
         title={formatDateLabel(selected)}
-        description="이 날에 오간 돈입니다."
+        description="이날 오간 돈이에요"
         isFlush
         action={
           <Button
@@ -179,8 +179,8 @@ export default function CalendarBoard() {
           <SkeletonRows count={3} />
         ) : (dayList.data?.items.length ?? 0) === 0 ? (
           <EmptyState
-            title="이 날은 기록이 없습니다"
-            description="위의 '이 날에 등록'을 누르면 이 날짜로 바로 적을 수 있습니다."
+            title="이날은 기록이 없어요"
+            description="'이 날에 등록'을 누르면 이 날짜로 바로 적을 수 있어요."
           />
         ) : (
           <ul

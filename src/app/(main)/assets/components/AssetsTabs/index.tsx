@@ -51,7 +51,7 @@ export default function AssetsTabs() {
         <Card
           tone="feature"
           title="순자산"
-          description="모은 돈에서 갚을 돈을 뺀 금액입니다."
+          description="모은 돈에서 갚을 돈을 뺀 금액이에요."
         >
           <div
             className={styles.assetstabs__summary}
@@ -74,8 +74,8 @@ export default function AssetsTabs() {
           title="순자산"
           description={
             excludedCount > 0
-              ? `모은 돈에서 갚을 돈을 뺀 금액입니다. 대출 ${excludedCount}건은 계산에서 빼 두었습니다.`
-              : '모은 돈에서 갚을 돈을 뺀 금액입니다.'
+              ? `모은 돈에서 갚을 돈을 뺀 금액이에요. 대출 ${excludedCount}건은 계산에서 뺐어요.`
+              : '모은 돈에서 갚을 돈을 뺀 금액이에요.'
           }
         >
           <Reveal className={styles.assetstabs__summary}>

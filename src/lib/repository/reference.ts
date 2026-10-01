@@ -14,7 +14,7 @@ export async function assertMemberUsable(householdId: string, memberId: string) 
     where: { id: memberId, householdId },
     select: { id: true },
   });
-  if (!member) throw badRequest('구성원을 찾을 수 없습니다.', { memberId: '구성원을 찾을 수 없습니다.' });
+  if (!member) throw badRequest('구성원을 찾을 수 없어요.', { memberId: '구성원을 찾을 수 없어요.' });
 }
 
 export async function assertPaymentMethodUsable(householdId: string, paymentMethodId: string) {
@@ -23,9 +23,9 @@ export async function assertPaymentMethodUsable(householdId: string, paymentMeth
     select: { id: true, isActive: true },
   });
   if (!method) {
-    throw badRequest('결제수단을 찾을 수 없습니다.', { paymentMethodId: '결제수단을 찾을 수 없습니다.' });
+    throw badRequest('결제수단을 찾을 수 없어요.', { paymentMethodId: '결제수단을 찾을 수 없어요.' });
   }
   if (!method.isActive) {
-    throw badRequest('보관된 결제수단입니다.', { paymentMethodId: '보관된 결제수단입니다.' });
+    throw badRequest('보관된 결제수단이에요.', { paymentMethodId: '보관된 결제수단이에요.' });
   }
 }

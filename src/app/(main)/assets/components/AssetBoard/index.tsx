@@ -62,14 +62,14 @@ export default function AssetBoard() {
     onSuccess: ({ keptTransactionCount }) => {
       toast.success(
         keptTransactionCount > 0
-          ? `지웠습니다. 이미 넣은 ${keptTransactionCount}건의 기록은 거래에 그대로 남아 있습니다.`
-          : '지웠습니다.',
+          ? `지웠어요. 이미 넣은 ${keptTransactionCount}건은 거래에 그대로 남아 있어요.`
+          : '지웠어요.',
       );
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ASSET.ALL });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
       setDeleteTarget(null);
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했어요.'),
   });
 
   const refresh = () => {
@@ -102,7 +102,7 @@ export default function AssetBoard() {
         <Card
           tone="feature"
           title="모은 돈"
-          description="적금·투자처럼 '옮긴 돈'으로 넣은 금액이 자산마다 쌓입니다. 시작 잔액에 그동안 넣은 돈을 더한 값입니다."
+          description="적금·투자에 넣은 돈이 자산마다 차곡차곡 쌓여요"
         >
           <div
             className={styles.assetboard__total}
@@ -138,7 +138,7 @@ export default function AssetBoard() {
       <Card
         tone="feature"
         title="모은 돈"
-        description="적금·투자처럼 '옮긴 돈'으로 넣은 금액이 자산마다 쌓입니다. 시작 잔액에 그동안 넣은 돈을 더한 값입니다."
+        description="적금·투자에 넣은 돈이 자산마다 차곡차곡 쌓여요"
         action={
           <Button
             size="sm"
@@ -167,7 +167,7 @@ export default function AssetBoard() {
                 value={data?.addedThisMonth ?? 0}
                 tone="income"
                 size="small"
-              /> 넣었습니다.
+              /> 넣었어요.
             </p>
           )}
         </Reveal>
@@ -176,7 +176,7 @@ export default function AssetBoard() {
       {points.some((point) => point.balance !== 0) && (
         <Card
           title="모은 돈 추이"
-          description="최근 1년 동안 쌓인 금액입니다. 왼쪽 숫자는 만 원 단위입니다."
+          description="최근 1년 동안 이만큼 모였어요. 왼쪽 숫자는 만 원 단위예요"
         >
           <CustomEcharts
             option={trendOption}
@@ -188,13 +188,13 @@ export default function AssetBoard() {
 
       <Card
         title="자산 목록"
-        description="줄을 누르면 고치거나 지울 수 있습니다."
+        description="눌러서 고치거나 지울 수 있어요"
         isFlush
       >
         {active.length === 0 ? (
           <EmptyState
-            title="아직 등록한 자산이 없습니다"
-            description="적금이나 주식처럼 모으는 통을 만들어 두면, 거래를 넣을 때 어디에 모으는지 고를 수 있습니다."
+            title="아직 등록한 자산이 없어요"
+            description="적금이나 주식처럼 돈을 모으는 통을 만들어 보세요. 거래를 적을 때 어디에 모을지 고를 수 있어요."
           />
         ) : (
           <ul className={styles.assetboard__list}>
@@ -253,7 +253,7 @@ export default function AssetBoard() {
       {archived.length > 0 && (
         <Card
           title="보관한 자산"
-          description="목록에서 숨긴 자산입니다. 눌러서 다시 꺼낼 수 있습니다."
+          description="목록에서 숨긴 자산이에요. 누르면 다시 꺼낼 수 있어요"
           isFlush
         >
           <ul className={styles.assetboard__list}>
@@ -306,8 +306,8 @@ export default function AssetBoard() {
         title={`'${deleteTarget?.name ?? ''}'을(를) 지울까요?`}
         description={
           (deleteTarget?.transactionCount ?? 0) > 0
-            ? `이미 넣은 ${deleteTarget?.transactionCount}건의 기록은 거래에 그대로 남습니다. 실제로 나간 돈이라 지우면 지난 달 합계가 바뀝니다.`
-            : '되돌릴 수 없습니다.'
+            ? `이미 넣은 ${deleteTarget?.transactionCount}건은 거래에 그대로 남아요. 실제로 나간 돈이라, 지우면 지난 달 합계가 달라지거든요.`
+            : '되돌릴 수 없어요.'
         }
         confirmLabel="지우기"
         isLoading={removal.isPending}

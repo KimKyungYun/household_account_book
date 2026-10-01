@@ -5,5 +5,5 @@ export default function checkApiError(error: unknown): string {
   if (isApiError(error)) return error.message;
   if (error instanceof Error && error.message) return error.message;
 
-  return '오류가 발생했습니다.';
+  return '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
 }

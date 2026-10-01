@@ -60,19 +60,19 @@ export default function BudgetBoard() {
         items: Object.entries(drafts).map(([categoryId, amount]) => ({ categoryId, amount })),
       }),
     onSuccess: () => {
-      toast.success('예산을 저장했습니다.');
+      toast.success('예산을 저장했어요.');
       refresh();
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '저장하지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '저장하지 못했어요.'),
   });
 
   const copy = useMutation({
     mutationFn: () => copyBudgets({ fromYearMonth: shiftYearMonth(yearMonth, -1), toYearMonth: yearMonth, overwrite: false }),
     onSuccess: ({ copied }) => {
-      toast.success(`전월 예산 ${copied}건을 가져왔습니다.`);
+      toast.success(`지난달 예산 ${copied}건을 가져왔어요.`);
       refresh();
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '가져오지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '가져오지 못했어요.'),
   });
 
   const parents = (data?.rows ?? []).filter((row) => row.level === 1);
@@ -85,7 +85,7 @@ export default function BudgetBoard() {
       <Card
         tone="feature"
         title="이번 달 예산"
-        description="분류마다 쓸 금액을 정해 두면 남은 예산이 표시됩니다."
+        description="분류마다 쓸 금액을 정해 두면 얼마나 남았는지 알려 드려요"
       >
         <div className={styles.budgetboard__head}>
           <div className={styles.budgetboard__month}>
@@ -120,7 +120,7 @@ export default function BudgetBoard() {
               variant="secondary"
               isLoading={copy.isPending}
               onClick={() => copy.mutate()}
-              title="지난달 금액을 이번 달로 복사합니다"
+              title="지난달 금액을 이번 달로 그대로 가져와요"
             >
               지난 달과 똑같이
             </Button>
@@ -187,7 +187,7 @@ export default function BudgetBoard() {
 
       <Card
         title="분류별 예산"
-        description="오른쪽 칸에 금액을 입력하고 저장하세요. 비워 두면 예산을 정하지 않은 상태이고, 0원으로 두면 한 푼도 쓰지 않겠다는 뜻입니다."
+        description="금액을 적고 저장해 주세요. 비워 두면 예산이 없는 거고, 0원은 한 푼도 쓰지 않겠다는 뜻이에요."
       >
         {isPending ? (
           <SkeletonRows

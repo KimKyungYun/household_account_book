@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { HOUSEHOLD_KINDS, MEMBER_RELATIONS } from '@/service/household/kind';
 
-const newPasswordSchema = z.string().min(8, '비밀번호는 8자 이상이어야 합니다.').max(72, '비밀번호가 너무 깁니다.');
+const newPasswordSchema = z.string().min(8, '비밀번호는 8자 이상이어야 해요.').max(72, '비밀번호가 너무 길어요.');
 
-const emailSchema = z.string().trim().toLowerCase().email('이메일 형식이 올바르지 않습니다.');
+const emailSchema = z.string().trim().toLowerCase().email('이메일 형식이 올바르지 않아요.');
 
 /**
  * 휴대폰 번호. 하이픈·공백을 지우고 숫자만 남긴다. 비우면 null.
@@ -16,12 +16,12 @@ const phoneSchema = z
   .string()
   .nullable()
   .transform((value) => (value ?? '').trim().replace(/[\s-]/g, ''))
-  .refine((value) => value === '' || /^01[016789]\d{7,8}$/.test(value), '휴대폰 번호 형식이 올바르지 않습니다.')
+  .refine((value) => value === '' || /^01[016789]\d{7,8}$/.test(value), '휴대폰 번호 형식이 올바르지 않아요.')
   .transform((value) => value || null);
 
 export const signupSchema = z
   .object({
-    name: z.string().trim().min(1, '이름을 입력해 주세요.').max(20, '이름이 너무 깁니다.'),
+    name: z.string().trim().min(1, '이름을 입력해 주세요.').max(20, '이름이 너무 길어요.'),
     email: emailSchema,
     password: newPasswordSchema,
     passwordConfirm: z.string().min(1, '비밀번호를 한 번 더 입력해 주세요.'),
@@ -30,7 +30,7 @@ export const signupSchema = z
   })
   .refine((value) => value.password === value.passwordConfirm, {
     path: ['passwordConfirm'],
-    message: '비밀번호가 서로 다릅니다.',
+    message: '비밀번호가 서로 달라요.',
   });
 export type SignupFormValues = z.input<typeof signupSchema>;
 export type SignupInput = z.output<typeof signupSchema>;
@@ -50,7 +50,7 @@ export const changePasswordSchema = z
   })
   .refine((value) => value.newPassword === value.newPasswordConfirm, {
     path: ['newPasswordConfirm'],
-    message: '새 비밀번호가 서로 다릅니다.',
+    message: '새 비밀번호가 서로 달라요.',
   })
   .refine((value) => value.newPassword !== value.currentPassword, {
     path: ['newPassword'],
@@ -58,11 +58,11 @@ export const changePasswordSchema = z
   });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
-const displayNameSchema = z.string().trim().min(1, '표시할 이름을 입력해 주세요.').max(20, '이름이 너무 깁니다.');
+const displayNameSchema = z.string().trim().min(1, '표시할 이름을 입력해 주세요.').max(20, '이름이 너무 길어요.');
 
 export const createHouseholdSchema = z.object({
   kind: z.enum(HOUSEHOLD_KINDS),
-  householdName: z.string().trim().min(1, '가구 이름을 입력해 주세요.').max(30, '이름이 너무 깁니다.'),
+  householdName: z.string().trim().min(1, '가구 이름을 입력해 주세요.').max(30, '이름이 너무 길어요.'),
   displayName: displayNameSchema,
   /** 유형에 맞는 관계인지는 서버가 HOUSEHOLD_KIND_RULES 로 한 번 더 본다. */
   relation: z.enum(MEMBER_RELATIONS),

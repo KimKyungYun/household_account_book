@@ -22,14 +22,14 @@ export default function LoanNotice() {
   if (active.length === 0) return null;
 
   return (
-    <Card title="대출 상환은 따로 관리합니다">
+    <Card title="대출 상환은 따로 관리해요">
       <p className={styles.loannotice__text}>
-        등록한 대출 {active.length}건이 상환일마다 자동으로 기록됩니다. 이번 달에는{' '}
+        등록한 대출 {active.length}건은 갚는 날마다 자동으로 적어 드려요. 이번 달에는{' '}
         <strong>{(data?.monthlyPayment ?? 0).toLocaleString('ko-KR')}원</strong>
         {(data?.monthlyInterest ?? 0) > 0 && (
           <> (그중 이자 {(data?.monthlyInterest ?? 0).toLocaleString('ko-KR')}원)</>
         )}
-        이 나갑니다. 회차마다 원금과 이자의 비율이 달라져서 여기에 고정 금액으로 둘 수 없습니다.
+        이 나가요. 회차마다 원금과 이자 비율이 달라서 여기에 고정 금액으로 둘 수 없어요.
       </p>
       <Link
         className={styles.loannotice__link}

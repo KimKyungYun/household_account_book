@@ -33,7 +33,7 @@ export default function LoanScheduleModal({ isOpen, loan, onClose }: LoanSchedul
       isOpen={isOpen}
       onClose={onClose}
       title={`${loan.name} 상환 계획`}
-      description="회차마다 원금과 이자가 얼마씩 나뉘는지 보여 줍니다. 이자는 지출로, 원금은 이체로 기록됩니다."
+      description="회차마다 원금과 이자를 얼마씩 갚는지 보여 드려요."
       size="lg"
     >
       {isPending ? (

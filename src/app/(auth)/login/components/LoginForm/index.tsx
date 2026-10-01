@@ -28,7 +28,7 @@ export default function LoginForm() {
 
     const result = await signIn('credentials', { ...values, redirect: false });
     if (result?.error) {
-      setFormError('이메일 또는 비밀번호가 맞지 않습니다.');
+      setFormError('이메일이나 비밀번호가 맞지 않아요.');
 
       return;
     }

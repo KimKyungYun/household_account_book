@@ -26,28 +26,28 @@ export default function HouseholdSection() {
   const rotation = useMutation({
     mutationFn: rotateInviteCode,
     onSuccess: () => {
-      toast.success('새 초대 코드를 발급했습니다.');
+      toast.success('새 초대 코드를 만들었어요.');
       setIsRotating(false);
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '발급하지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '발급하지 못했어요.'),
   });
 
   // 유형은 고르는 즉시 바꾼다. 인원이 새 정원보다 많으면 서버가 이유와 함께 거절한다.
   const kindChange = useMutation({
     mutationFn: (kind: HouseholdKind) => updateHousehold({ kind }),
     onSuccess: (_result, kind) => {
-      toast.success(`${HOUSEHOLD_KIND_RULES[kind].label} 장부로 바꿨습니다.`);
+      toast.success(`${HOUSEHOLD_KIND_RULES[kind].label} 장부로 바꿨어요.`);
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '바꾸지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '바꾸지 못했어요.'),
   });
 
   if (me.isPending) {
     return (
       <Card
         title="우리 집"
-        description="장부 이름과 함께 쓰는 사람입니다."
+        description="장부 이름과 함께 쓰는 사람이에요"
       >
         <SkeletonRows
           count={3}
@@ -68,7 +68,7 @@ export default function HouseholdSection() {
     <>
       <Card
         title="우리 집"
-        description={rule.capacity > 1 ? `${rule.label} 장부 · 최대 ${rule.capacity}명까지 함께 쓸 수 있습니다.` : '혼자 쓰는 장부입니다.'}
+        description={rule.capacity > 1 ? `${rule.label} 장부 · 최대 ${rule.capacity}명까지 함께 쓸 수 있어요` : '혼자 쓰는 장부예요'}
       >
         <dl className={styles.householdsection}>
           <div className={styles.householdsection__row}>
@@ -101,7 +101,7 @@ export default function HouseholdSection() {
         {canInvite && (
           <div className={styles.householdsection__invite}>
             <p className={styles.householdsection__invitelead}>
-              함께 쓸 사람이 가입한 뒤 &lsquo;초대 코드로 합류&rsquo;에 붙여넣으면 같은 장부를 씁니다.
+              함께 쓸 사람이 가입한 뒤 &lsquo;초대 코드로 합류&rsquo;에 붙여넣으면 같은 장부를 함께 써요.
               ({memberCount}/{rule.capacity}명)
             </p>
             <code className={styles.householdsection__code}>{inviteCode}</code>
@@ -111,8 +111,8 @@ export default function HouseholdSection() {
                 variant="secondary"
                 onClick={() => {
                   void navigator.clipboard.writeText(inviteCode).then(
-                    () => toast.success('초대 코드를 복사했습니다.'),
-                    () => toast.error('복사하지 못했습니다. 코드를 직접 선택해 주세요.'),
+                    () => toast.success('초대 코드를 복사했어요.'),
+                    () => toast.error('복사하지 못했어요. 코드를 직접 선택해 주세요.'),
                   );
                 }}
               >
@@ -135,7 +135,7 @@ export default function HouseholdSection() {
         onClose={() => setIsRotating(false)}
         onConfirm={() => rotation.mutate()}
         title="초대 코드 재발급"
-        description="이전 코드는 사용할 수 없게 됩니다."
+        description="이전 코드는 더 이상 쓸 수 없어요."
         confirmLabel="새로 발급"
         isLoading={rotation.isPending}
       />

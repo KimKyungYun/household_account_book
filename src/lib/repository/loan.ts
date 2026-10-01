@@ -76,21 +76,21 @@ async function assertCategoriesUsable(householdId: string, interestCategoryId: s
   const interest = categories.find((row) => row.id === interestCategoryId);
   const principal = categories.find((row) => row.id === principalCategoryId);
 
-  if (!interest) throw badRequest('이자 분류를 찾을 수 없습니다.', { interestCategoryId: '분류를 찾을 수 없습니다.' });
+  if (!interest) throw badRequest('이자 분류를 찾을 수 없어요.', { interestCategoryId: '분류를 찾을 수 없어요.' });
   if (!principal) {
-    throw badRequest('원금 분류를 찾을 수 없습니다.', { principalCategoryId: '분류를 찾을 수 없습니다.' });
+    throw badRequest('원금 분류를 찾을 수 없어요.', { principalCategoryId: '분류를 찾을 수 없어요.' });
   }
   if (!interest.isActive) {
-    throw badRequest('보관된 분류입니다.', { interestCategoryId: '보관된 분류입니다.' });
+    throw badRequest('보관된 분류예요.', { interestCategoryId: '보관된 분류예요.' });
   }
   if (!principal.isActive) {
-    throw badRequest('보관된 분류입니다.', { principalCategoryId: '보관된 분류입니다.' });
+    throw badRequest('보관된 분류예요.', { principalCategoryId: '보관된 분류예요.' });
   }
   if (interest.kind !== 'EXPENSE') {
-    throw badRequest('이자는 지출 분류여야 합니다.', { interestCategoryId: '지출 분류를 골라 주세요.' });
+    throw badRequest('이자는 지출 분류여야 해요.', { interestCategoryId: '지출 분류를 골라 주세요.' });
   }
   if (principal.kind !== 'TRANSFER') {
-    throw badRequest('원금 상환은 이체 분류여야 합니다. 갚은 원금은 쓴 돈이 아니라 빚이 줄어든 것입니다.', {
+    throw badRequest('원금 상환은 이체 분류여야 해요. 갚은 원금은 쓴 돈이 아니라 빚이 줄어든 거예요.', {
       principalCategoryId: '이체 분류를 골라 주세요.',
     });
   }
@@ -187,7 +187,7 @@ export async function getLoanSchedule(householdId: string, id: string): Promise<
     where: { id, householdId },
     select: { payments: LOAN_SELECT.payments },
   });
-  if (!loan) throw notFound('대출을 찾을 수 없습니다.');
+  if (!loan) throw notFound('대출을 찾을 수 없어요.');
 
   return loan.payments.map((payment) => ({
     installmentNo: payment.installmentNo,
@@ -269,7 +269,7 @@ export async function updateLoan(householdId: string, id: string, input: UpdateL
       firstPaymentDate: true,
     },
   });
-  if (!current) throw notFound('대출을 찾을 수 없습니다.');
+  if (!current) throw notFound('대출을 찾을 수 없어요.');
 
   if (input.memberId) await assertMemberUsable(householdId, input.memberId);
   if (input.paymentMethodId) await assertPaymentMethodUsable(householdId, input.paymentMethodId);
@@ -363,7 +363,7 @@ export async function deleteLoan(householdId: string, id: string) {
     where: { id, householdId },
     select: { id: true, _count: { select: { transactions: true } } },
   });
-  if (!loan) throw notFound('대출을 찾을 수 없습니다.');
+  if (!loan) throw notFound('대출을 찾을 수 없어요.');
 
   await prisma.loan.delete({ where: { id } });
 

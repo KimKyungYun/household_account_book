@@ -17,7 +17,7 @@ const nameSchema = z
   .string()
   .trim()
   .min(1, '이름을 입력해 주세요.')
-  .max(20, '이름은 20자까지 쓸 수 있습니다.');
+  .max(20, '이름은 20자까지 쓸 수 있어요.');
 
 export const createCategorySchema = z.object({
   name: nameSchema,
@@ -26,7 +26,7 @@ export const createCategorySchema = z.object({
   parentId: z.string().min(1).nullable().optional(),
   colorHex: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 합니다.')
+    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 해요.')
     .nullable()
     .optional(),
   defaultSplitMode: splitModeSchema.nullable().optional(),
@@ -37,7 +37,7 @@ export const updateCategorySchema = z.object({
   name: nameSchema.optional(),
   colorHex: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 합니다.')
+    .regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 해요.')
     .nullable()
     .optional(),
   defaultSplitMode: splitModeSchema.nullable().optional(),

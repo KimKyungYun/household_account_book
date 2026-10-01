@@ -154,7 +154,7 @@ export default function SignupForm() {
           id="privacy-detail"
           className={styles.signupform__consentdetail}
         >
-          이름·이메일·휴대폰 번호(입력한 경우)를 회원 확인과 가계부 이용을 위해 받으며, 탈퇴할 때까지 보관합니다.
+          이름·이메일·휴대폰 번호(입력한 경우)를 회원 확인과 가계부 이용을 위해 받고, 탈퇴할 때까지 보관해요.
         </p>
         {formState.errors.privacyAgreed?.message && (
           <p

@@ -81,7 +81,7 @@ export async function buildWorkbook(
   ]);
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = '우리집 가계부';
+  workbook.creator = '모아';
   workbook.created = new Date();
 
   if (sheets.includes('summary')) addSummarySheet(workbook, range, transactions, members);
@@ -114,7 +114,7 @@ function addSummarySheet(
   const sheet = workbook.addWorksheet('요약');
   sheet.columns = [{ width: 18 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 16 }];
 
-  sheet.addRow(['우리집 가계부 요약']).font = { bold: true, size: 14 };
+  sheet.addRow(['모아 가계부 요약']).font = { bold: true, size: 14 };
   sheet.addRow([`기간: ${range.from} ~ ${range.to}`]).font = { color: { argb: 'FF6B7380' } };
   sheet.addRow([]);
 

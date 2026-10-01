@@ -13,8 +13,8 @@ export function useExcelDownload() {
     mutationFn: (params: { from: string; to: string; sheets?: ExcelQuery['sheets'] }) => downloadExcel(params),
     onSuccess: ({ blob, filename }) => {
       downloadBlob(blob, filename ?? 'household-book.xlsx');
-      toast.success('엑셀을 내려받았습니다.');
+      toast.success('엑셀을 내려받았어요.');
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '내려받지 못했습니다.'),
+    onError: (error) => toast.error(isApiError(error) ? error.message : '내려받지 못했어요.'),
   });
 }

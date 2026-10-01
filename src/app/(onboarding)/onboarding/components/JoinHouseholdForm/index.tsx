@@ -35,7 +35,7 @@ export default function JoinHouseholdForm() {
     mutationFn: () => getInvite(getValues('inviteCode').trim()),
     onSuccess: (found) => {
       if (found.isFull) {
-        setError('inviteCode', { message: `이 장부는 정원(${found.capacity}명)이 다 찼습니다.` });
+        setError('inviteCode', { message: `이 장부는 정원(${found.capacity}명)이 다 찼어요.` });
 
         return;
       }
@@ -43,7 +43,7 @@ export default function JoinHouseholdForm() {
       setInvite(found);
       setValue('relation', HOUSEHOLD_KIND_RULES[found.kind].relations[0] ?? 'OTHER');
     },
-    onError: (error) => setError('inviteCode', { message: isApiError(error) ? error.message : '확인하지 못했습니다.' }),
+    onError: (error) => setError('inviteCode', { message: isApiError(error) ? error.message : '확인하지 못했어요.' }),
   });
 
   const join = useMutation({ mutationFn: joinHousehold });
@@ -77,7 +77,7 @@ export default function JoinHouseholdForm() {
       <div className={styles.joinhouseholdform__code}>
         <FormField
           label="초대 코드"
-          hint="함께 쓸 사람의 설정 화면에 있습니다."
+          hint="함께 쓸 사람의 설정 화면에서 확인할 수 있어요."
           error={formState.errors.inviteCode?.message}
         >
           {({ id, describedBy }) => (

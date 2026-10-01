@@ -29,7 +29,7 @@ interface CategoryFormModalProps {
 }
 
 const formSchema = z.object({
-  name: z.string().trim().min(1, '이름을 입력해 주세요.').max(20, '이름은 20자까지 쓸 수 있습니다.'),
+  name: z.string().trim().min(1, '이름을 입력해 주세요.').max(20, '이름은 20자까지 쓸 수 있어요.'),
   defaultSplitMode: z.enum(['', 'SHARED', 'PERSONAL']),
 });
 type FormValues = z.infer<typeof formSchema>;
@@ -98,12 +98,12 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
 
         return;
       }
-      toast.error(isApiError(error) ? error.message : '저장하지 못했습니다.');
+      toast.error(isApiError(error) ? error.message : '저장하지 못했어요.');
 
       return;
     }
 
-    toast.success('저장했습니다.');
+    toast.success('저장했어요.');
     onSaved();
   });
 
@@ -114,7 +114,7 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
       isOpen={Boolean(target)}
       onClose={onClose}
       title={titleOf(target)}
-      description={isEditingSystem ? '처음부터 있던 분류는 이름과 기본 설정만 바꿀 수 있습니다.' : undefined}
+      description={isEditingSystem ? '처음부터 있던 분류는 이름과 기본 설정만 바꿀 수 있어요.' : undefined}
       footer={
         <div className={styles.categoryformmodal__actions}>
           <Button
@@ -158,7 +158,7 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
 
         <FormField
           label="기본 나누기 방식"
-          hint="거래 등록 시 기본으로 고를 값입니다."
+          hint="거래를 적을 때 미리 골라 둘 값이에요."
           error={formState.errors.defaultSplitMode?.message}
         >
           {({ id, describedBy }) => (

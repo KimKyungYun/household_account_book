@@ -202,7 +202,7 @@ export function TransactionForm({
     // 종류와 상관없이 '누가 했는지'는 반드시 있어야 한다. 구성원을 못 불러온 상태에서
     // 그대로 보내면 서버가 400 으로 되돌려줄 뿐 사용자는 이유를 알 수 없다.
     if (!memberId) {
-      setFieldErrors({ memberId: `${WORDING[form.type].member}을(를) 고를 수 없습니다. 새로고침해 주세요.` });
+      setFieldErrors({ memberId: `${WORDING[form.type].member}을(를) 고를 수 없어요. 새로고침해 주세요.` });
 
       return;
     }
@@ -216,13 +216,13 @@ export function TransactionForm({
 
         return;
       }
-      toast.error('저장하지 못했습니다.');
+      toast.error('저장하지 못했어요.');
 
       return;
     }
 
     if (form.categoryId) remember(form.categoryId);
-    toast.success(mode === 'edit' ? '수정했습니다.' : '등록했습니다.');
+    toast.success(mode === 'edit' ? '수정했어요.' : '등록했어요.');
 
     // 연속 입력: 금액만 비우고 나머지는 그대로 둔다.
     if (mode === 'create') patch({ amount: null, merchant: '', memo: '' });
@@ -236,7 +236,7 @@ export function TransactionForm({
   if (members.length === 0) {
     return (
       <p className={styles.transactionform__blocked}>
-        구성원 정보를 불러오지 못했습니다. 새로고침해 주세요.
+        구성원 정보를 불러오지 못했어요. 새로고침해 주세요.
       </p>
     );
   }
@@ -259,7 +259,7 @@ export function TransactionForm({
         />
         {form.type === 'TRANSFER' && (
           <p className={styles.transactionform__typehint}>
-            계좌끼리 옮긴 금액, 카드값, 적금 납입액입니다. 쓴 것도 번 것도 아니므로 합계에서 제외됩니다.
+            계좌끼리 옮긴 돈, 카드값, 적금 납입처럼 쓴 것도 번 것도 아닌 돈이에요. 합계에서는 빠져요.
           </p>
         )}
       </div>
@@ -366,8 +366,8 @@ export function TransactionForm({
           label="나누기"
           hint={
             form.splitMode === 'SHARED'
-              ? '함께하는 살림에 들어간 돈으로 표시합니다.'
-              : '용돈처럼 한 사람에게만 속한 돈으로 표시합니다.'
+              ? '함께하는 살림에 쓴 돈으로 적어요.'
+              : '용돈처럼 한 사람이 따로 쓴 돈으로 적어요.'
           }
         >
           {() => (
@@ -385,7 +385,7 @@ export function TransactionForm({
       {form.type === 'TRANSFER' && assets.length > 0 && (
         <FormField
           label="어디에 모으나"
-          hint="적금·투자처럼 모으는 돈이면 고릅니다. 고른 자산의 잔액이 이 금액만큼 늘어납니다."
+          hint="적금·투자처럼 모으는 돈이면 골라 주세요. 고른 자산에 이 금액만큼 쌓여요."
           error={fieldErrors.assetId}
         >
           {({ id }) => (
@@ -416,7 +416,7 @@ export function TransactionForm({
 
       <FormField
         label={WORDING[form.type].place}
-        hint="거래 목록에 이 이름이 먼저 표시됩니다."
+        hint="거래 목록에 이 이름이 먼저 보여요."
       >
         {({ id }) => (
           <Input

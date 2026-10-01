@@ -95,8 +95,8 @@ async function defaultTransferCategoryId(householdId: string): Promise<string> {
   if (fallback) return fallback.id;
 
   throw badRequest(
-    '자동으로 넣을 때 쓸 이체 분류가 없습니다. 분류 화면에서 이체 분류를 하나 만들어 주세요.',
-    { autoDeposit: '이체 분류가 없습니다.' },
+    '자동으로 넣을 때 쓸 이체 분류가 없어요. 분류 화면에서 이체 분류를 하나 만들어 주세요.',
+    { autoDeposit: '이체 분류가 없어요.' },
   );
 }
 
@@ -207,8 +207,8 @@ export async function assertAssetUsable(householdId: string, assetId: string) {
     where: { id: assetId, householdId },
     select: { id: true, isActive: true },
   });
-  if (!asset) throw badRequest('자산을 찾을 수 없습니다.', { assetId: '자산을 찾을 수 없습니다.' });
-  if (!asset.isActive) throw badRequest('보관한 자산입니다.', { assetId: '보관한 자산입니다.' });
+  if (!asset) throw badRequest('자산을 찾을 수 없어요.', { assetId: '자산을 찾을 수 없어요.' });
+  if (!asset.isActive) throw badRequest('보관한 자산이에요.', { assetId: '보관한 자산이에요.' });
 }
 
 /**
@@ -276,7 +276,7 @@ export async function createAsset(householdId: string, memberId: string, input: 
     where: { householdId, name: input.name },
     select: { id: true },
   });
-  if (duplicated) throw conflict('같은 이름의 자산이 이미 있습니다.');
+  if (duplicated) throw conflict('같은 이름의 자산이 이미 있어요.');
 
   const last = await prisma.asset.findFirst({
     where: { householdId },
@@ -316,7 +316,7 @@ export async function createAsset(householdId: string, memberId: string, input: 
 
 export async function updateAsset(householdId: string, memberId: string, id: string, input: UpdateAssetInput) {
   const current = await prisma.asset.findFirst({ where: { id, householdId }, select: { id: true } });
-  if (!current) throw notFound('자산을 찾을 수 없습니다.');
+  if (!current) throw notFound('자산을 찾을 수 없어요.');
   await assertOwnerUsable(householdId, input.ownerMemberId);
 
   if (input.name) {
@@ -324,7 +324,7 @@ export async function updateAsset(householdId: string, memberId: string, id: str
       where: { householdId, name: input.name, id: { not: id } },
       select: { id: true },
     });
-    if (duplicated) throw conflict('같은 이름의 자산이 이미 있습니다.');
+    if (duplicated) throw conflict('같은 이름의 자산이 이미 있어요.');
   }
 
   await prisma.$transaction(async (tx) => {
@@ -367,7 +367,7 @@ export async function deleteAsset(householdId: string, id: string) {
     where: { id, householdId },
     select: { id: true, _count: { select: { transactions: true } } },
   });
-  if (!current) throw notFound('자산을 찾을 수 없습니다.');
+  if (!current) throw notFound('자산을 찾을 수 없어요.');
 
   await prisma.asset.delete({ where: { id } });
 
@@ -381,5 +381,5 @@ async function assertOwnerUsable(householdId: string, ownerMemberId: string | nu
     where: { id: ownerMemberId, householdId },
     select: { id: true },
   });
-  if (!member) throw notFound('구성원을 찾을 수 없습니다.');
+  if (!member) throw notFound('구성원을 찾을 수 없어요.');
 }

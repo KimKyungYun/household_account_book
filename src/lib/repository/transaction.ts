@@ -162,7 +162,7 @@ export async function getTransaction(householdId: string, id: string) {
     where: { id, householdId },
     select: LIST_SELECT,
   });
-  if (!row) throw notFound('거래를 찾을 수 없습니다.');
+  if (!row) throw notFound('거래를 찾을 수 없어요.');
 
   return toListItem(row);
 }
@@ -173,10 +173,10 @@ async function assertCategoryUsable(householdId: string, categoryId: string, typ
     where: { id: categoryId, householdId },
     select: { kind: true, level: true, isActive: true, defaultSplitMode: true },
   });
-  if (!category) throw badRequest('카테고리를 찾을 수 없습니다.', { categoryId: '카테고리를 찾을 수 없습니다.' });
-  if (category.kind !== type) throw badRequest('카테고리 종류가 맞지 않습니다.', { categoryId: '카테고리 종류가 맞지 않습니다.' });
+  if (!category) throw badRequest('카테고리를 찾을 수 없어요.', { categoryId: '카테고리를 찾을 수 없어요.' });
+  if (category.kind !== type) throw badRequest('카테고리 종류가 맞지 않아요.', { categoryId: '카테고리 종류가 맞지 않아요.' });
   if (category.level !== 2) throw badRequest('소분류를 골라 주세요.', { categoryId: '소분류를 골라 주세요.' });
-  if (!category.isActive) throw badRequest('보관된 카테고리입니다.', { categoryId: '보관된 카테고리입니다.' });
+  if (!category.isActive) throw badRequest('보관된 카테고리예요.', { categoryId: '보관된 카테고리예요.' });
 
   return category;
 }
@@ -233,7 +233,7 @@ export async function updateTransaction(householdId: string, id: string, input: 
     where: { id, householdId },
     select: { id: true, version: true, type: true, categoryId: true },
   });
-  if (!current) throw notFound('거래를 찾을 수 없습니다.');
+  if (!current) throw notFound('거래를 찾을 수 없어요.');
   if (current.version !== input.version) throw staleWrite();
 
   await Promise.all([
@@ -273,8 +273,8 @@ export async function deleteTransaction(householdId: string, id: string) {
     where: { id, householdId },
     select: { id: true, occurrence: { select: { id: true } }, transferPeerId: true },
   });
-  if (!current) throw notFound('거래를 찾을 수 없습니다.');
-  if (current.transferPeerId) throw conflict('이체는 짝 거래와 함께 처리해야 합니다.');
+  if (!current) throw notFound('거래를 찾을 수 없어요.');
+  if (current.transferPeerId) throw conflict('이체는 짝 거래와 함께 처리해야 해요.');
 
   await prisma.$transaction(async (tx) => {
     if (current.occurrence) {

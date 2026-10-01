@@ -14,7 +14,7 @@ export const PATCH = withPreOnboardingHandler({ body: changePasswordSchema }, as
 
   const matched = user.passwordHash ? await bcrypt.compare(body.currentPassword, user.passwordHash) : false;
   if (!matched) {
-    throw badRequest('지금 비밀번호가 맞지 않습니다.', { currentPassword: '지금 비밀번호가 맞지 않습니다.' });
+    throw badRequest('지금 비밀번호가 맞지 않아요.', { currentPassword: '지금 비밀번호가 맞지 않아요.' });
   }
 
   await prisma.user.update({

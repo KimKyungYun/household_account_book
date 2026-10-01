@@ -19,9 +19,9 @@ export const createAssetSchema = z.object({
   name: z.string().trim().min(1, '이름을 입력해 주세요.').max(30),
   kind: assetKindSchema,
   ownerMemberId: z.string().min(1).nullable().optional(),
-  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 합니다.').nullable().optional(),
-  openingBalance: z.number().int().min(0, '시작 잔액은 0원 이상이어야 합니다.').default(0),
-  targetAmount: z.number().int().positive('목표액은 0원보다 커야 합니다.').nullable().optional(),
+  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, '색은 #RRGGBB 형식이어야 해요.').nullable().optional(),
+  openingBalance: z.number().int().min(0, '시작 잔액은 0원 이상이어야 해요.').default(0),
+  targetAmount: z.number().int().positive('목표액은 0원보다 커야 해요.').nullable().optional(),
   memo: z.string().trim().max(200).nullable().optional(),
   /** null 이면 자동 적립을 끈다(규칙이 있으면 중지). 생략하면 건드리지 않는다. */
   autoDeposit: autoDepositSchema.nullable().optional(),
@@ -52,12 +52,12 @@ function monthsBetween(from: string, to: string): number {
 
 export const assetTrendQuerySchema = z
   .object({
-    from: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 합니다.'),
-    to: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 합니다.'),
+    from: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 해요.'),
+    to: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, '연월은 YYYY-MM 형식이어야 해요.'),
   })
-  .refine((value) => value.from <= value.to, { message: '시작 월이 종료 월보다 늦습니다.', path: ['from'] })
+  .refine((value) => value.from <= value.to, { message: '시작 월이 종료 월보다 늦어요.', path: ['from'] })
   .refine((value) => monthsBetween(value.from, value.to) <= TREND_MAX_MONTHS, {
-    message: '한 번에 5년까지 볼 수 있습니다.',
+    message: '한 번에 5년까지 볼 수 있어요.',
     path: ['to'],
   });
 export type AssetTrendQuery = z.infer<typeof assetTrendQuerySchema>;

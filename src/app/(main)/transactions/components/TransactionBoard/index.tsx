@@ -131,10 +131,10 @@ export default function TransactionBoard() {
 
       return { snapshots };
     },
-    onSuccess: () => toast.success('삭제했습니다.'),
+    onSuccess: () => toast.success('삭제했어요.'),
     onError: (error, _id, context) => {
       for (const [key, snapshot] of context?.snapshots ?? []) queryClient.setQueryData(key, snapshot);
-      toast.error(isApiError(error) ? error.message : '삭제하지 못했습니다.');
+      toast.error(isApiError(error) ? error.message : '삭제하지 못했어요.');
     },
   });
   const isCreateSaving = useIsTransactionFormSaving(CREATE_FORM_ID);
@@ -154,7 +154,7 @@ export default function TransactionBoard() {
       <Card
         tone="feature"
         title="이번 달 합계"
-        description="현재 페이지가 아니라 아래 조건에 맞는 거래 전체를 더한 금액입니다."
+        description="아래 조건에 맞는 거래를 모두 더한 금액이에요"
       >
         <div className={styles.transactionboard__filters}>
           <div className={styles.transactionboard__month}>
@@ -290,7 +290,7 @@ export default function TransactionBoard() {
       <Card
         isFlush
         title="거래 내역"
-        description="줄을 누르면 수정하거나 삭제할 수 있습니다. 줄 왼쪽의 색은 결제한 사람을 나타냅니다."
+        description="눌러서 고치거나 지울 수 있어요. 왼쪽 색은 누가 썼는지 알려 줘요"
         action={
           <>
             <Button
@@ -329,8 +329,8 @@ export default function TransactionBoard() {
           <SkeletonRows count={6} />
         ) : (data?.items.length ?? 0) === 0 ? (
           <EmptyState
-            title="이번 달 거래가 없습니다"
-            description="등록한 거래는 대시보드와 나누기 결과에 바로 반영됩니다."
+            title="이번 달 거래가 없어요"
+            description="거래를 적으면 대시보드에도 바로 반영돼요."
             action={
               <Button
                 size="sm"
@@ -445,7 +445,7 @@ export default function TransactionBoard() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
         title="거래 삭제"
-        description="되돌릴 수 없습니다. 이번 달 합계와 나누기 결과가 바뀝니다."
+        description="되돌릴 수 없어요. 이번 달 합계도 함께 바뀌어요."
         confirmLabel="삭제"
         isDestructive
         isLoading={removal.isPending}

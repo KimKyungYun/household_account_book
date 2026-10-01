@@ -156,7 +156,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
     if (!name.trim()) local.name = '대출 이름을 입력해 주세요.';
     if (!principal || principal <= 0) local.principal = '원금을 입력해 주세요.';
     if (months <= 0) local.termMonths = '상환 기간을 입력해 주세요.';
-    if (grace > months) local.gracePeriodMonths = '거치 기간은 전체 기간보다 길 수 없습니다.';
+    if (grace > months) local.gracePeriodMonths = '거치 기간은 전체 기간보다 길 수 없어요.';
     if (!memberId) local.memberId = '상환하는 사람을 골라 주세요.';
     if (!interestCategoryId) local.interestCategoryId = '이자를 기록할 분류를 골라 주세요.';
     if (!principalCategoryId) local.principalCategoryId = '원금을 기록할 분류를 골라 주세요.';
@@ -175,12 +175,12 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
         return;
       }
-      toast.error('저장하지 못했습니다.');
+      toast.error('저장하지 못했어요.');
 
       return;
     }
 
-    toast.success(loan ? '고쳤습니다.' : '대출을 등록했습니다. 상환일마다 자동으로 기록됩니다.');
+    toast.success(loan ? '고쳤어요.' : '대출을 등록했어요. 갚는 날마다 자동으로 적어 드릴게요.');
     onSaved();
   };
 
@@ -189,7 +189,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
       isOpen={isOpen}
       onClose={onClose}
       title={loan ? '대출 고치기' : '대출 등록'}
-      description="조건을 넣어 두면 만기까지의 상환 계획을 만들고, 매달 상환일에 이자와 원금을 자동으로 기록합니다."
+      description="조건을 넣어 두면 만기까지 상환 계획을 세우고, 매달 갚는 날에 이자와 원금을 자동으로 적어 드려요."
       footer={
         <div className={styles.loanformmodal__actions}>
           {loan && (
@@ -247,7 +247,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
         <FormField
           label="원금"
-          hint="처음 빌린 금액입니다."
+          hint="처음에 빌린 금액이에요."
           error={errors.principal}
         >
           {({ id }) => (
@@ -315,7 +315,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
         <div className={styles.loanformmodal__pair}>
           <FormField
             label="거치 기간 (개월)"
-            hint="이자만 내는 구간. 없으면 0."
+            hint="이자만 내는 기간이에요. 없으면 0으로 두세요."
             error={errors.gracePeriodMonths}
           >
             {({ id }) => (
@@ -332,7 +332,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
           <FormField
             label="첫 상환일"
-            hint="이 날짜의 '일' 이 매달 되풀이됩니다."
+            hint="매달 이 날짜와 같은 날에 갚아요."
             error={errors.firstPaymentDate}
           >
             {({ id }) => (
@@ -370,7 +370,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
         {members.length > 1 && (
           <FormField
             label="상환하는 사람"
-            hint="만들어지는 거래의 결제자가 됩니다."
+            hint="자동으로 적히는 거래의 결제자가 돼요."
             error={errors.memberId}
           >
             {({ id }) => (
@@ -389,7 +389,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
         <FormField
           label="이자를 적을 분류"
-          hint="이자는 실제로 나가는 돈이라 지출로 잡힙니다."
+          hint="이자는 실제로 나가는 돈이라 지출로 잡혀요."
           error={errors.interestCategoryId}
         >
           {({ id }) => (
@@ -404,7 +404,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
         <FormField
           label="원금을 적을 분류"
-          hint="갚은 원금은 쓴 돈이 아니라 빚이 줄어든 것이라, 이체로 잡아 지출 합계에서 뺍니다."
+          hint="갚은 원금은 쓴 돈이 아니라 빚이 줄어든 거라서, 이체로 잡고 지출 합계에서는 빼요."
           error={errors.principalCategoryId}
         >
           {({ id }) => (
@@ -429,7 +429,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
         <FormField
           label="순자산에 넣기"
-          hint="전세대출처럼 짝이 되는 자산(보증금)을 앱에 넣지 않았다면 빼 두세요. 빼도 매달 갚는 금액은 그대로 기록됩니다."
+          hint="전세대출처럼 짝이 되는 자산(보증금)을 앱에 넣지 않았다면 빼 두세요. 빼도 매달 갚는 금액은 그대로 적혀요."
         >
           {({ id }) => (
             <Select
@@ -437,8 +437,8 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
               value={includeInNetWorth ? 'yes' : 'no'}
               onChange={(event) => setIncludeInNetWorth(event.target.value === 'yes')}
               options={[
-                { value: 'yes', label: '넣기 — 순자산에서 뺍니다' },
-                { value: 'no', label: '빼기 — 순자산에 세지 않습니다' },
+                { value: 'yes', label: '넣기 — 순자산에서 빼요' },
+                { value: 'no', label: '빼기 — 순자산에 세지 않아요' },
               ]}
             />
           )}
@@ -447,7 +447,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
         {loan && (
           <FormField
             label="목록에 보이기"
-            hint="끄면 목록에서 숨깁니다. 이미 갚은 기록은 그대로 남습니다."
+            hint="끄면 목록에서 숨겨요. 이미 갚은 기록은 그대로 남아요."
           >
             {({ id }) => (
               <Select

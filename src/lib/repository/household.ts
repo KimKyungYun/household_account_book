@@ -6,7 +6,7 @@ import type { HouseholdKind, MemberRelation } from '@/generated/prisma/enums';
 
 function assertRelation(kind: HouseholdKind, relation: MemberRelation) {
   if (!isRelationAllowed(kind, relation)) {
-    const message = `${HOUSEHOLD_KIND_RULES[kind].label} 가구에서는 '${RELATION_LABEL[relation]}'을(를) 고를 수 없습니다.`;
+    const message = `${HOUSEHOLD_KIND_RULES[kind].label} 가구에서는 '${RELATION_LABEL[relation]}'을(를) 고를 수 없어요.`;
     throw badRequest(message, { relation: message });
   }
 }
@@ -28,7 +28,7 @@ export async function createHousehold(params: {
     where: { userId: params.userId },
     select: { householdId: true },
   });
-  if (already) throw conflict('이미 가구에 속해 있습니다.');
+  if (already) throw conflict('이미 가구에 속해 있어요.');
 
   return prisma.$transaction(async (tx) => {
     const household = await tx.household.create({ data: { name: params.householdName, kind: params.kind } });
@@ -99,7 +99,7 @@ export async function findInvite(inviteCode: string) {
     where: { inviteCode },
     select: { name: true, kind: true, _count: { select: { members: true } } },
   });
-  if (!household) throw notFound('초대 코드를 찾을 수 없습니다.');
+  if (!household) throw notFound('초대 코드를 찾을 수 없어요.');
 
   const capacity = HOUSEHOLD_KIND_RULES[household.kind].capacity;
 
@@ -123,17 +123,17 @@ export async function joinHousehold(params: {
     where: { userId: params.userId },
     select: { householdId: true },
   });
-  if (already) throw conflict('이미 가구에 속해 있습니다.');
+  if (already) throw conflict('이미 가구에 속해 있어요.');
 
   const household = await prisma.household.findUnique({
     where: { inviteCode: params.inviteCode },
     select: { id: true, kind: true, members: { select: { slot: true } } },
   });
-  if (!household) throw notFound('초대 코드를 찾을 수 없습니다.');
+  if (!household) throw notFound('초대 코드를 찾을 수 없어요.');
 
   const rule = HOUSEHOLD_KIND_RULES[household.kind];
   if (household.members.length >= rule.capacity) {
-    throw conflict(`이 가구는 정원(${rule.capacity}명)이 다 찼습니다.`);
+    throw conflict(`이 가구는 정원(${rule.capacity}명)이 다 찼어요.`);
   }
   assertRelation(household.kind, params.relation);
 
@@ -168,7 +168,7 @@ export async function changeHouseholdKind(householdId: string, kind: HouseholdKi
 
   const rule = HOUSEHOLD_KIND_RULES[kind];
   if (members.length > rule.capacity) {
-    throw badRequest(`지금 ${members.length}명이 함께 쓰고 있어 ${rule.label} 장부(최대 ${rule.capacity}명)로 바꿀 수 없습니다.`);
+    throw badRequest(`지금 ${members.length}명이 함께 쓰고 있어 ${rule.label} 장부(최대 ${rule.capacity}명)로 바꿀 수 없어요.`);
   }
 
   await prisma.$transaction([

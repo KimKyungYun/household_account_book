@@ -23,7 +23,7 @@ interface Draft {
   relation?: MemberRelation;
 }
 
-const DESCRIPTION = '거래 목록과 차트에 이 이름으로 표시됩니다.';
+const DESCRIPTION = '거래 목록과 차트에 이 이름으로 보여요';
 
 /** 구성원 이름과 관계. 유형이 허락하는 관계만 고를 수 있다. */
 export default function MembersSection() {
@@ -50,12 +50,12 @@ export default function MembersSection() {
     try {
       await mutateAsync();
     } catch (error) {
-      toast.error(isApiError(error) ? error.message : '저장하지 못했습니다.');
+      toast.error(isApiError(error) ? error.message : '저장하지 못했어요.');
 
       return;
     }
 
-    toast.success('저장했습니다.');
+    toast.success('저장했어요.');
     setDrafts({});
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
   };
