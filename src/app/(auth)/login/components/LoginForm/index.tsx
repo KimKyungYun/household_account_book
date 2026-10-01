@@ -62,7 +62,8 @@ export default function LoginForm() {
 
       <FormField
         label="비밀번호"
-        error={formState.errors.password?.message}
+        // 로그인 실패 문구도 비밀번호 칸 아래 자리를 함께 쓴다. 따로 상자를 끼워 넣으면 단추가 밀려 내려간다.
+        error={formState.errors.password?.message ?? formError ?? undefined}
       >
         {({ id, describedBy }) => (
           <Input
@@ -75,15 +76,6 @@ export default function LoginForm() {
           />
         )}
       </FormField>
-
-      {formError && (
-        <p
-          className={styles.loginform__error}
-          role="alert"
-        >
-          {formError}
-        </p>
-      )}
 
       <Button
         type="submit"

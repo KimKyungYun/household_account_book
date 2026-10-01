@@ -21,7 +21,9 @@ export type IconName =
   | 'close'
   | 'search'
   | 'download'
-  | 'check';
+  | 'check'
+  | 'eye'
+  | 'eyeOff';
 
 /** 24×24 스트로크 아이콘. 굵기·라운드를 한 벌로 맞춰 화면마다 톤이 갈리지 않게 한다. */
 const PATHS: Record<IconName, string> = {
@@ -55,6 +57,9 @@ const PATHS: Record<IconName, string> = {
   search: 'M11 17.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Zm4.8-1.7L20 20',
   download: 'M12 4v11m0 0-4-4m4 4 4-4M4.5 19.5h15',
   check: 'M5.5 12.5 10 17 18.5 7.5',
+  // 비밀번호 보기·숨기기
+  eye: 'M2.5 12C4.5 8 8 5.5 12 5.5s7.5 2.5 9.5 6.5c-2 4-5.5 6.5-9.5 6.5S4.5 16 2.5 12ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+  eyeOff: 'M4 4l16 16M10 5.7c.7-.1 1.3-.2 2-.2 4 0 7.5 2.5 9.5 6.5-.6 1.2-1.4 2.3-2.3 3.2M6.5 7.3C4.8 8.4 3.5 10 2.5 12c2 4 5.5 6.5 9.5 6.5 1.5 0 2.9-.4 4.2-1M9.9 9.9a3 3 0 0 0 4.2 4.2',
 };
 
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {

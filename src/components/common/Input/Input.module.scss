@@ -66,6 +66,36 @@
     }
   }
 
+  // 비밀번호 보기·숨기기. 칸 오른쪽 여백 안쪽에 붙고, 손가락으로 누를 만큼 넉넉히 잡는다.
+  &__toggle {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin-right: calc(#{s.$gap-2} * -1);
+    color: var(--text-tertiary);
+    background: none;
+    border: 0;
+    border-radius: s.$shape-md;
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover {
+        color: var(--text-primary);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
   &__affix {
     flex-shrink: 0;
     color: var(--text-tertiary);

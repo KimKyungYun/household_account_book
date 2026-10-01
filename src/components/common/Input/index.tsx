@@ -1,6 +1,7 @@
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
+import Icon from '@/components/common/Icon';
 import { cn } from '@/utils/ts/cn';
 import styles from './Input.module.scss';
 import type { InputHTMLAttributes, ReactNode } from 'react';
@@ -16,9 +17,13 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isInvalid = false, leading, trailing, isNumeric = false, className, ...rest },
+  { isInvalid = false, leading, trailing, isNumeric = false, className, type, ...rest },
   ref,
 ) {
+  // 비밀번호 칸은 오른쪽 끝에 보기·숨기기 단추를 둔다. 폰에서 긴 비밀번호를 틀리게 치기 쉽다.
+  const isPassword = type === 'password';
+  const [isRevealed, setIsRevealed] = useState(false);
+
   return (
     <span
       className={cn(
@@ -40,8 +45,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         ref={ref}
         className={styles.input__field}
         aria-invalid={isInvalid || undefined}
+        type={isPassword && isRevealed ? 'text' : type}
         {...rest}
       />
+      {isPassword && (
+        <button
+          type="button"
+          className={styles.input__toggle}
+          aria-label={isRevealed ? '비밀번호 숨기기' : '비밀번호 보기'}
+          aria-pressed={isRevealed}
+          disabled={rest.disabled}
+          onClick={() => setIsRevealed((current) => !current)}
+        >
+          <Icon
+            name={isRevealed ? 'eyeOff' : 'eye'}
+            size={18}
+          />
+        </button>
+      )}
       {trailing && (
         <span
           className={styles.input__affix}

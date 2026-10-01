@@ -28,6 +28,19 @@
     color: var(--status-error);
   }
 
+  // 안내·오류 한 줄 자리. 비어 있어도 높이를 잡아 둔다.
+  // 입력칸과는 바짝 붙인다 — 칸 사이 간격(gap)을 그대로 두면 빈 자리까지 더해져 폼이 늘어진다.
+  &__message {
+    min-height: 1lh;
+    margin-top: calc(#{s.$gap-1} - #{s.$gap-3});
+
+    @include t.body-small;
+
+    p {
+      margin: 0;
+    }
+  }
+
   &__hint {
     color: var(--text-tertiary);
 
