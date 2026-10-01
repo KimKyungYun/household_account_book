@@ -52,5 +52,5 @@ export function titleOfPath(pathname: string): string {
     .filter((path) => path !== '/' && pathname.startsWith(path))
     .sort((a, b) => b.length - a.length)[0];
 
-  return matched ? TITLE_BY_PATH[matched] ?? '우리집 가계부' : '우리집 가계부';
+  return matched ? TITLE_BY_PATH[matched] ?? '모아' : '모아';
 }

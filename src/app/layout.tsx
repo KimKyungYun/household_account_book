@@ -22,8 +22,9 @@ const numericFont = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '우리집 가계부',
-  description: '혼자, 부부, 가족이 함께 쓰는 수입·지출 기록',
+  title: '모아',
+  applicationName: '모아',
+  description: '혼자, 부부, 가족이 함께 쓰는 가계부',
   manifest: '/manifest.webmanifest',
 };
 

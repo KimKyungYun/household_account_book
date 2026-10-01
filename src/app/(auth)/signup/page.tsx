@@ -8,7 +8,7 @@ export default function SignupPage() {
     <div className={styles.signup}>
       <header className={styles.signup__header}>
         <h1 className={styles.signup__title}>계정 만들기</h1>
-        <p className={styles.signup__lead}>가입한 뒤 장부를 새로 만들거나, 받은 초대 코드로 함께 쓰는 장부에 들어갑니다.</p>
+        <p className={styles.signup__lead}>가입하고 나면 새 장부를 만들거나, 받은 초대 코드로 함께 쓸 수 있어요.</p>
       </header>
 
       <SignupForm />

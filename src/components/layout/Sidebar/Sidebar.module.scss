@@ -30,22 +30,15 @@
     }
   }
 
-  // 마크 자체가 두 사람의 색을 품은 그림이다. 배경 판을 덧대지 않는다.
-  // 넓은 화면에서는 글자까지 합친 로고(__lockup)가 대신 선다.
-  &__mark {
+  // 글자 로고. 아이콘 레일(76px)에서는 작게, 라벨 사이드바에서는 크게 둔다.
+  // 높이만 정하면 너비는 viewBox 비율로 따라간다.
+  &__logo {
     flex-shrink: 0;
+    width: auto;
+    height: 22px;
 
     @include media.desktop-up {
-      display: none;
-    }
-  }
-
-  &__lockup {
-    display: none;
-    flex-shrink: 0;
-
-    @include media.desktop-up {
-      display: block;
+      height: 30px;
     }
   }
 

@@ -57,6 +57,24 @@ $amber-60: #d97706;
 $amber-70: #b45309;
 $amber-90: #78350f;
 
+// Orange (브랜드 — 모아 로고의 주황)
+// 50 이 로고 바탕 그대로다. 흰 글자를 얹는 버튼은 대비를 위해 한 단계 짙은 60 을 쓴다.
+$orange-5: #fff5eb;
+$orange-10: #ffe6cc;
+$orange-20: #ffcc99;
+$orange-40: #ffa040;
+$orange-50: #ff8a00;
+$orange-60: #ef6c00;
+$orange-70: #dd5b00;
+$orange-80: #b84700;
+$orange-90: #6b2a00;
+
+// Warm neutral (브랜드에 맞춘 따뜻한 바탕)
+$warm-0: #fbf7f2;
+$warm-10: #f4ede4;
+$warm-850: #1b1612;
+$warm-900: #120f0c;
+
 // ─── 다크 팔레트 ─────────────────────────────────────────────────
 
 // Navy (다크 배경 계열)
@@ -105,3 +123,11 @@ $dark-amber-20: #ffd966;
 $dark-amber-30: #ffc933;
 $dark-amber-50: #ffb020;
 $dark-amber-90: #2b2008;
+
+// Orange (다크 브랜드). 밝은 주황 위에는 흰 글자 대신 짙은 글자를 얹는다.
+$dark-orange-30: #ffb45c;
+$dark-orange-40: #ff9f38;
+$dark-orange-50: #ff8a1f;
+$dark-orange-60: #e8740f;
+$dark-orange-90: #2e1c0a;
+$dark-orange-ink: #1a1208;
