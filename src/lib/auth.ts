@@ -25,20 +25,6 @@ declare module 'next-auth' {
   }
 }
 
-function allowedEmails(): string[] {
-  return (process.env.AUTH_ALLOWED_EMAILS ?? '')
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-/** 가입 허용 목록. 비어 있으면 제한하지 않는다(로컬 개발). */
-export function isEmailAllowed(email: string): boolean {
-  const list = allowedEmails();
-
-  return list.length === 0 || list.includes(email.trim().toLowerCase());
-}
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
@@ -66,8 +52,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    signIn: ({ user }) => (user.email ? isEmailAllowed(user.email) : false),
-
     /**
      * 가구·구성원 ID 를 **찾은 뒤에만** 토큰에 캐시한다.
      *

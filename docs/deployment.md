@@ -63,15 +63,6 @@ localhost 로 되돌아가 인증이 끝나지 않는다. 배포 도메인을 �
 AUTH_URL="https://가계부.example.com"
 ```
 
-### `AUTH_ALLOWED_EMAILS` 를 반드시 채운다
-
-비어 있으면 아무도 가입할 수 없다. 반대로 값이 잘못되면 모르는 사람이 가입한다.
-이 앱에는 다른 가입 제한이 없으므로 **이 변수 하나가 유일한 문지기**다.
-
-```
-AUTH_ALLOWED_EMAILS="husband@example.com,wife@example.com"
-```
-
 ### 시드 변수는 올리지 않는다
 
 `SEED_*` 는 로컬 개발용이다. 프로덕션에 두면 `yarn db:seed` 를 잘못 돌렸을 때
@@ -87,7 +78,6 @@ AUTH_ALLOWED_EMAILS="husband@example.com,wife@example.com"
 | `DIRECT_DATABASE_URL` | ✅ | 마이그레이션 전용. 빌드가 `migrate deploy` 를 돌리므로 없으면 배포가 실패한다 |
 | `AUTH_SECRET` | ✅ | `openssl rand -base64 32`. 바꾸면 모든 세션이 끊긴다 |
 | `AUTH_URL` | ✅ | 배포 도메인 (`https://` 포함) |
-| `AUTH_ALLOWED_EMAILS` | ✅ | 가입을 허용할 이메일. 콤마로 구분 |
 | `NEXT_PUBLIC_APP_NAME` | | 화면에 보이는 앱 이름 |
 | `AUTH_TRUST_HOST` | | 코드에 `trustHost: true` 가 있어 없어도 된다 |
 | `DEV_ALLOWED_ORIGINS` | | 개발 전용. 프로덕션에서는 쓰이지 않는다 |
@@ -150,7 +140,6 @@ AUTH_ALLOWED_EMAILS="husband@example.com,wife@example.com"
 2. 설정 화면에서 **초대 코드**를 확인해 배우자에게 전달
 3. 배우자가 가입 후 초대 코드로 합류
 
-두 이메일 모두 `AUTH_ALLOWED_EMAILS` 에 들어 있어야 한다.
 
 ---
 
@@ -256,7 +245,6 @@ services:
       DIRECT_DATABASE_URL: postgresql://hab:${DB_PASSWORD}@db:5432/household_account_book?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_URL: ${AUTH_URL}
-      AUTH_ALLOWED_EMAILS: ${AUTH_ALLOWED_EMAILS}
     ports:
       - '4000:4000'
 
