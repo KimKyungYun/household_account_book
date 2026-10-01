@@ -91,6 +91,7 @@ export default function CalendarBoard() {
       <Card
         tone="feature"
         title={`${formatYearMonthLabel(yearMonth)} 달력`}
+        icon="🗓️"
         description="날짜를 누르면 그날 오간 돈을 보고 바로 적을 수 있어요"
         action={
           <div className={styles.calendarboard__nav}>
@@ -160,6 +161,7 @@ export default function CalendarBoard() {
 
       <Card
         title={formatDateLabel(selected)}
+        icon="📝"
         description="이날 오간 돈이에요"
         isFlush
         action={

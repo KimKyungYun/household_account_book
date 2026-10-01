@@ -102,6 +102,7 @@ export default function AssetBoard() {
         <Card
           tone="feature"
           title="모은 돈"
+          icon="🐷"
           description="적금·투자에 넣은 돈이 자산마다 차곡차곡 쌓여요"
         >
           <div
@@ -121,6 +122,7 @@ export default function AssetBoard() {
         </Card>
         <Card
           title="자산 목록"
+          icon="💎"
           isFlush
         >
           <SkeletonRows count={3} />
@@ -138,6 +140,7 @@ export default function AssetBoard() {
       <Card
         tone="feature"
         title="모은 돈"
+        icon="🐷"
         description="적금·투자에 넣은 돈이 자산마다 차곡차곡 쌓여요"
         action={
           <Button
@@ -176,6 +179,7 @@ export default function AssetBoard() {
       {points.some((point) => point.balance !== 0) && (
         <Card
           title="모은 돈 추이"
+          icon="📈"
           description="최근 1년 동안 이만큼 모였어요. 왼쪽 숫자는 만 원 단위예요"
         >
           <CustomEcharts
@@ -188,6 +192,7 @@ export default function AssetBoard() {
 
       <Card
         title="자산 목록"
+        icon="💎"
         description="눌러서 고치거나 지울 수 있어요"
         isFlush
       >
@@ -253,6 +258,7 @@ export default function AssetBoard() {
       {archived.length > 0 && (
         <Card
           title="보관한 자산"
+          icon="📦"
           description="목록에서 숨긴 자산이에요. 누르면 다시 꺼낼 수 있어요"
           isFlush
         >

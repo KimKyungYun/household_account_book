@@ -48,6 +48,7 @@ export default function DashboardStats() {
       <Card
         tone="feature"
         title={formatYearMonthLabel(yearMonth)}
+        icon="💰"
         description={DESCRIPTION}
       >
         {/* 남은 돈 · 번 돈/쓴 돈 두 상자 — 실제 배치를 그대로 따른다. */}
@@ -84,6 +85,7 @@ export default function DashboardStats() {
     <Card
       tone="feature"
       title={formatYearMonthLabel(yearMonth)}
+      icon="💰"
       description={DESCRIPTION}
     >
       <Reveal className={styles.dashboardstats}>

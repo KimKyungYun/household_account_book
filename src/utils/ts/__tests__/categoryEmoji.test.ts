@@ -16,6 +16,12 @@ describe('분류 아이콘', () => {
     expect(categoryEmoji('넷플릭스 구독')).toBe('🎬');
   });
 
+  it('소분류 이름으로 못 고르면 상위 분류로 고른다', () => {
+    expect(categoryEmoji('점심', null, '식비')).toBe('🍚');
+    // 소분류 이름으로 고를 수 있으면 그쪽이 이긴다.
+    expect(categoryEmoji('택시', null, '식비')).toBe('🚗');
+  });
+
   it('못 고르면 기본 아이콘', () => {
     expect(categoryEmoji('알 수 없음')).toBe(FALLBACK_CATEGORY_EMOJI);
   });

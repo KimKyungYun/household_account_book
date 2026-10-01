@@ -24,6 +24,7 @@ export default function DashboardRecent() {
     <Card
       isFlush
       title="최근 거래"
+      icon="🧾"
       description="최근에 적은 거래예요"
       action={
         <Link href={PATH.TRANSACTIONS}>

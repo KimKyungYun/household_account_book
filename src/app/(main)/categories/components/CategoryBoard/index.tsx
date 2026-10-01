@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
@@ -66,6 +67,7 @@ export default function CategoryBoard() {
     <>
       <Card
         title="분류"
+        icon="🏷️"
         description="큰 분류 아래에 세부 분류를 만들어요. 거래는 세부 분류로 적어요."
         action={
           <Button
@@ -117,10 +119,10 @@ export default function CategoryBoard() {
                   className={styles.categoryboard__group}
                 >
                   <div className={styles.categoryboard__grouphead}>
-                    <span
-                      className={styles.categoryboard__color}
-                      style={parent.colorHex ? { backgroundColor: parent.colorHex } : undefined}
-                      aria-hidden="true"
+                    <CategoryIcon
+                      name={parent.name}
+                      icon={parent.icon}
+                      color={parent.colorHex}
                     />
                     <span className={styles.categoryboard__groupname}>{parent.name}</span>
                     {parent.defaultSplitMode === 'PERSONAL' && <Badge tone="neutral">각자 돈</Badge>}
@@ -156,6 +158,13 @@ export default function CategoryBoard() {
                           onClick={() => setFormTarget({ mode: 'edit', category: child })}
                           title="이름 바꾸기"
                         >
+                          <CategoryIcon
+                            name={child.name}
+                            icon={child.icon}
+                            parentName={parent.name}
+                            color={parent.colorHex}
+                            size="sm"
+                          />
                           {child.name}
                         </button>
                         <span className={styles.categoryboard__childcount}>

@@ -36,6 +36,14 @@
     box-shadow: inset var(--focus-ring);
   }
 
+  // 분류 아이콘과 글 묶음. 아이콘이 어디에 쓴 돈인지 먼저 말한다.
+  &__lead {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+    min-width: 0;
+  }
+
   &__main {
     display: flex;
     flex-direction: column;
@@ -44,22 +52,12 @@
   }
 
   &__title {
-    display: flex;
-    align-items: center;
-    gap: s.$gap-2;
     overflow: hidden;
     color: var(--text-primary);
     text-overflow: ellipsis;
     white-space: nowrap;
 
     @include t.label-medium;
-  }
-
-  &__dot {
-    flex-shrink: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 2px;
   }
 
   &__meta {

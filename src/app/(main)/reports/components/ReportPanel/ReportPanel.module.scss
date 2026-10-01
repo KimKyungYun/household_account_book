@@ -23,6 +23,13 @@
     gap: s.$gap-3;
   }
 
+  // 분류 이름 앞 아이콘 칩.
+  &__category {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
   &__dot {
     width: 8px;
     height: 8px;

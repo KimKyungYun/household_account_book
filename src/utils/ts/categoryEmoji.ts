@@ -44,10 +44,18 @@ const BY_KEYWORD: readonly (readonly [RegExp, string])[] = [
 
 export const FALLBACK_CATEGORY_EMOJI = '💸';
 
-export function categoryEmoji(name: string, icon?: string | null): string {
+function emojiOfName(name: string): string | undefined {
+  return BY_NAME[name] ?? BY_KEYWORD.find(([pattern]) => pattern.test(name))?.[1];
+}
+
+/**
+ * @param parentName 소분류라면 그 상위 분류 이름. 소분류 이름으로 못 고르면 상위 분류로 고른다 —
+ *   '점심'·'편의점'처럼 낱말이 표에 없어도 '식비' 아래라면 밥그릇이 맞다.
+ */
+export function categoryEmoji(name: string, icon?: string | null, parentName?: string | null): string {
   if (icon) return icon;
 
-  return BY_NAME[name] ?? BY_KEYWORD.find(([pattern]) => pattern.test(name))?.[1] ?? FALLBACK_CATEGORY_EMOJI;
+  return emojiOfName(name) ?? (parentName ? emojiOfName(parentName) : undefined) ?? FALLBACK_CATEGORY_EMOJI;
 }
 
 export default categoryEmoji;

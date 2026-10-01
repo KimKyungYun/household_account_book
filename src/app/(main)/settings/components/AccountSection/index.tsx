@@ -19,6 +19,7 @@ export default function AccountSection() {
   return (
     <Card
       title="내 정보"
+      icon="🙂"
       description="비밀번호를 바꾸거나 로그아웃할 수 있어요"
     >
       <ul className={styles.accountsection}>

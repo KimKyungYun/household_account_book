@@ -154,6 +154,7 @@ export default function TransactionBoard() {
       <Card
         tone="feature"
         title="이번 달 합계"
+        icon="🧮"
         description="아래 조건에 맞는 거래를 모두 더한 금액이에요"
       >
         <div className={styles.transactionboard__filters}>
@@ -290,6 +291,7 @@ export default function TransactionBoard() {
       <Card
         isFlush
         title="거래 내역"
+        icon="📒"
         description="눌러서 고치거나 지울 수 있어요. 왼쪽 색은 누가 썼는지 알려 줘요"
         action={
           <>

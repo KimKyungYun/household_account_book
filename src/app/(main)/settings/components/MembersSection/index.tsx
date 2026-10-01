@@ -67,6 +67,7 @@ export default function MembersSection() {
       <Card
         tone="feature"
         title="구성원"
+        icon="👨‍👩‍👧"
         description={DESCRIPTION}
       >
         <div
@@ -85,6 +86,7 @@ export default function MembersSection() {
     <Card
       tone="feature"
       title={title}
+      icon="👨‍👩‍👧"
       description={DESCRIPTION}
       action={
         <Button

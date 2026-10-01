@@ -7,6 +7,7 @@ import Amount from '@/components/common/Amount';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import CountUpAmount from '@/components/common/CountUpAmount';
 import Icon from '@/components/common/Icon';
 import MoneyInput from '@/components/common/MoneyInput';
@@ -85,6 +86,7 @@ export default function BudgetBoard() {
       <Card
         tone="feature"
         title="이번 달 예산"
+        icon="🎯"
         description="분류마다 쓸 금액을 정해 두면 얼마나 남았는지 알려 드려요"
       >
         <div className={styles.budgetboard__head}>
@@ -187,6 +189,7 @@ export default function BudgetBoard() {
 
       <Card
         title="분류별 예산"
+        icon="📋"
         description="금액을 적고 저장해 주세요. 비워 두면 예산이 없는 거고, 0원은 한 푼도 쓰지 않겠다는 뜻이에요."
       >
         {isPending ? (
@@ -212,6 +215,10 @@ export default function BudgetBoard() {
                     className={styles.budgetboard__row}
                   >
                     <div className={styles.budgetboard__rowhead}>
+                      <CategoryIcon
+                        name={row.name}
+                        size="sm"
+                      />
                       <span className={styles.budgetboard__name}>{row.name}</span>
                       {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
                       <span className={styles.budgetboard__spent}>

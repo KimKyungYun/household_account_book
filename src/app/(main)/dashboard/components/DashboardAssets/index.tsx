@@ -33,6 +33,7 @@ export default function DashboardAssets() {
     return (
       <Card
         title="모은 돈"
+        icon="🐷"
         description={description}
       >
         <div className={styles.dashboardassets}>
@@ -60,6 +61,7 @@ export default function DashboardAssets() {
   return (
     <Card
       title="모은 돈"
+      icon="🐷"
       description={description}
       action={
         <Link href={PATH.ASSETS}>

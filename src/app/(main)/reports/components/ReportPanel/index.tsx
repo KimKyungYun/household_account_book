@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import Reveal from '@/components/common/Reveal';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import { fadingBar, quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
@@ -111,7 +112,21 @@ export default function ReportPanel() {
   };
 
   const categoryColumns: Column<CategoryShareDto>[] = [
-    { key: 'name', header: level === 1 ? '큰 분류' : '세부 분류', render: (row) => row.name },
+    {
+      key: 'name',
+      header: level === 1 ? '큰 분류' : '세부 분류',
+      render: (row) => (
+        <span className={styles.reportpanel__category}>
+          <CategoryIcon
+            name={row.name}
+            icon={row.icon}
+            color={row.colorHex}
+            size="sm"
+          />
+          {row.name}
+        </span>
+      ),
+    },
     {
       key: 'amount',
       header: '지출',
@@ -208,6 +223,7 @@ export default function ReportPanel() {
     <>
       <Card
         title="기간별 수입·지출"
+        icon="📊"
         description="막대는 수입(초록)과 지출(빨강), 선은 남은 돈이에요. 선이 0 아래로 내려간 달은 번 것보다 더 쓴 달이에요."
       >
         <div className={styles.reportpanel__controls}>
@@ -238,6 +254,7 @@ export default function ReportPanel() {
 
       <Card
         title="분류별 지출"
+        icon="🍩"
         description="고른 달에 어디에 썼는지, 지난달보다 얼마나 달라졌는지 보여 드려요"
         action={
           <div className={styles.reportpanel__inline}>
@@ -280,6 +297,7 @@ export default function ReportPanel() {
       {hasOthers && (
         <Card
           title="사람별 수입·지출"
+          icon="👥"
           description="각자 쓴 돈은 나누지 않아요."
         >
           {memberStats.isPending ? (
@@ -302,6 +320,7 @@ export default function ReportPanel() {
 
       <Card
         title="엑셀로 내보내기"
+        icon="📥"
         description="요약, 전체 내역, 분류별 표 세 개의 시트로 저장해 드려요"
       >
         <div className={styles.reportpanel__export}>

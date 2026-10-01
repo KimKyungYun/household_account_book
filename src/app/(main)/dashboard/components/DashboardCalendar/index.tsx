@@ -33,6 +33,7 @@ export default function DashboardCalendar() {
   return (
     <Card
       title={`${formatYearMonthLabel(yearMonth)} 달력`}
+      icon="🗓️"
       description="날짜를 누르면 그날 내역을 볼 수 있어요"
     >
       {isPending ? (

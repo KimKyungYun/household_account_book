@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Select from '@/components/common/Select';
+import { categoryEmoji } from '@/utils/ts/categoryEmoji';
 import { cn } from '@/utils/ts/cn';
 import type { CategoryNodeDto, CategoryTreeDto } from '@/service/category/type';
 import styles from './CategoryPicker.module.scss';
@@ -20,6 +21,7 @@ interface CategoryPickerProps {
 interface FlatCategory {
   id: string;
   name: string;
+  icon: string | null;
   parentName: string;
 }
 
@@ -29,7 +31,7 @@ function flatten(tree: readonly CategoryTreeDto[]): FlatCategory[] {
   for (const group of tree) {
     for (const parent of group.categories) {
       for (const child of parent.children) {
-        result.push({ id: child.id, name: child.name, parentName: parent.name });
+        result.push({ id: child.id, name: child.name, icon: child.icon, parentName: parent.name });
       }
     }
   }
@@ -41,7 +43,8 @@ function toGroups(tree: readonly CategoryTreeDto[]) {
   return tree
     .flatMap((group) => group.categories)
     .map((parent: CategoryNodeDto) => ({
-      label: parent.name,
+      // 묶음 이름 앞에 분류 아이콘 — 긴 목록에서 어디쯤인지 그림으로 먼저 찾는다.
+      label: `${categoryEmoji(parent.name, parent.icon)} ${parent.name}`,
       options: parent.children.map((child) => ({
         value: child.id,
         // '기타'는 분류마다 있다. 고르고 나면 무엇의 기타인지 알 수 없어 부모를 붙인다.
@@ -94,6 +97,12 @@ export function CategoryPicker({
                 onClick={() => onChange(item.id)}
                 aria-pressed={item.id === value}
               >
+                <span
+                  className={styles.categorypicker__chipicon}
+                  aria-hidden="true"
+                >
+                  {categoryEmoji(item.name, item.icon, item.parentName)}
+                </span>
                 {item.name}
                 <span className={styles.categorypicker__chipparent}>{item.parentName}</span>
               </button>

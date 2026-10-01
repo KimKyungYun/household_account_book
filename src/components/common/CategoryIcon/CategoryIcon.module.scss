@@ -1,0 +1,26 @@
+@use "styles/tokens/spacing" as s;
+
+.categoryicon {
+  // 분류 색을 정하지 않았으면 중립 바탕. 부모가 --chip 을 넘겨도 그 색을 쓴다.
+  --chip-fallback: var(--text-tertiary);
+
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  line-height: 1;
+  background-color: color-mix(in srgb, var(--chip, var(--chip-fallback)) 18%, transparent);
+  border-radius: s.$shape-xl;
+
+  &--sm {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    border-radius: s.$shape-lg;
+  }
+
+  &--md {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}

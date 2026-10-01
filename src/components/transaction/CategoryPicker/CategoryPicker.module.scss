@@ -15,7 +15,7 @@
 
   &__chip {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: s.$gap-2;
     height: 34px;
     padding: 0 s.$gap-4;
@@ -42,6 +42,11 @@
       background-color: var(--primary-subtle);
       border-color: var(--primary);
     }
+  }
+
+  &__chipicon {
+    font-size: 14px;
+    line-height: 1;
   }
 
   &__chipparent {

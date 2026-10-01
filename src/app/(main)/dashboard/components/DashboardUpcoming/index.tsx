@@ -45,6 +45,7 @@ export default function DashboardUpcoming() {
     return (
       <Card
         title="예정된 수입·지출"
+        icon="⏰"
         description={'다가오는 한 달 동안의 예상 거래 목록이에요'}
       >
         <SkeletonRows
@@ -71,6 +72,7 @@ export default function DashboardUpcoming() {
     return (
       <Card
         title="예정된 수입·지출"
+        icon="⏰"
         description="월급·월세처럼 정해진 날 오가는 돈을 미리 보여 드려요"
       >
         <EmptyState
@@ -89,6 +91,7 @@ export default function DashboardUpcoming() {
   return (
     <Card
       title="예정된 수입·지출"
+      icon="⏰"
       description={'다가오는 한 달 동안의 예상 거래 목록이에요'}
       action={
         <Amount

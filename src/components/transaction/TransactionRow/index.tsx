@@ -1,5 +1,6 @@
 import Amount, { toneOfTransactionType } from '@/components/common/Amount';
 import Badge from '@/components/common/Badge';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import { formatDateLabel, todayInSeoul } from '@/utils/ts/formatDate';
 import type { TransactionListItemDto } from '@/service/transaction/type';
 import styles from './TransactionRow.module.scss';
@@ -22,21 +23,22 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
       style={{ borderInlineStartColor: transaction.member.colorHex }}
       onClick={() => onClick(transaction)}
     >
-      <span className={styles.transactionrow__main}>
-        <span className={styles.transactionrow__title}>
-          {transaction.category?.colorHex && (
-            <span
-              className={styles.transactionrow__dot}
-              style={{ backgroundColor: transaction.category.colorHex }}
-              aria-hidden="true"
-            />
-          )}
-          {transaction.merchant || transaction.category?.name || '옮긴 돈'}
-        </span>
-        <span className={styles.transactionrow__meta}>
-          {formatDateLabel(transaction.date)}
-          {transaction.category && ` · ${transaction.category.parentName ?? ''} ${transaction.category.name}`}
-          {` · ${transaction.member.displayName}`}
+      <span className={styles.transactionrow__lead}>
+        {/* 분류가 없는 '옮긴 돈'은 계좌 이동 아이콘으로 선다. */}
+        <CategoryIcon
+          name={transaction.category?.name ?? '계좌이동'}
+          parentName={transaction.category?.parentName}
+          color={transaction.category?.colorHex}
+        />
+        <span className={styles.transactionrow__main}>
+          <span className={styles.transactionrow__title}>
+            {transaction.merchant || transaction.category?.name || '옮긴 돈'}
+          </span>
+          <span className={styles.transactionrow__meta}>
+            {formatDateLabel(transaction.date)}
+            {transaction.category && ` · ${transaction.category.parentName ?? ''} ${transaction.category.name}`}
+            {` · ${transaction.member.displayName}`}
+          </span>
         </span>
       </span>
 

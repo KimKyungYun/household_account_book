@@ -7,6 +7,7 @@ import Amount from '@/components/common/Amount';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
@@ -106,6 +107,7 @@ export default function RecurringBoard() {
       <Card
         isFlush
         title="매달 반복되는 돈"
+        icon="🔁"
         description="월급처럼 매달 들어오는 돈, 월세·통신비처럼 매달 나가는 돈을 등록해 두세요. 날짜가 되면 거래를 자동으로 적어 드려요."
         action={
           <>
@@ -158,16 +160,23 @@ export default function RecurringBoard() {
                   className={styles.recurringboard__main}
                   onClick={() => setEditing(rule)}
                 >
-                  <span className={styles.recurringboard__name}>
-                    {rule.name}
-                    {!rule.isActive && <Badge tone="neutral">중지</Badge>}
-                    {rule.splitMode === 'PERSONAL' && rule.type !== 'TRANSFER' && <Badge tone="neutral">개인</Badge>}
-                  </span>
-                  <span className={styles.recurringboard__meta}>
-                    {describeRule(rule)}
-                    {rule.category && ` · ${rule.category.parentName ?? ''} ${rule.category.name}`}
-                    {` · ${rule.member.displayName}`}
-                    {rule.nextOccurrenceDate ? ` · 다음 ${formatDateLabel(rule.nextOccurrenceDate)}` : ''}
+                  {/* 분류가 없는 '옮긴 돈'은 계좌 이동 아이콘으로 선다. */}
+                  <CategoryIcon
+                    name={rule.category?.name ?? '계좌이동'}
+                    parentName={rule.category?.parentName}
+                  />
+                  <span className={styles.recurringboard__text}>
+                    <span className={styles.recurringboard__name}>
+                      {rule.name}
+                      {!rule.isActive && <Badge tone="neutral">중지</Badge>}
+                      {rule.splitMode === 'PERSONAL' && rule.type !== 'TRANSFER' && <Badge tone="neutral">개인</Badge>}
+                    </span>
+                    <span className={styles.recurringboard__meta}>
+                      {describeRule(rule)}
+                      {rule.category && ` · ${rule.category.parentName ?? ''} ${rule.category.name}`}
+                      {` · ${rule.member.displayName}`}
+                      {rule.nextOccurrenceDate ? ` · 다음 ${formatDateLabel(rule.nextOccurrenceDate)}` : ''}
+                    </span>
                   </span>
                 </button>
 

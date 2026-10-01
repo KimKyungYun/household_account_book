@@ -64,6 +64,7 @@ export default function DashboardTrend() {
     return (
       <Card
         title="월별 수입·지출"
+        icon="📊"
         description="최근 6개월 동안 이렇게 벌고 썼어요. 왼쪽 숫자는 만 원 단위예요"
       >
         <SkeletonChart height={190} />
@@ -77,6 +78,7 @@ export default function DashboardTrend() {
     return (
       <Card
         title="월별 수입·지출"
+        icon="📊"
         description="최근 6개월 동안 이렇게 벌고 썼어요"
       >
         <EmptyState
@@ -90,6 +92,7 @@ export default function DashboardTrend() {
   return (
     <Card
       title="월별 수입·지출"
+      icon="📊"
       description="최근 6개월 동안 이렇게 벌고 썼어요. 왼쪽 숫자는 만 원 단위예요"
     >
       {/* 범례 대신 색을 직접 설명한다 — 차트 안에 글씨를 덜 넣는 쪽이 조용하다. */}

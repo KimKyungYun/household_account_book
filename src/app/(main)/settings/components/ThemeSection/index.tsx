@@ -17,6 +17,7 @@ export default function ThemeSection() {
   return (
     <Card
       title="테마"
+      icon="🎨"
       description="이 기기에만 저장돼요"
     >
       <SegmentedControl

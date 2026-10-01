@@ -20,11 +20,12 @@
     padding: s.$gap-2 s.$gap-5;
   }
 
+  // 분류 아이콘 + 글 묶음.
   &__main {
     display: flex;
     flex: 1;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: s.$gap-3;
     min-width: 0;
     padding: s.$gap-3 0;
     text-align: left;
@@ -36,6 +37,13 @@
       border-radius: s.$shape-sm;
       box-shadow: var(--focus-ring);
     }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
 
   &__name {

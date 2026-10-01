@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 interface CardProps {
   children: ReactNode;
   title?: ReactNode;
+  /** 제목 앞의 작은 아이콘(이모지). 무엇을 다루는 카드인지 글보다 먼저 눈에 들어온다. */
+  icon?: string;
   /**
    * 제목 아래 한 줄. **무엇을 하는 카드인지 여기서 말한다.**
    * 앱을 처음 여는 사람이 제목만으로 못 알아보는 자리에는 반드시 채운다.
@@ -26,6 +28,7 @@ interface CardProps {
 export function Card({
   children,
   title,
+  icon,
   description,
   action,
   tone = 'plain',
@@ -44,7 +47,20 @@ export function Card({
       {(title || action) && (
         <header className={styles.card__header}>
           <div className={styles.card__heading}>
-            {title && <h2 className={styles.card__title}>{title}</h2>}
+            {title && (
+              <h2 className={styles.card__title}>
+                {/* 제목 글이 이미 이름을 말하므로 이모지는 읽지 않게 둔다. */}
+                {icon && (
+                  <span
+                    className={styles.card__icon}
+                    aria-hidden="true"
+                  >
+                    {icon}
+                  </span>
+                )}
+                {title}
+              </h2>
+            )}
             {description && <p className={styles.card__description}>{description}</p>}
           </div>
           {action && <div className={styles.card__action}>{action}</div>}

@@ -1,6 +1,6 @@
 import Amount from '@/components/common/Amount';
+import CategoryIcon from '@/components/common/CategoryIcon';
 import { paletteColor } from '@/components/common/CustomEcharts/chartColors';
-import { categoryEmoji } from '@/utils/ts/categoryEmoji';
 import { cn } from '@/utils/ts/cn';
 import type { CategoryShareDto } from '@/service/stats/type';
 import styles from './CategoryAmountList.module.scss';
@@ -30,12 +30,12 @@ export default function CategoryAmountList({ rows, size = 'regular' }: CategoryA
           className={styles.categoryamountlist__item}
           style={{ '--chip': row.colorHex ?? paletteColor(index) } as CSSProperties}
         >
-          <span
+          <CategoryIcon
+            name={row.name}
+            icon={row.icon}
+            size={size === 'compact' ? 'sm' : 'md'}
             className={styles.categoryamountlist__icon}
-            aria-hidden="true"
-          >
-            {categoryEmoji(row.name, row.icon)}
-          </span>
+          />
 
           <span className={styles.categoryamountlist__body}>
             <span className={styles.categoryamountlist__name}>{row.name}</span>

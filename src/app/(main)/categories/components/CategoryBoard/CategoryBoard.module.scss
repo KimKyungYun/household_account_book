@@ -38,13 +38,6 @@
   }
 
   // 분류 색. 도넛·거래 목록과 같은 색이라 여기서 바꾸면 저기도 바뀐다는 걸 보여준다.
-  &__color {
-    width: 10px;
-    height: 10px;
-    background-color: var(--text-disabled);
-    border-radius: 3px;
-  }
-
   &__groupname {
     color: var(--text-primary);
 
@@ -102,6 +95,9 @@
   }
 
   &__childname {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$gap-2;
     color: var(--text-secondary);
     text-align: left;
     background: none;

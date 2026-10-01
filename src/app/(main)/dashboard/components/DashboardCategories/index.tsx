@@ -30,6 +30,7 @@ export default function DashboardCategories() {
   return (
     <Card
       title={TITLE}
+      icon="🍩"
       description={DESCRIPTION}
     >
       {isPending ? (

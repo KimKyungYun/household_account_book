@@ -48,12 +48,29 @@
   }
 
   &__title {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-2;
     color: var(--text-primary);
 
     @include t.heading-small;
 
     font-size: 17px;
     letter-spacing: -0.02em;
+  }
+
+  // 제목 앞 이모지. 브랜드 주황을 옅게 깐 작은 칸에 담아 글자와 무게를 맞춘다.
+  &__icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0;
+    background-color: color-mix(in srgb, var(--brand) 14%, transparent);
+    border-radius: s.$shape-lg;
   }
 
   // 이 카드가 무엇을 하는지 말하는 자리. 작지만 항상 보인다.

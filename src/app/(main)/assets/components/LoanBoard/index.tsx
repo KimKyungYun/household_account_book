@@ -69,6 +69,7 @@ export default function LoanBoard() {
     return (
       <Card
         title="대출"
+        icon="🏦"
         description="갚는 날마다 이자는 지출로, 원금은 이체로 나눠서 적어 드려요."
         isFlush
       >
@@ -85,6 +86,7 @@ export default function LoanBoard() {
     <>
       <Card
         title="대출"
+        icon="🏦"
         description={
           active.length > 0
             ? `남은 원금 ${(data?.totalOutstandingAll ?? 0).toLocaleString('ko-KR')}원. 갚는 날마다 이자는 지출로, 원금은 이체로 나눠서 적어 드려요.`
@@ -181,6 +183,7 @@ export default function LoanBoard() {
       {archived.length > 0 && (
         <Card
           title="보관한 대출"
+          icon="📦"
           description="목록에서 숨긴 대출이에요. 누르면 다시 꺼낼 수 있어요"
           isFlush
         >
