@@ -1,10 +1,17 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/utils/loading" as loading;
 
 .calendarboard {
   &__nav {
     display: flex;
     gap: s.$gap-2;
+  }
+
+  &__month {
+    &--stale {
+      @include loading.stale;
+    }
   }
 
   &__summary {
@@ -25,6 +32,10 @@
   &__list {
     display: flex;
     flex-direction: column;
+
+    &--stale {
+      @include loading.stale;
+    }
   }
 
   &__actions {

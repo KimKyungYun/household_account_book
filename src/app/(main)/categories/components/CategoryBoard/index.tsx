@@ -8,7 +8,7 @@ import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import SegmentedControl from '@/components/common/SegmentedControl';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryTree } from '@/service/category';
 import type { CategoryKind } from '@/generated/prisma/enums';
@@ -92,10 +92,10 @@ export default function CategoryBoard() {
           <p className={styles.categoryboard__hint}>{KIND_HINT[kind]}</p>
 
           {isPending ? (
-            <div className={styles.categoryboard__loading}>
-              <Skeleton height={72} />
-              <Skeleton height={72} />
-            </div>
+            <SkeletonRows
+              count={4}
+              isPadded={false}
+            />
           ) : groups.length === 0 ? (
             <EmptyState
               title="분류가 없습니다"

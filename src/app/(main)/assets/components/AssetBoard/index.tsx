@@ -12,7 +12,7 @@ import CustomEcharts from '@/components/common/CustomEcharts';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import ProgressBar from '@/components/common/ProgressBar';
-import Skeleton from '@/components/common/Skeleton';
+import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
 import { useCountUp } from '@/hooks/useCountUp';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
@@ -96,7 +96,38 @@ export default function AssetBoard() {
     ],
   };
 
-  if (isPending) return <Skeleton height={320} />;
+  if (isPending) {
+    return (
+      <>
+        <Card
+          tone="feature"
+          title="모은 돈"
+          description="적금·투자처럼 '옮긴 돈'으로 넣은 금액이 자산마다 쌓입니다. 시작 잔액에 그동안 넣은 돈을 더한 값입니다."
+        >
+          <div
+            className={styles.assetboard__total}
+            role="status"
+            aria-label="불러오는 중"
+          >
+            <Skeleton
+              width={36}
+              height={14}
+            />
+            <Skeleton
+              width={220}
+              height={44}
+            />
+          </div>
+        </Card>
+        <Card
+          title="자산 목록"
+          isFlush
+        >
+          <SkeletonRows count={3} />
+        </Card>
+      </>
+    );
+  }
 
   const assets = data?.assets ?? [];
   const active = assets.filter((asset) => asset.isActive);

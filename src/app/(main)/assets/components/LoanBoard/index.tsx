@@ -11,7 +11,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import ProgressBar from '@/components/common/ProgressBar';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { deleteLoan, getLoans } from '@/service/loan';
@@ -65,7 +65,17 @@ export default function LoanBoard() {
     onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했습니다.'),
   });
 
-  if (isPending) return <Skeleton height={320} />;
+  if (isPending) {
+    return (
+      <Card
+        title="대출"
+        description="상환일마다 이자는 지출로, 원금은 이체로 나뉘어 기록됩니다."
+        isFlush
+      >
+        <SkeletonRows count={2} />
+      </Card>
+    );
+  }
 
   const loans = data?.loans ?? [];
   const active = loans.filter((loan) => loan.isActive);

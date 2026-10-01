@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Modal from '@/components/common/Modal';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getLoanSchedule } from '@/service/loan';
 import { todayInSeoul } from '@/utils/ts/formatDate';
@@ -37,7 +37,10 @@ export default function LoanScheduleModal({ isOpen, loan, onClose }: LoanSchedul
       size="lg"
     >
       {isPending ? (
-        <Skeleton height={320} />
+        <SkeletonRows
+          count={6}
+          isPadded={false}
+        />
       ) : (
         <div className={styles.loanschedulemodal}>
           <div

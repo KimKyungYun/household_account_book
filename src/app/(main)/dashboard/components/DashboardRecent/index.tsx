@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import TransactionRow from '@/components/transaction/TransactionRow';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { PATH } from '@/routes/paths';
@@ -19,8 +19,6 @@ export default function DashboardRecent() {
     queryKey: QUERY_KEY.TRANSACTION.LIST(PARAMS),
     queryFn: () => getTransactions(PARAMS),
   });
-
-  if (isPending) return <Skeleton height={240} />;
 
   return (
     <Card
@@ -38,7 +36,9 @@ export default function DashboardRecent() {
         </Link>
       }
     >
-      {(data?.items.length ?? 0) === 0 ? (
+      {isPending ? (
+        <SkeletonRows count={5} />
+      ) : (data?.items.length ?? 0) === 0 ? (
         <EmptyState
           title="아직 기록이 없습니다"
           description="등록한 거래가 여기에 표시됩니다."

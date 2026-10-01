@@ -1,5 +1,6 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/utils/loading" as loading;
 @use "styles/utils/media" as media;
 
 .budgetboard {
@@ -39,6 +40,10 @@
     gap: s.$gap-4;
     margin-top: s.$gap-5;
     padding-top: s.$gap-5;
+
+    &--stale {
+      @include loading.stale;
+    }
   }
 
   &__total {
@@ -58,6 +63,12 @@
     color: var(--text-tertiary);
 
     @include t.body-small;
+  }
+
+  &__body {
+    &--stale {
+      @include loading.stale;
+    }
   }
 
   &__list {

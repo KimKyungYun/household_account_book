@@ -44,7 +44,24 @@ export default function MembersSection() {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ME.ALL });
   };
 
-  if (me.isPending) return <Skeleton height={200} />;
+  if (me.isPending) {
+    return (
+      <Card
+        tone="feature"
+        title="두 사람 이름"
+        description="거래 목록과 차트에 이 이름으로 표시됩니다."
+      >
+        <div
+          className={styles.memberssection}
+          role="status"
+          aria-label="불러오는 중"
+        >
+          <Skeleton height={44} />
+          <Skeleton height={44} />
+        </div>
+      </Card>
+    );
+  }
   if (members.length === 0) {
     return (
       <Card title="두 사람 이름">

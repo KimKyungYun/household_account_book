@@ -6,7 +6,7 @@ import Amount, { toneOfTransactionType } from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { PATH } from '@/routes/paths';
 import { getRecurringRules } from '@/service/recurring';
@@ -41,7 +41,19 @@ export default function DashboardUpcoming() {
     queryFn: getRecurringRules,
   });
 
-  if (isPending) return <Skeleton height={220} />;
+  if (isPending) {
+    return (
+      <Card
+        title="예정된 수입·지출"
+        description={`앞으로 ${WINDOW_DAYS}일 안에 들어오고 나갈 예정입니다.`}
+      >
+        <SkeletonRows
+          count={3}
+          isPadded={false}
+        />
+      </Card>
+    );
+  }
 
   const limit = new Date(new Date(`${today}T00:00:00.000Z`).getTime() + WINDOW_DAYS * 86_400_000)
     .toISOString()

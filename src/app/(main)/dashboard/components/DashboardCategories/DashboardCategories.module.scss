@@ -49,6 +49,19 @@
     }
   }
 
+  // 불러오는 동안의 고리 자리. 실제 도넛처럼 칸 가운데에 둔다.
+  &__skeletonring {
+    margin-inline: auto;
+  }
+
+  // 불러오는 동안의 범례 자리. 격자에 태우면 막대가 첫 칸(8px)에 끼므로 세로로 쌓는다.
+  &__skeleton {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: s.$gap-4;
+  }
+
   // 행은 칸을 차지하지 않고 자식만 부모 격자에 올린다.
   // 비중 막대는 태블릿부터만 보이고, display:none 은 트랙을 차지하지 않으므로
   // 부모의 트랙 수도 폭마다 따로 적어 두었다.

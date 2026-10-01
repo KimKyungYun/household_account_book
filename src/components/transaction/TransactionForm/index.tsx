@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useIsMutating, useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import Button from '@/components/common/Button';
@@ -86,6 +86,18 @@ interface FormState {
   memo: string;
 }
 
+function saveKey(formId: string) {
+  return ['transactionForm', 'save', formId] as const;
+}
+
+/**
+ * 이 폼이 저장 중인지. 모달 푸터처럼 제출 버튼이 폼 바깥에 있을 때,
+ * 버튼이 폼의 mutation 을 직접 들지 않고도 '저장 중' 표시를 하게 한다.
+ */
+export function useIsTransactionFormSaving(formId: string) {
+  return useIsMutating({ mutationKey: saveKey(formId) }) > 0;
+}
+
 /**
  * 거래 입력의 정본. 모달(데스크톱)·바텀시트(모바일)·전용 페이지가 이 하나를 나눠 쓴다.
  *
@@ -140,6 +152,7 @@ export function TransactionForm({
   const patch = (next: Partial<FormState>) => setForm((previous) => ({ ...previous, ...next }));
 
   const { mutateAsync, isPending } = useMutation({
+    mutationKey: saveKey(formId),
     mutationFn: async () => {
       if (mode === 'edit' && transaction) {
         return updateTransaction(transaction.id, {

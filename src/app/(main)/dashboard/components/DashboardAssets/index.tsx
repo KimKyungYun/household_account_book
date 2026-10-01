@@ -6,7 +6,7 @@ import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
-import Skeleton from '@/components/common/Skeleton';
+import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { PATH } from '@/routes/paths';
 import { getAssets } from '@/service/asset';
@@ -21,7 +21,31 @@ export default function DashboardAssets() {
     queryFn: getAssets,
   });
 
-  if (isPending) return <Skeleton height={220} />;
+  if (isPending) {
+    return (
+      <Card
+        title="모은 돈"
+        description="적금·투자처럼 모으고 있는 돈입니다."
+      >
+        <div className={styles.dashboardassets}>
+          <div className={styles.dashboardassets__total}>
+            <Skeleton
+              width={36}
+              height={14}
+            />
+            <Skeleton
+              width={180}
+              height={36}
+            />
+          </div>
+          <SkeletonRows
+            count={3}
+            isPadded={false}
+          />
+        </div>
+      </Card>
+    );
+  }
 
   const assets = (data?.assets ?? []).filter((asset) => asset.isActive);
 

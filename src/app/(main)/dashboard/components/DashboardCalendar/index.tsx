@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import Card from '@/components/common/Card';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonCalendar } from '@/components/common/Skeleton';
 import MonthGrid from '@/components/transaction/MonthGrid';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { PATH } from '@/routes/paths';
@@ -29,20 +29,18 @@ export default function DashboardCalendar() {
 
   const totals = useMemo(() => new Map((data ?? []).map((row) => [row.date, row])), [data]);
 
-  if (isPending) return <Skeleton height={300} />;
-
   return (
     <Card
       title={`${formatYearMonthLabel(yearMonth)} 달력`}
       description="날짜를 누르면 그날 내역을 볼 수 있습니다."
     >
-      <MonthGrid
+      {isPending ? <SkeletonCalendar isCompact /> : <MonthGrid
         yearMonth={yearMonth}
         totals={totals}
         today={today}
         variant="compact"
         onSelect={(date) => router.push(`${PATH.CALENDAR}?date=${date}`)}
-      />
+      />}
     </Card>
   );
 }

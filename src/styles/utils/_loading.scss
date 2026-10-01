@@ -1,0 +1,14 @@
+@use "styles/tokens/motion" as m;
+@use "styles/utils/media" as media;
+
+// 새 데이터를 받는 동안 앞의 내용을 흐리게 남겨 둔다.
+// 빈 상자로 바꾸면 화면이 깜빡이고 자리가 튄다. 흐리게만 두면 "바뀌는 중"이 읽힌다.
+@mixin stale {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity m.$dur-quick m.$ease-out;
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}

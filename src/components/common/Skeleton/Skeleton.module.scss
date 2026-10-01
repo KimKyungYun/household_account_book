@@ -3,6 +3,7 @@
 
 .skeleton {
   display: block;
+  flex-shrink: 0;
   background-color: var(--surface-muted);
   border-radius: s.$shape-sm;
   animation: skeleton-pulse 1.4s ease-in-out infinite;
@@ -24,5 +25,80 @@
     50% {
       opacity: 0.45;
     }
+  }
+}
+
+.skeleton-rows {
+  display: flex;
+  flex-direction: column;
+
+  &--padded {
+    // TransactionRow 와 같은 여백 — 데이터가 들어와도 줄 위치가 그대로다.
+    .skeleton-rows__item {
+      padding: s.$gap-4 s.$gap-5;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-4;
+    min-height: 56px;
+
+    & + & {
+      border-top: 1px solid var(--border-subtle);
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: s.$gap-3;
+    min-width: 0;
+  }
+}
+
+.skeleton-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: s.$gap-2;
+
+  // 칸 높이는 MonthGrid 와 맞춘다 — 데이터가 들어와도 카드 높이가 튀지 않는다.
+  &--compact {
+    .skeleton-calendar__cell {
+      min-height: 46px;
+
+      @include media.tablet-up {
+        min-height: 62px;
+      }
+    }
+  }
+
+  &__head {
+    justify-self: center;
+    margin-bottom: s.$gap-3;
+  }
+
+  &__cell {
+    min-height: 44px;
+    border-radius: s.$shape-lg;
+
+    @include media.tablet-up {
+      min-height: 76px;
+    }
+  }
+}
+
+.skeleton-chart {
+  display: flex;
+  gap: s.$gap-5;
+  align-items: flex-end;
+  padding: s.$gap-5 s.$gap-3 0;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &__bar {
+    flex: 1;
+    border-radius: s.$shape-md s.$shape-md 0 0;
   }
 }

@@ -15,6 +15,8 @@ import styles from './DashboardStats.module.scss';
 /** 띠에 이름을 달 수 있는 분류 수. 그 밖은 한 칸으로 묶는다. */
 const FLOW_SEGMENTS = 6;
 
+const DESCRIPTION = '아직 날짜가 오지 않은 거래까지 더한 이번 달 전체입니다.';
+
 export default function DashboardStats() {
   const yearMonth = currentYearMonth();
 
@@ -49,7 +51,44 @@ export default function DashboardStats() {
     [categories.data],
   );
 
-  if (isPending) return <Skeleton height={240} />;
+  if (isPending) {
+    return (
+      <Card
+        tone="feature"
+        title={formatYearMonthLabel(yearMonth)}
+        description={DESCRIPTION}
+      >
+        {/* 남은 돈 · 띠 · 번 돈/쓴 돈 — 실제 배치를 그대로 따른다. */}
+        <div
+          className={styles.dashboardstats}
+          role="status"
+          aria-label="불러오는 중"
+        >
+          <div className={styles.dashboardstats__hero}>
+            <Skeleton
+              width={56}
+              height={14}
+            />
+            <Skeleton
+              width={220}
+              height={44}
+            />
+          </div>
+          <Skeleton height={14} />
+          <div className={styles.dashboardstats__pair}>
+            <Skeleton
+              width={150}
+              height={20}
+            />
+            <Skeleton
+              width={150}
+              height={20}
+            />
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   const delta = data?.expenseDeltaRate ?? null;
 
@@ -57,7 +96,7 @@ export default function DashboardStats() {
     <Card
       tone="feature"
       title={formatYearMonthLabel(yearMonth)}
-      description="아직 날짜가 오지 않은 거래까지 더한 이번 달 전체입니다."
+      description={DESCRIPTION}
     >
       <div className={styles.dashboardstats}>
         {/* 이 달의 한 문장. 번 것에서 쓴 것을 뺀 값이 이 화면의 결론이다. */}

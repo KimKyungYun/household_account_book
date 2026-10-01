@@ -3,13 +3,6 @@
 @use "styles/utils/media" as media;
 
 .recurringboard {
-  &__loading {
-    display: flex;
-    flex-direction: column;
-    gap: s.$gap-3;
-    padding: s.$gap-5;
-  }
-
   &__list {
     display: flex;
     flex-direction: column;

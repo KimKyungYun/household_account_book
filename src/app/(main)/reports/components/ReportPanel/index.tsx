@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
@@ -11,7 +11,7 @@ import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import Input from '@/components/common/Input';
 import SegmentedControl from '@/components/common/SegmentedControl';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonChart, SkeletonRows } from '@/components/common/Skeleton';
 import Table from '@/components/common/Table';
 import { useExcelDownload } from '@/hooks/useExcelDownload';
 import { QUERY_KEY } from '@/interface/key/queryKey';
@@ -53,17 +53,21 @@ export default function ReportPanel() {
   const trend = useQuery({
     queryKey: QUERY_KEY.STATS.MONTHLY({ from, to }),
     queryFn: () => getMonthlyTrend({ from, to }),
+    // 기간을 바꾸는 동안 앞 결과를 남겨 둔다 — 차트가 빈 상자로 깜빡이지 않는다.
+    placeholderData: keepPreviousData,
   });
 
   const categoryParams = { yearMonth, level, limit: 30 };
   const categories = useQuery({
     queryKey: QUERY_KEY.STATS.CATEGORIES(categoryParams),
     queryFn: () => getCategoryShares(categoryParams),
+    placeholderData: keepPreviousData,
   });
 
   const memberStats = useQuery({
     queryKey: QUERY_KEY.STATS.MEMBERS(yearMonth),
     queryFn: () => getMemberStats(yearMonth),
+    placeholderData: keepPreviousData,
   });
 
   const points = trend.data ?? [];
@@ -214,7 +218,7 @@ export default function ReportPanel() {
         </div>
 
         {trend.isPending ? (
-          <Skeleton height={260} />
+          <SkeletonChart height={280} />
         ) : points.some((point) => point.income !== 0 || point.expense !== 0) ? (
           <CustomEcharts
             option={trendOption}
@@ -252,7 +256,10 @@ export default function ReportPanel() {
         }
       >
         {categories.isPending ? (
-          <Skeleton height={240} />
+          <SkeletonRows
+            count={5}
+            isPadded={false}
+          />
         ) : (
           <Table
             caption={`${formatYearMonthLabel(yearMonth)} 카테고리별 지출`}
@@ -269,7 +276,10 @@ export default function ReportPanel() {
         description="각자 쓴 돈은 나누지 않습니다."
       >
         {memberStats.isPending ? (
-          <Skeleton height={140} />
+          <SkeletonRows
+            count={2}
+            isPadded={false}
+          />
         ) : (
           <Table
             caption={`${formatYearMonthLabel(yearMonth)} 구성원별 수입·지출`}

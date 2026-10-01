@@ -6,7 +6,7 @@ import Card from '@/components/common/Card';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
 import EmptyState from '@/components/common/EmptyState';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonChart } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getMonthlyTrend } from '@/service/stats';
 import { currentYearMonth, shiftYearMonth } from '@/utils/ts/formatDate';
@@ -51,7 +51,16 @@ export default function DashboardTrend() {
     ],
   }), [base, colors, points]);
 
-  if (isPending) return <Skeleton height={300} />;
+  if (isPending) {
+    return (
+      <Card
+        title="월별 수입·지출"
+        description="최근 6개월간의 수입과 지출입니다. 왼쪽 숫자는 만 원 단위입니다."
+      >
+        <SkeletonChart height={190} />
+      </Card>
+    );
+  }
 
   const hasData = points.some((point) => point.income !== 0 || point.expense !== 0);
 

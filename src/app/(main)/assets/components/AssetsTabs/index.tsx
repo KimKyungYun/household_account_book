@@ -47,7 +47,26 @@ export default function AssetsTabs() {
   return (
     <>
       {isPending ? (
-        <Skeleton height={148} />
+        <Card
+          tone="feature"
+          title="순자산"
+          description="모은 돈에서 갚을 돈을 뺀 금액입니다."
+        >
+          <div
+            className={styles.assetstabs__summary}
+            role="status"
+            aria-label="불러오는 중"
+          >
+            <Skeleton
+              width={220}
+              height={44}
+            />
+            <Skeleton
+              width={260}
+              height={16}
+            />
+          </div>
+        </Card>
       ) : (
         <Card
           tone="feature"

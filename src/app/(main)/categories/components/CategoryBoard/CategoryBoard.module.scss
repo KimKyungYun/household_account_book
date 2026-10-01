@@ -14,12 +14,6 @@
     @include t.body-small;
   }
 
-  &__loading {
-    display: flex;
-    flex-direction: column;
-    gap: s.$gap-4;
-  }
-
   &__groups {
     display: flex;
     flex-direction: column;

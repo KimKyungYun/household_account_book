@@ -1,7 +1,7 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
@@ -14,17 +14,18 @@ import Input from '@/components/common/Input';
 import Modal from '@/components/common/Modal';
 import Pagination from '@/components/common/Pagination';
 import Select from '@/components/common/Select';
-import Skeleton from '@/components/common/Skeleton';
-import TransactionForm from '@/components/transaction/TransactionForm';
+import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
+import TransactionForm, { useIsTransactionFormSaving } from '@/components/transaction/TransactionForm';
 import TransactionRow from '@/components/transaction/TransactionRow';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useExcelDownload } from '@/hooks/useExcelDownload';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { deleteTransaction, getTransactions } from '@/service/transaction';
+import { cn } from '@/utils/ts/cn';
 import { currentYearMonth, formatYearMonthLabel, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
 import { useMe } from '@/hooks/useMe';
-import type { TransactionListItemDto } from '@/service/transaction/type';
+import type { TransactionListDto, TransactionListItemDto } from '@/service/transaction/type';
 import styles from './TransactionBoard.module.scss';
 
 const TYPE_FILTERS = [
@@ -36,6 +37,31 @@ const TYPE_FILTERS = [
 ];
 
 const PAGE_SIZE = 30;
+
+const CREATE_FORM_ID = 'transaction-create-form';
+const EDIT_FORM_ID = 'transaction-edit-form';
+
+/** 목록 캐시에서 한 건을 빼고 합계를 맞춘다. 서버 응답을 기다리지 않고 지운 것처럼 보이게 한다. */
+function withoutTransaction(list: TransactionListDto, id: string): TransactionListDto {
+  const target = list.items.find((item) => item.id === id);
+  if (!target) return list;
+
+  const incomeTotal = list.summary.incomeTotal - (target.type === 'INCOME' ? target.amount : 0);
+  const expenseTotal = list.summary.expenseTotal - (target.type === 'EXPENSE' ? target.amount : 0);
+
+  return {
+    ...list,
+    items: list.items.filter((item) => item.id !== id),
+    summary: {
+      ...list.summary,
+      incomeTotal,
+      expenseTotal,
+      transferTotal: list.summary.transferTotal - (target.type === 'TRANSFER' ? target.amount : 0),
+      net: incomeTotal - expenseTotal,
+      count: list.summary.count - 1,
+    },
+  };
+}
 
 export default function TransactionBoard() {
   const [yearMonth, setYearMonth] = useState(currentYearMonth());
@@ -61,20 +87,56 @@ export default function TransactionBoard() {
     ...(debouncedKeyword ? { q: debouncedKeyword } : {}),
   };
 
-  const { data, isPending } = useQuery({
+  // 달·필터를 바꾸는 동안 앞의 목록을 흐리게 남겨 둔다. 빈 상자로 깜빡이지 않는다.
+  const { data, isPending, isPlaceholderData } = useQuery({
     queryKey: QUERY_KEY.TRANSACTION.LIST(params),
     queryFn: () => getTransactions(params),
+    placeholderData: keepPreviousData,
   });
 
+  // 앞뒤 달과 다음 페이지를 미리 받아 둔다. 누르는 순간 바로 그려진다.
+  const paramsKey = JSON.stringify(params);
+  const pageCount = data?.page.pageCount ?? 1;
+  useEffect(() => {
+    const base = JSON.parse(paramsKey) as typeof params;
+    const neighbors = [
+      { ...base, yearMonth: shiftYearMonth(base.yearMonth, -1), page: 1 },
+      { ...base, yearMonth: shiftYearMonth(base.yearMonth, 1), page: 1 },
+      ...(base.page < pageCount ? [{ ...base, page: base.page + 1 }] : []),
+    ];
+    for (const next of neighbors) {
+      void queryClient.prefetchQuery({
+        queryKey: QUERY_KEY.TRANSACTION.LIST(next),
+        queryFn: () => getTransactions(next),
+      });
+    }
+  }, [paramsKey, pageCount, queryClient]);
+
+  // 지우는 즉시 목록에서 뺀다. 실패하면 되돌리고 알린다.
   const removal = useMutation({
     mutationFn: (id: string) => deleteTransaction(id),
-    onSuccess: () => {
-      toast.success('삭제했습니다.');
+    onMutate: async (id) => {
       setDeleteTarget(null);
       setEditing(null);
+
+      const listKey = [...QUERY_KEY.TRANSACTION.ALL, 'list'];
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const snapshots = queryClient.getQueriesData<TransactionListDto>({ queryKey: listKey });
+      queryClient.setQueriesData<TransactionListDto>(
+        { queryKey: listKey },
+        (list) => (list ? withoutTransaction(list, id) : list),
+      );
+
+      return { snapshots };
     },
-    onError: (error) => toast.error(isApiError(error) ? error.message : '삭제하지 못했습니다.'),
+    onSuccess: () => toast.success('삭제했습니다.'),
+    onError: (error, _id, context) => {
+      for (const [key, snapshot] of context?.snapshots ?? []) queryClient.setQueryData(key, snapshot);
+      toast.error(isApiError(error) ? error.message : '삭제하지 못했습니다.');
+    },
   });
+  const isCreateSaving = useIsTransactionFormSaving(CREATE_FORM_ID);
+  const isEditSaving = useIsTransactionFormSaving(EDIT_FORM_ID);
 
   const changeMonth = (months: number) => {
     setYearMonth((current) => shiftYearMonth(current, months));
@@ -174,39 +236,48 @@ export default function TransactionBoard() {
         </div>
 
         {/* 합계는 페이지 합계가 아니라 지금 필터 전체 기준이다. */}
-        <dl className={styles.transactionboard__summary}>
+        <dl
+          className={cn(styles.transactionboard__summary, { [styles['transactionboard__summary--stale']]: isPlaceholderData })}
+          aria-busy={isPending || isPlaceholderData}
+        >
           <div className={styles.transactionboard__stat}>
             <dt>수입</dt>
             <dd>
-              <Amount
-                value={data?.summary.incomeTotal ?? 0}
-                tone="income"
-                size="large"
-              />
+              {isPending ? <SummarySkeleton /> : (
+                <Amount
+                  value={data?.summary.incomeTotal ?? 0}
+                  tone="income"
+                  size="large"
+                />
+              )}
             </dd>
           </div>
           <div className={styles.transactionboard__stat}>
             <dt>지출</dt>
             <dd>
-              <Amount
-                value={data?.summary.expenseTotal ?? 0}
-                tone="expense"
-                size="large"
-              />
+              {isPending ? <SummarySkeleton /> : (
+                <Amount
+                  value={data?.summary.expenseTotal ?? 0}
+                  tone="expense"
+                  size="large"
+                />
+              )}
             </dd>
           </div>
           <div className={styles.transactionboard__stat}>
             <dt>남은 돈</dt>
             <dd>
-              <Amount
-                value={data?.summary.net ?? 0}
-                size="large"
-              />
+              {isPending ? <SummarySkeleton /> : (
+                <Amount
+                  value={data?.summary.net ?? 0}
+                  size="large"
+                />
+              )}
             </dd>
           </div>
           <div className={styles.transactionboard__stat}>
             <dt>건수</dt>
-            <dd className={styles.transactionboard__count}>{data?.summary.count ?? 0}건</dd>
+            <dd className={styles.transactionboard__count}>{isPending ? <SummarySkeleton /> : `${data?.summary.count ?? 0}건`}</dd>
           </div>
         </dl>
       </Card>
@@ -250,11 +321,7 @@ export default function TransactionBoard() {
         }
       >
         {isPending ? (
-          <div className={styles.transactionboard__loading}>
-            <Skeleton height={56} />
-            <Skeleton height={56} />
-            <Skeleton height={56} />
-          </div>
+          <SkeletonRows count={6} />
         ) : (data?.items.length ?? 0) === 0 ? (
           <EmptyState
             title="이번 달 거래가 없습니다"
@@ -269,7 +336,10 @@ export default function TransactionBoard() {
             }
           />
         ) : (
-          <ul className={styles.transactionboard__list}>
+          <ul
+            className={cn(styles.transactionboard__list, { [styles['transactionboard__list--stale']]: isPlaceholderData })}
+            aria-busy={isPlaceholderData}
+          >
             {data?.items.map((item) => (
               <li key={item.id}>
                 <TransactionRow
@@ -307,7 +377,8 @@ export default function TransactionBoard() {
             </Button>
             <Button
               type="submit"
-              form="transaction-create-form"
+              form={CREATE_FORM_ID}
+              isLoading={isCreateSaving}
             >
               등록
             </Button>
@@ -316,7 +387,7 @@ export default function TransactionBoard() {
       >
         <TransactionForm
           mode="create"
-          formId="transaction-create-form"
+          formId={CREATE_FORM_ID}
           onSuccess={refresh}
         />
       </Modal>
@@ -343,7 +414,8 @@ export default function TransactionBoard() {
             </Button>
             <Button
               type="submit"
-              form="transaction-edit-form"
+              form={EDIT_FORM_ID}
+              isLoading={isEditSaving}
             >
               저장
             </Button>
@@ -354,7 +426,7 @@ export default function TransactionBoard() {
           <TransactionForm
             mode="edit"
             transaction={editing}
-            formId="transaction-edit-form"
+            formId={EDIT_FORM_ID}
             onSuccess={() => {
               refresh();
               setEditing(null);
@@ -374,5 +446,15 @@ export default function TransactionBoard() {
         isLoading={removal.isPending}
       />
     </>
+  );
+}
+
+/** 합계 숫자 자리. 불러오는 동안 0원을 띄우면 진짜 0원처럼 읽힌다. */
+function SummarySkeleton() {
+  return (
+    <Skeleton
+      width={96}
+      height={26}
+    />
   );
 }

@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { useMe } from '@/hooks/useMe';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
@@ -28,7 +28,19 @@ export default function HouseholdSection() {
     onError: (error) => toast.error(isApiError(error) ? error.message : '발급하지 못했습니다.'),
   });
 
-  if (me.isPending) return <Skeleton height={180} />;
+  if (me.isPending) {
+    return (
+      <Card
+        title="우리 집"
+        description="최대 두 명까지 함께 쓸 수 있습니다."
+      >
+        <SkeletonRows
+          count={3}
+          isPadded={false}
+        />
+      </Card>
+    );
+  }
 
   const inviteCode = me.data?.household?.inviteCode ?? '';
   const isAlone = (me.data?.members.length ?? 0) < 2;

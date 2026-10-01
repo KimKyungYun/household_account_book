@@ -1,6 +1,7 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
 @use "styles/utils/amount" as a;
+@use "styles/utils/loading" as loading;
 @use "styles/utils/media" as media;
 
 .transactionboard {
@@ -43,6 +44,10 @@
     @include media.tablet-up {
       grid-template-columns: repeat(4, 1fr);
     }
+
+    &--stale {
+      @include loading.stale;
+    }
   }
 
   &__stat {
@@ -67,19 +72,16 @@
     @include a.amount-large;
   }
 
-  &__loading {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    padding: s.$gap-4;
-  }
-
   &__list {
     display: flex;
     flex-direction: column;
 
     > li {
       padding: 0 s.$gap-2;
+    }
+
+    &--stale {
+      @include loading.stale;
     }
   }
 

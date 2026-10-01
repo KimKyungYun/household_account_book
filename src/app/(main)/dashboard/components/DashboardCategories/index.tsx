@@ -16,6 +16,9 @@ import type { EChartsOption } from 'echarts';
 
 const PARAMS = { yearMonth: '', level: 1, limit: 8 };
 
+// 범례 줄 길이를 달리해 실제 목록처럼 보이게 한다.
+const LEGEND_WIDTHS = ['92%', '78%', '86%', '64%', '72%'];
+
 export default function DashboardCategories() {
   const yearMonth = currentYearMonth();
   const params = useMemo(() => ({ ...PARAMS, yearMonth }), [yearMonth]);
@@ -55,7 +58,38 @@ export default function DashboardCategories() {
     ],
   }), [rows]);
 
-  if (isPending) return <Skeleton height={300} />;
+  if (isPending) {
+    return (
+      <Card
+        title="분류별 지출"
+        description="이번 달 지출을 큰 분류별로 보여줍니다."
+      >
+        <div
+          className={styles.dashboardcategories}
+          role="status"
+          aria-label="불러오는 중"
+        >
+          <div className={styles.dashboardcategories__chart}>
+            <Skeleton
+              width={156}
+              height={156}
+              isCircle
+              className={styles.dashboardcategories__skeletonring}
+            />
+          </div>
+          <div className={styles.dashboardcategories__skeleton}>
+            {LEGEND_WIDTHS.map((width) => (
+              <Skeleton
+                key={width}
+                width={width}
+                height={14}
+              />
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   if (rows.length === 0) {
     return (

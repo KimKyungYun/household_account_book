@@ -1,24 +1,28 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import Modal from '@/components/common/Modal';
-import Skeleton from '@/components/common/Skeleton';
-import TransactionForm from '@/components/transaction/TransactionForm';
+import { SkeletonCalendar, SkeletonRows } from '@/components/common/Skeleton';
+import TransactionForm, { useIsTransactionFormSaving } from '@/components/transaction/TransactionForm';
 import MonthGrid from '@/components/transaction/MonthGrid';
 import TransactionRow from '@/components/transaction/TransactionRow';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getTransactions } from '@/service/transaction';
 import { getDailyTotals } from '@/service/stats';
+import { cn } from '@/utils/ts/cn';
 import { currentYearMonth, formatDateLabel, formatYearMonthLabel, monthRange, shiftYearMonth, todayInSeoul } from '@/utils/ts/formatDate';
 import type { TransactionListItemDto } from '@/service/transaction/type';
 import styles from './CalendarBoard.module.scss';
+
+const CREATE_FORM_ID = 'calendar-create-form';
+const EDIT_FORM_ID = 'calendar-edit-form';
 
 export default function CalendarBoard() {
   const today = todayInSeoul();
@@ -32,17 +36,32 @@ export default function CalendarBoard() {
   const [editing, setEditing] = useState<TransactionListItemDto | null>(null);
   const queryClient = useQueryClient();
 
+  // 달을 넘기는 동안 앞 달 달력을 흐리게 남겨 둔다.
   const daily = useQuery({
     queryKey: QUERY_KEY.STATS.DAILY(yearMonth),
     queryFn: () => getDailyTotals(yearMonth),
+    placeholderData: keepPreviousData,
   });
+
+  // 앞뒤 달 달력을 미리 받아 둔다. '지난 달'·'다음 달'을 누르는 순간 바로 그려진다.
+  useEffect(() => {
+    for (const month of [shiftYearMonth(yearMonth, -1), shiftYearMonth(yearMonth, 1)]) {
+      void queryClient.prefetchQuery({
+        queryKey: QUERY_KEY.STATS.DAILY(month),
+        queryFn: () => getDailyTotals(month),
+      });
+    }
+  }, [yearMonth, queryClient]);
 
   // 고른 날짜 하루치. 달력 숫자와 같은 데이터를 두 번 세지 않고 목록만 따로 받는다.
   const dayParams = { from: selected, to: selected, pageSize: 50, sort: 'date.desc' as const, page: 1 };
   const dayList = useQuery({
     queryKey: QUERY_KEY.TRANSACTION.LIST(dayParams),
     queryFn: () => getTransactions(dayParams),
+    placeholderData: keepPreviousData,
   });
+  const isCreateSaving = useIsTransactionFormSaving(CREATE_FORM_ID);
+  const isEditSaving = useIsTransactionFormSaving(EDIT_FORM_ID);
 
   const totals = useMemo(
     () => new Map((daily.data ?? []).map((row) => [row.date, row])),
@@ -100,9 +119,12 @@ export default function CalendarBoard() {
         }
       >
         {daily.isPending ? (
-          <Skeleton height={320} />
+          <SkeletonCalendar />
         ) : (
-          <>
+          <div
+            className={cn(styles.calendarboard__month, { [styles['calendarboard__month--stale']]: daily.isPlaceholderData })}
+            aria-busy={daily.isPlaceholderData}
+          >
             <div className={styles.calendarboard__summary}>
               <span className={styles.calendarboard__summaryitem}>
                 번 돈
@@ -131,7 +153,7 @@ export default function CalendarBoard() {
               selected={selected}
               onSelect={setSelected}
             />
-          </>
+          </div>
         )}
       </Card>
 
@@ -153,14 +175,17 @@ export default function CalendarBoard() {
         }
       >
         {dayList.isPending ? (
-          <Skeleton height={160} />
+          <SkeletonRows count={3} />
         ) : (dayList.data?.items.length ?? 0) === 0 ? (
           <EmptyState
             title="이 날은 기록이 없습니다"
             description="위의 '이 날에 등록'을 누르면 이 날짜로 바로 적을 수 있습니다."
           />
         ) : (
-          <ul className={styles.calendarboard__list}>
+          <ul
+            className={cn(styles.calendarboard__list, { [styles['calendarboard__list--stale']]: dayList.isPlaceholderData })}
+            aria-busy={dayList.isPlaceholderData}
+          >
             {dayList.data?.items.map((transaction) => (
               <li key={transaction.id}>
                 <TransactionRow
@@ -187,7 +212,8 @@ export default function CalendarBoard() {
             </Button>
             <Button
               type="submit"
-              form="calendar-create-form"
+              form={CREATE_FORM_ID}
+              isLoading={isCreateSaving}
             >
               등록
             </Button>
@@ -197,7 +223,7 @@ export default function CalendarBoard() {
         <TransactionForm
           mode="create"
           defaultDate={selected}
-          formId="calendar-create-form"
+          formId={CREATE_FORM_ID}
           onSuccess={refresh}
         />
       </Modal>
@@ -217,7 +243,8 @@ export default function CalendarBoard() {
             </Button>
             <Button
               type="submit"
-              form="calendar-edit-form"
+              form={EDIT_FORM_ID}
+              isLoading={isEditSaving}
             >
               저장
             </Button>
@@ -228,7 +255,7 @@ export default function CalendarBoard() {
           <TransactionForm
             mode="edit"
             transaction={editing}
-            formId="calendar-edit-form"
+            formId={EDIT_FORM_ID}
             onSuccess={() => {
               refresh();
               setEditing(null);

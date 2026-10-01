@@ -10,7 +10,7 @@ import Card from '@/components/common/Card';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
-import Skeleton from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { deleteRecurringRule, getRecurringRules, runRecurring, setRecurringRuleActive } from '@/service/recurring';
@@ -132,10 +132,7 @@ export default function RecurringBoard() {
         }
       >
         {isPending ? (
-          <div className={styles.recurringboard__loading}>
-            <Skeleton height={64} />
-            <Skeleton height={64} />
-          </div>
+          <SkeletonRows count={3} />
         ) : (data?.length ?? 0) === 0 ? (
           <EmptyState
             title="등록된 항목이 없습니다"
