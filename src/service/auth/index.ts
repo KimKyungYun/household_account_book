@@ -1,5 +1,12 @@
 import { http } from '@/service/httpClient';
-import type { ChangePasswordInput, CreateHouseholdInput, JoinHouseholdInput, SignupInput } from '@/service/auth/schema';
+import type {
+  ChangePasswordInput,
+  CreateHouseholdInput,
+  EmailCodeRequestInput,
+  EmailCodeVerifyInput,
+  JoinHouseholdInput,
+  SignupInput,
+} from '@/service/auth/schema';
 import type { InviteDto, MeDto } from '@/service/auth/type';
 
 export function getMe() {
@@ -8,6 +15,15 @@ export function getMe() {
 
 export function signup(input: SignupInput) {
   return http.post<{ id: string; email: string; name: string | null }>('/auth/signup', input);
+}
+
+/** 가입 전 이메일로 인증 코드를 보낸다. */
+export function requestEmailCode(input: EmailCodeRequestInput) {
+  return http.post<{ expiresAt: string; resendAfterSeconds: number }>('/auth/email-code', input);
+}
+
+export function verifyEmailCode(input: EmailCodeVerifyInput) {
+  return http.post<{ verified: true }>('/auth/email-code/verify', input);
 }
 
 export function changePassword(input: ChangePasswordInput) {

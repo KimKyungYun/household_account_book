@@ -35,6 +35,17 @@ export const signupSchema = z
 export type SignupFormValues = z.input<typeof signupSchema>;
 export type SignupInput = z.output<typeof signupSchema>;
 
+/** 가입 전 이메일 인증 코드 받기. */
+export const emailCodeRequestSchema = z.object({ email: emailSchema });
+export type EmailCodeRequestInput = z.infer<typeof emailCodeRequestSchema>;
+
+/** 받은 코드 확인. 숫자 여섯 자리. */
+export const emailCodeVerifySchema = z.object({
+  email: emailSchema,
+  code: z.string().trim().regex(/^\d{6}$/, '숫자 여섯 자리를 입력해 주세요.'),
+});
+export type EmailCodeVerifyInput = z.infer<typeof emailCodeVerifySchema>;
+
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, '비밀번호를 입력해 주세요.'),

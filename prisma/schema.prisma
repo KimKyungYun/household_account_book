@@ -85,6 +85,20 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+/// 가입 전 이메일 인증 코드. 이메일 하나에 한 줄 — 다시 받으면 덮어쓴다.
+/// 코드는 해시만 남긴다. 가입이 끝나면 지운다.
+model EmailVerification {
+  email      String    @id
+  codeHash   String
+  expiresAt  DateTime
+  /// 틀린 횟수. 다섯 번 틀리면 코드를 다시 받아야 한다.
+  attempts   Int       @default(0)
+  lastSentAt DateTime
+  /// 코드를 맞힌 시각. 이 시각부터 30분 안에 가입을 마쳐야 한다.
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 가구 / 구성원
 // ─────────────────────────────────────────────────────────────────

@@ -6,6 +6,33 @@
   flex-direction: column;
   gap: s.$gap-5;
 
+  // 이메일 칸과 [인증 코드 받기]를 한 줄에 둔다.
+  &__emailrow {
+    display: flex;
+    gap: s.$gap-3;
+
+    > :first-child {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__verified {
+    margin: 0;
+    color: var(--status-success);
+
+    @include t.label-small;
+  }
+
+  &__submithint {
+    min-height: 1lh;
+    margin: calc(#{s.$gap-3} * -1) 0 0;
+    color: var(--text-tertiary);
+    text-align: center;
+
+    @include t.body-small;
+  }
+
   &__consent {
     display: flex;
     flex-direction: column;
@@ -45,6 +72,7 @@
   }
 
   &__error {
+    min-height: 1lh;
     margin: 0;
     padding-inline-start: calc(18px + #{s.$gap-3});
     color: var(--status-error);

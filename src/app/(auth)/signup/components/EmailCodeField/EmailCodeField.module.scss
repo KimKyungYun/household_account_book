@@ -1,0 +1,61 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+
+.emailcodefield {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-3;
+  padding: s.$gap-4;
+  background-color: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$shape-lg;
+
+  &__lead {
+    margin: 0;
+    color: var(--text-secondary);
+    word-break: break-all;
+
+    @include t.body-small;
+
+    strong {
+      color: var(--text-primary);
+    }
+  }
+
+  &__row {
+    display: flex;
+    gap: s.$gap-3;
+
+    > :first-child {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__clock {
+    color: var(--brand);
+
+    @include a.amount-small;
+  }
+
+  &__error {
+    min-height: 1lh;
+    margin: calc(#{s.$gap-2} - #{s.$gap-3}) 0 0;
+    color: var(--status-error);
+
+    @include t.body-small;
+  }
+
+  &__help {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-2;
+    margin: 0;
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}
