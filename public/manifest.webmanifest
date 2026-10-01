@@ -1,7 +1,7 @@
 {
   "name": "모아",
   "short_name": "모아",
-  "description": "혼자, 부부, 가족이 함께 쓰는 가계부",
+  "description": "모으는 재미가 시작되는 곳, 모아 — 혼자, 부부, 가족이 함께 쓰는 가계부",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#f4ede4",

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/common/Icon';
 import Logo from '@/components/common/Logo';
+import { APP_SLOGAN } from '@/lib/brand';
 import { SIDEBAR_NAV } from '@/routes/nav';
 import { PATH } from '@/routes/paths';
 import { cn } from '@/utils/ts/cn';
@@ -23,10 +24,14 @@ export default function Sidebar() {
         href={PATH.DASHBOARD}
         aria-label="모아 — 대시보드로"
       >
-        <Logo
-          className={styles.sidebar__logo}
-          isDecorative
-        />
+        {/* 로고 아래 왼쪽에 맞춰 한 마디를 단다. 아이콘 레일(좁은 폭)에서는 로고만 남긴다. */}
+        <span className={styles.sidebar__lockup}>
+          <Logo
+            className={styles.sidebar__logo}
+            isDecorative
+          />
+          <span className={styles.sidebar__slogan}>{APP_SLOGAN}</span>
+        </span>
       </Link>
 
       <ul className={styles.sidebar__list}>

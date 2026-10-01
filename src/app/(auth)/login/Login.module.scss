@@ -19,10 +19,12 @@
     line-height: 0;
   }
 
-  &__lead {
-    color: var(--text-secondary);
+  // 로고 바로 밑 한 마디. 로고와 한 덩어리로 읽히게 바짝 붙이고 작게 둔다.
+  &__slogan {
+    margin-top: calc(#{s.$gap-2} - #{s.$gap-4});
+    color: var(--text-tertiary);
 
-    @include t.body-medium;
+    @include t.body-small;
   }
 
   &__footer {

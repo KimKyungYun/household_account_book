@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Logo from '@/components/common/Logo';
+import { APP_SLOGAN } from '@/lib/brand';
 import { PATH } from '@/routes/paths';
 import LoginForm from './components/LoginForm';
 import styles from './Login.module.scss';
@@ -12,7 +13,7 @@ export default function LoginPage() {
         <h1 className={styles.login__title}>
           <Logo height={52} />
         </h1>
-        <p className={styles.login__lead}>혼자서도, 함께여도 돈 관리가 쉬워져요.</p>
+        <p className={styles.login__slogan}>{APP_SLOGAN}</p>
       </header>
 
       <LoginForm />

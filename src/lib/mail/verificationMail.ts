@@ -1,3 +1,4 @@
+import { APP_TAGLINE } from '@/lib/brand';
 import type { MailInput } from '@/lib/mail';
 
 /**
@@ -23,6 +24,7 @@ export function verificationMail(to: string, code: string, minutes: number): Mai
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background:#ffffff;border-radius:16px;padding:32px 28px;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#1f1a15;">
           <tr><td style="font-size:22px;font-weight:700;color:#ff8a00;">모아</td></tr>
+          <tr><td style="padding-top:4px;font-size:13px;color:#8a8076;">${APP_TAGLINE}</td></tr>
           <tr><td style="padding-top:20px;font-size:16px;line-height:1.6;">가입 인증 코드예요. 가입 화면에 아래 숫자를 입력해 주세요.</td></tr>
           <tr>
             <td style="padding:24px 0;">

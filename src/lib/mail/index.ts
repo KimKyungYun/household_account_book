@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { HttpError } from '@/lib/api/httpError';
+import { APP_NAME } from '@/lib/brand';
 import { logger } from '@/lib/logger';
 import type { Transporter } from 'nodemailer';
 
@@ -9,8 +10,6 @@ import type { Transporter } from 'nodemailer';
  * 보내는 곳을 바꿀 때(예: 도메인을 사서 Resend 로 옮길 때) 이 파일만 고친다 — 부르는 쪽은
  * `sendMail` 하나만 안다.
  */
-
-const APP_NAME = '모아';
 
 let transporter: Transporter | null = null;
 

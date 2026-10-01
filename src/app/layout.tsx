@@ -3,6 +3,7 @@ import ThemeScript from '@/components/layout/ThemeScript';
 import Providers from '@/components/layout/Providers';
 import '@/styles/index.scss';
 import 'react-toastify/dist/ReactToastify.css';
+import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE, APP_TITLE } from '@/lib/brand';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
@@ -22,9 +23,14 @@ const numericFont = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '모아',
-  applicationName: '모아',
-  description: '혼자, 부부, 가족이 함께 쓰는 가계부',
+  // 공유 이미지(opengraph-image)의 주소를 절대 경로로 만들 기준. 카카오톡 등은 상대 경로를 못 읽는다.
+  metadataBase: new URL(process.env.AUTH_URL ?? 'http://localhost:4000'),
+  // 탭에는 '모아 - 모으는 재미가 시작되는 곳'. 제목을 따로 정한 화면은 '제목 · 모아' 로 보인다.
+  title: { default: APP_TITLE, template: `%s · ${APP_NAME}` },
+  applicationName: APP_NAME,
+  description: `${APP_TAGLINE}. ${APP_DESCRIPTION}`,
+  openGraph: { type: 'website', locale: 'ko_KR', title: APP_TITLE, description: APP_DESCRIPTION, siteName: APP_NAME },
+  twitter: { card: 'summary_large_image', title: APP_TITLE, description: APP_DESCRIPTION },
   manifest: '/manifest.webmanifest',
 };
 
