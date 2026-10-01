@@ -47,7 +47,6 @@ export default function HouseholdSection() {
     return (
       <Card
         title="우리 집"
-        icon="🏠"
         description="장부 이름과 함께 쓰는 사람이에요"
       >
         <SkeletonRows
@@ -69,7 +68,6 @@ export default function HouseholdSection() {
     <>
       <Card
         title="우리 집"
-        icon="🏠"
         description={rule.capacity > 1 ? `${rule.label} 장부 · 최대 ${rule.capacity}명까지 함께 쓸 수 있어요` : '혼자 쓰는 장부예요'}
       >
         <dl className={styles.householdsection}>
