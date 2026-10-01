@@ -120,6 +120,7 @@ export default function ReportPanel() {
           <CategoryIcon
             name={row.name}
             icon={row.icon}
+            parent={row.parentName ? { name: row.parentName, icon: row.parentIcon } : null}
             color={row.colorHex}
             size="sm"
           />

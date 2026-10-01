@@ -1,5 +1,6 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/utils/glass" as glass;
 @use "styles/utils/media" as media;
 
 .categorypicker {
@@ -53,5 +54,64 @@
     color: var(--text-tertiary);
 
     font-size: 10px;
+  }
+
+  // 입력칸과 같은 모양의 단추. 고른 분류를 보여 주고, 누르면 고르기 창이 열린다.
+  &__trigger {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+    width: 100%;
+    height: var(--control-height);
+    padding: 0 s.$gap-3;
+    color: var(--text-primary);
+    text-align: left;
+    border-radius: s.$shape-lg;
+    cursor: pointer;
+
+    @include glass.well;
+
+    &:focus-visible {
+      border-color: var(--border-focus);
+      box-shadow: var(--focus-ring);
+    }
+
+    &--invalid {
+      border-color: var(--status-error);
+
+      &:focus-visible {
+        box-shadow: var(--focus-ring-error);
+      }
+    }
+  }
+
+  &__value {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    gap: s.$gap-2;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+
+    @include t.body-medium;
+  }
+
+  &__valueparent {
+    color: var(--text-tertiary);
+  }
+
+  &__placeholder {
+    flex: 1;
+    padding-left: s.$gap-1;
+    color: var(--text-tertiary);
+
+    @include t.body-medium;
+  }
+
+  &__chevron {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--text-tertiary);
   }
 }

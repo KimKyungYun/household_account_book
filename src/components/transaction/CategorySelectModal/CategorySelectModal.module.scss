@@ -1,0 +1,133 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.categoryselectmodal {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-5;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-3;
+  }
+
+  &__grouphead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__groupname {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__groupactions {
+    display: flex;
+    gap: s.$gap-1;
+    margin-left: auto;
+  }
+
+  &__nochild {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+
+  // 세부 분류는 칩을 줄지어 놓는다 — 손가락 하나로 바로 누를 수 있는 크기.
+  &__children {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$gap-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__child {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-full;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &--selected {
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+
+      .categoryselectmodal__pick {
+        color: var(--primary);
+      }
+    }
+  }
+
+  &__pick {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$gap-2;
+    min-height: 40px;
+    padding: s.$gap-2 s.$gap-4;
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    border-radius: s.$shape-full;
+    cursor: pointer;
+
+    @include t.label-small;
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  // 편집 중에만 보이는 지우기. 칩 오른쪽 끝에 붙인다.
+  &__remove {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-right: s.$gap-1;
+    margin-left: calc(#{s.$gap-2} * -1);
+    color: var(--text-tertiary);
+    background: none;
+    border: 0;
+    border-radius: s.$shape-full;
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover {
+        color: var(--status-error);
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+}

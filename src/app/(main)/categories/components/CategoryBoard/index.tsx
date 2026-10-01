@@ -14,8 +14,9 @@ import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryTree } from '@/service/category';
 import type { CategoryKind } from '@/generated/prisma/enums';
 import type { CategoryNodeDto } from '@/service/category/type';
-import CategoryDeleteModal from '../CategoryDeleteModal';
-import CategoryFormModal from '../CategoryFormModal';
+import CategoryDeleteModal from '@/components/category/CategoryDeleteModal';
+import CategoryFormModal, { categoryFormKey } from '@/components/category/CategoryFormModal';
+import type { CategoryFormTarget } from '@/components/category/CategoryFormModal';
 import styles from './CategoryBoard.module.scss';
 
 const KIND_OPTIONS = [
@@ -31,23 +32,9 @@ const KIND_HINT: Record<CategoryKind, string> = {
     '계좌끼리 옮긴 돈, 카드값, 적금 납입처럼 쓴 것도 번 것도 아닌 돈이에요. 합계에서는 빠져요.',
 };
 
-type FormTarget =
-  | { mode: 'create-parent' }
-  | { mode: 'create-child'; parent: CategoryNodeDto }
-  | { mode: 'edit'; category: CategoryNodeDto };
-
-/** 폼을 대상마다 새로 마운트하기 위한 키. 앞서 열었던 값이 남지 않는다. */
-function formTargetKey(target: FormTarget | null): string {
-  if (!target) return 'form:none';
-  if (target.mode === 'create-parent') return 'create-parent';
-  if (target.mode === 'create-child') return `create-child:${target.parent.id}`;
-
-  return `edit:${target.category.id}`;
-}
-
 export default function CategoryBoard() {
   const [kind, setKind] = useState<CategoryKind>('EXPENSE');
-  const [formTarget, setFormTarget] = useState<FormTarget | null>(null);
+  const [formTarget, setFormTarget] = useState<CategoryFormTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CategoryNodeDto | null>(null);
   const queryClient = useQueryClient();
 
@@ -158,13 +145,6 @@ export default function CategoryBoard() {
                           onClick={() => setFormTarget({ mode: 'edit', category: child })}
                           title="이름 바꾸기"
                         >
-                          <CategoryIcon
-                            name={child.name}
-                            icon={child.icon}
-                            parentName={parent.name}
-                            color={parent.colorHex}
-                            size="sm"
-                          />
                           {child.name}
                         </button>
                         <span className={styles.categoryboard__childcount}>
@@ -193,7 +173,7 @@ export default function CategoryBoard() {
       </Card>
 
       <CategoryFormModal
-        key={formTargetKey(formTarget)}
+        key={categoryFormKey(formTarget)}
         target={formTarget}
         kind={kind}
         onClose={() => setFormTarget(null)}

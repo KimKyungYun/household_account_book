@@ -95,9 +95,6 @@
   }
 
   &__childname {
-    display: inline-flex;
-    align-items: center;
-    gap: s.$gap-2;
     color: var(--text-secondary);
     text-align: left;
     background: none;

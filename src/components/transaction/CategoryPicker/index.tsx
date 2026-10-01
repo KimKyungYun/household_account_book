@@ -1,16 +1,21 @@
 'use client';
 
-import { useMemo } from 'react';
-import Select from '@/components/common/Select';
+import { useMemo, useState } from 'react';
+import CategoryIcon from '@/components/common/CategoryIcon';
+import Icon from '@/components/common/Icon';
 import { categoryEmoji } from '@/utils/ts/categoryEmoji';
 import { cn } from '@/utils/ts/cn';
-import type { CategoryNodeDto, CategoryTreeDto } from '@/service/category/type';
+import type { CategoryKind } from '@/generated/prisma/enums';
+import type { CategoryTreeDto } from '@/service/category/type';
+import CategorySelectModal from '../CategorySelectModal';
 import styles from './CategoryPicker.module.scss';
 
 interface CategoryPickerProps {
   tree: readonly CategoryTreeDto[];
+  /** 지금 적는 거래의 종류. 고르기 창에서 새로 만드는 분류도 이 종류가 된다. */
+  kind: CategoryKind;
   value: string | null;
-  onChange: (categoryId: string) => void;
+  onChange: (categoryId: string | null) => void;
   /** 최근 고른 소분류 id. 실제 입력의 대부분이 여기서 끝난다. */
   recentIds: readonly string[];
   id?: string;
@@ -23,6 +28,8 @@ interface FlatCategory {
   name: string;
   icon: string | null;
   parentName: string;
+  parentIcon: string | null;
+  colorHex: string | null;
 }
 
 function flatten(tree: readonly CategoryTreeDto[]): FlatCategory[] {
@@ -31,27 +38,19 @@ function flatten(tree: readonly CategoryTreeDto[]): FlatCategory[] {
   for (const group of tree) {
     for (const parent of group.categories) {
       for (const child of parent.children) {
-        result.push({ id: child.id, name: child.name, icon: child.icon, parentName: parent.name });
+        result.push({
+          id: child.id,
+          name: child.name,
+          icon: child.icon,
+          parentName: parent.name,
+          parentIcon: parent.icon,
+          colorHex: parent.colorHex,
+        });
       }
     }
   }
 
   return result;
-}
-
-function toGroups(tree: readonly CategoryTreeDto[]) {
-  return tree
-    .flatMap((group) => group.categories)
-    .map((parent: CategoryNodeDto) => ({
-      // 묶음 이름 앞에 분류 아이콘 — 긴 목록에서 어디쯤인지 그림으로 먼저 찾는다.
-      label: `${categoryEmoji(parent.name, parent.icon)} ${parent.name}`,
-      options: parent.children.map((child) => ({
-        value: child.id,
-        // '기타'는 분류마다 있다. 고르고 나면 무엇의 기타인지 알 수 없어 부모를 붙인다.
-        label: child.name === '기타' ? `${parent.name} 기타` : child.name,
-      })),
-    }))
-    .filter((group) => group.options.length > 0);
 }
 
 const RECENT_LIMIT = 6;
@@ -61,9 +60,11 @@ const RECENT_LIMIT = 6;
  *
  * 최근 쓴 것 여섯 개를 칩으로 먼저 보여준다 — 마트 앞에서 한 손으로 넣을 때
  * 대분류를 고르고 다시 소분류를 고르는 두 단계를 거치면 입력이 끊긴다.
+ * 거기 없으면 [분류 고르기]로 창을 열어 찾고, 없는 분류는 그 창에서 바로 만든다.
  */
 export function CategoryPicker({
   tree,
+  kind,
   value,
   onChange,
   recentIds,
@@ -71,17 +72,19 @@ export function CategoryPicker({
   isInvalid = false,
   ariaDescribedBy,
 }: CategoryPickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const flat = useMemo(() => flatten(tree), [tree]);
-  const groups = useMemo(() => toGroups(tree), [tree]);
+  const byId = useMemo(() => new Map(flat.map((item) => [item.id, item])), [flat]);
 
-  const recents = useMemo(() => {
-    const byId = new Map(flat.map((item) => [item.id, item]));
-
-    return recentIds
+  const recents = useMemo(
+    () => recentIds
       .map((recentId) => byId.get(recentId))
       .filter((item): item is FlatCategory => Boolean(item))
-      .slice(0, RECENT_LIMIT);
-  }, [flat, recentIds]);
+      .slice(0, RECENT_LIMIT),
+    [byId, recentIds],
+  );
+
+  const selected = value ? byId.get(value) : undefined;
 
   return (
     <div className={styles.categorypicker}>
@@ -101,7 +104,7 @@ export function CategoryPicker({
                   className={styles.categorypicker__chipicon}
                   aria-hidden="true"
                 >
-                  {categoryEmoji(item.name, item.icon, item.parentName)}
+                  {categoryEmoji(item.name, item.icon, { name: item.parentName, icon: item.parentIcon })}
                 </span>
                 {item.name}
                 <span className={styles.categorypicker__chipparent}>{item.parentName}</span>
@@ -111,15 +114,54 @@ export function CategoryPicker({
         </ul>
       )}
 
-      <Select
+      {/* 고른 분류를 그대로 보여 주는 단추. 누르면 고르기 창이 열린다. */}
+      <button
+        type="button"
         id={id}
-        options={[]}
-        groups={groups}
-        placeholder="분류 고르기"
-        value={value ?? ''}
-        isInvalid={isInvalid}
+        className={cn(styles.categorypicker__trigger, {
+          [styles['categorypicker__trigger--invalid']]: isInvalid,
+        })}
+        aria-haspopup="dialog"
+        aria-invalid={isInvalid || undefined}
         aria-describedby={ariaDescribedBy}
-        onChange={(event) => onChange(event.target.value)}
+        onClick={() => setIsOpen(true)}
+      >
+        {selected ? (
+          <>
+            <CategoryIcon
+              name={selected.name}
+              icon={selected.icon}
+              parent={{ name: selected.parentName, icon: selected.parentIcon }}
+              color={selected.colorHex}
+              size="sm"
+            />
+            <span className={styles.categorypicker__value}>
+              <span className={styles.categorypicker__valueparent}>{selected.parentName}</span>
+              <span aria-hidden="true">›</span>
+              {selected.name}
+            </span>
+          </>
+        ) : (
+          <span className={styles.categorypicker__placeholder}>분류 고르기</span>
+        )}
+        <span
+          className={styles.categorypicker__chevron}
+          aria-hidden="true"
+        >
+          <Icon
+            name="chevronRight"
+            size={16}
+          />
+        </span>
+      </button>
+
+      <CategorySelectModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        tree={tree}
+        kind={kind}
+        value={value}
+        onChange={onChange}
       />
     </div>
   );

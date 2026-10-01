@@ -11,6 +11,9 @@ export interface CategoryShareDto {
   colorHex: string | null;
   /** 사용자가 정한 아이콘(이모지). 없으면 화면이 이름으로 골라 준다(categoryEmoji). */
   icon: string | null;
+  /** 소분류라면 상위 분류 이름·아이콘. 소분류 칩은 상위 분류의 아이콘을 따른다. 대분류면 null. */
+  parentName: string | null;
+  parentIcon: string | null;
   amount: number;
   /** 0~1 */
   share: number;

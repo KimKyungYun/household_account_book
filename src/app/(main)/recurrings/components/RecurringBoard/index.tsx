@@ -163,7 +163,7 @@ export default function RecurringBoard() {
                   {/* 분류가 없는 '옮긴 돈'은 계좌 이동 아이콘으로 선다. */}
                   <CategoryIcon
                     name={rule.category?.name ?? '계좌이동'}
-                    parentName={rule.category?.parentName}
+                    parent={rule.category?.parentName ? { name: rule.category.parentName } : null}
                   />
                   <span className={styles.recurringboard__text}>
                     <span className={styles.recurringboard__name}>

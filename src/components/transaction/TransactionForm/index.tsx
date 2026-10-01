@@ -294,6 +294,7 @@ export function TransactionForm({
               <CategoryPicker
                 id={id}
                 tree={categories.data ?? []}
+                kind={kind}
                 value={form.categoryId}
                 onChange={(categoryId) => patch({ categoryId })}
                 recentIds={recentIds}

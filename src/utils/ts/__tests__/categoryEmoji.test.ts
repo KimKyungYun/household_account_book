@@ -16,10 +16,14 @@ describe('분류 아이콘', () => {
     expect(categoryEmoji('넷플릭스 구독')).toBe('🎬');
   });
 
-  it('소분류 이름으로 못 고르면 상위 분류로 고른다', () => {
-    expect(categoryEmoji('점심', null, '식비')).toBe('🍚');
-    // 소분류 이름으로 고를 수 있으면 그쪽이 이긴다.
-    expect(categoryEmoji('택시', null, '식비')).toBe('🚗');
+  it('소분류는 자기 이름과 상관없이 상위 분류의 아이콘을 따른다', () => {
+    expect(categoryEmoji('점심', null, { name: '식비' })).toBe('🍚');
+    // 소분류 이름이 다른 분류의 낱말을 품고 있어도 상위 분류를 따른다.
+    expect(categoryEmoji('택시', null, { name: '식비' })).toBe('🍚');
+    // 소분류에 아이콘을 정해 두었어도 상위 분류를 따른다.
+    expect(categoryEmoji('카페', '☕', { name: '식비' })).toBe('🍚');
+    // 상위 분류에 정해 둔 아이콘이 있으면 그것을 쓴다.
+    expect(categoryEmoji('점심', null, { name: '식비', icon: '🍜' })).toBe('🍜');
   });
 
   it('못 고르면 기본 아이콘', () => {

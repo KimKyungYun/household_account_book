@@ -114,15 +114,22 @@ export async function getCategoryShares(
   const total = [...sums.values()].reduce((sum, entry) => sum + entry.amount, 0);
 
   return [...sums.entries()]
-    .map(([categoryId, entry]) => ({
-      categoryId,
-      name: byId.get(categoryId)?.name ?? '분류 없음',
-      colorHex: byId.get(categoryId)?.colorHex ?? null,
-      icon: byId.get(categoryId)?.icon ?? null,
-      amount: entry.amount,
-      share: total === 0 ? 0 : entry.amount / total,
-      prevAmount: entry.prevAmount,
-    }))
+    .map(([categoryId, entry]) => {
+      const category = byId.get(categoryId);
+      const parent = category?.parentId ? byId.get(category.parentId) : undefined;
+
+      return {
+        categoryId,
+        name: category?.name ?? '분류 없음',
+        colorHex: category?.colorHex ?? null,
+        icon: category?.icon ?? null,
+        parentName: parent?.name ?? null,
+        parentIcon: parent?.icon ?? null,
+        amount: entry.amount,
+        share: total === 0 ? 0 : entry.amount / total,
+        prevAmount: entry.prevAmount,
+      };
+    })
     .filter((row) => row.amount !== 0)
     .sort((a, b) => b.amount - a.amount)
     .slice(0, limit);

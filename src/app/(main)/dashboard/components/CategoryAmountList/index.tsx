@@ -33,6 +33,7 @@ export default function CategoryAmountList({ rows, size = 'regular' }: CategoryA
           <CategoryIcon
             name={row.name}
             icon={row.icon}
+            parent={row.parentName ? { name: row.parentName, icon: row.parentIcon } : null}
             size={size === 'compact' ? 'sm' : 'md'}
             className={styles.categoryamountlist__icon}
           />

@@ -13,6 +13,12 @@ export const categoryTreeQuerySchema = z.object({
 });
 export type CategoryTreeQuery = z.infer<typeof categoryTreeQuerySchema>;
 
+/**
+ * 대분류 아이콘(이모지 하나). null 이면 이름으로 골라 준다. 소분류는 대분류를 따르므로 저장하지 않는다.
+ * 이모지 하나가 여러 코드 포인트(피부색·결합 문자)로 이루어질 수 있어 길이를 넉넉히 둔다.
+ */
+const iconSchema = z.string().trim().min(1).max(16, '아이콘은 이모지 하나만 고를 수 있어요.').nullable().optional();
+
 const nameSchema = z
   .string()
   .trim()
@@ -30,6 +36,7 @@ export const createCategorySchema = z.object({
     .nullable()
     .optional(),
   defaultSplitMode: splitModeSchema.nullable().optional(),
+  icon: iconSchema,
 });
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 
@@ -41,6 +48,7 @@ export const updateCategorySchema = z.object({
     .nullable()
     .optional(),
   defaultSplitMode: splitModeSchema.nullable().optional(),
+  icon: iconSchema,
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().min(0).optional(),
 });

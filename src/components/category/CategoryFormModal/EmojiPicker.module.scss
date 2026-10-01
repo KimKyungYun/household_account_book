@@ -1,0 +1,52 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.emojipicker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: s.$gap-2;
+
+  &__option {
+    display: inline-grid;
+    place-items: center;
+    aspect-ratio: 1;
+    min-height: 40px;
+    font-size: 20px;
+    line-height: 1;
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-lg;
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    // 자동은 그림 아래에 글자를 달아 다른 칸과 갈라 보이게 한다.
+    &--auto {
+      grid-column: span 2;
+      grid-auto-flow: column;
+      gap: s.$gap-2;
+      aspect-ratio: auto;
+    }
+
+    &--selected {
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+  }
+
+  &__autolabel {
+    color: var(--text-secondary);
+
+    @include t.label-small;
+  }
+}

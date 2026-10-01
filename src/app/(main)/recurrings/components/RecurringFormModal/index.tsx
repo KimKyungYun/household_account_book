@@ -277,6 +277,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
               <CategoryPicker
                 id={id}
                 tree={categories.data ?? []}
+                kind={kind}
                 value={form.categoryId}
                 onChange={(categoryId) => patch({ categoryId })}
                 recentIds={recentIds}

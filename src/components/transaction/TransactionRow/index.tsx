@@ -27,7 +27,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
         {/* 분류가 없는 '옮긴 돈'은 계좌 이동 아이콘으로 선다. */}
         <CategoryIcon
           name={transaction.category?.name ?? '계좌이동'}
-          parentName={transaction.category?.parentName}
+          parent={transaction.category?.parentName ? { name: transaction.category.parentName } : null}
           color={transaction.category?.colorHex}
         />
         <span className={styles.transactionrow__main}>

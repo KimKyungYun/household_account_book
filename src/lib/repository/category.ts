@@ -76,7 +76,14 @@ export async function getCategoryTree(
 
 export async function createCategory(
   householdId: string,
-  input: { name: string; kind: CategoryKind; parentId?: string | null; colorHex?: string | null; defaultSplitMode?: SplitMode | null },
+  input: {
+    name: string;
+    kind: CategoryKind;
+    parentId?: string | null;
+    colorHex?: string | null;
+    icon?: string | null;
+    defaultSplitMode?: SplitMode | null;
+  },
 ) {
   let level = 1;
 
@@ -111,6 +118,8 @@ export async function createCategory(
       kind: input.kind,
       name: input.name,
       colorHex: input.colorHex ?? null,
+      // 소분류는 대분류의 아이콘을 따른다 — 자기 아이콘을 두지 않는다.
+      icon: level === 1 ? input.icon ?? null : null,
       defaultSplitMode: input.defaultSplitMode ?? null,
       sortOrder: (last?.sortOrder ?? -1) + 1,
     },
@@ -121,7 +130,14 @@ export async function createCategory(
 export async function updateCategory(
   householdId: string,
   id: string,
-  input: { name?: string; colorHex?: string | null; defaultSplitMode?: SplitMode | null; isActive?: boolean; sortOrder?: number },
+  input: {
+    name?: string;
+    colorHex?: string | null;
+    icon?: string | null;
+    defaultSplitMode?: SplitMode | null;
+    isActive?: boolean;
+    sortOrder?: number;
+  },
 ) {
   const current = await prisma.category.findFirst({
     where: { id, householdId },
@@ -147,6 +163,8 @@ export async function updateCategory(
     data: {
       ...(input.name === undefined ? {} : { name: input.name }),
       ...(input.colorHex === undefined ? {} : { colorHex: input.colorHex }),
+      // 소분류 아이콘은 받지 않는다. 대분류를 따라간다.
+      ...(input.icon === undefined || current.level !== 1 ? {} : { icon: input.icon }),
       ...(input.defaultSplitMode === undefined ? {} : { defaultSplitMode: input.defaultSplitMode }),
       ...(input.isActive === undefined ? {} : { isActive: input.isActive, archivedAt: input.isActive ? null : new Date() }),
       ...(input.sortOrder === undefined ? {} : { sortOrder: input.sortOrder }),
