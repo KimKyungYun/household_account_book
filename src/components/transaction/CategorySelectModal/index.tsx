@@ -95,7 +95,7 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
         onClose={close}
         title="분류 고르기"
         description={isEditing
-          ? '칩을 누르면 이름을 바꾸고, ✕ 를 누르면 지워요.'
+          ? '칩을 누르면 이름을 바꾸고, ✕ 를 누르면 지워요. 처음부터 있던 분류는 지울 수 없어요.'
           : '고르면 바로 거래에 적혀요.'}
         size="lg"
         footer={
@@ -200,7 +200,8 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
                             {child.name}
                           </button>
 
-                          {isEditing && (
+                          {/* 기본 분류는 지울 수 없다(이름만 바꾼다). */}
+                          {isEditing && !child.isSystem && (
                             <button
                               type="button"
                               className={styles.categoryselectmodal__remove}

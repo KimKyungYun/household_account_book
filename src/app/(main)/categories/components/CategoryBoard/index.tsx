@@ -150,13 +150,16 @@ export default function CategoryBoard() {
                         <span className={styles.categoryboard__childcount}>
                           {child.transactionCount === 0 ? '' : `${child.transactionCount}건`}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setDeleteTarget(child)}
-                        >
-                          지우기
-                        </Button>
+                        {/* 기본 분류는 지울 수 없다(이름만 바꾼다). 누르면 거절당할 단추는 두지 않는다. */}
+                        {!child.isSystem && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeleteTarget(child)}
+                          >
+                            지우기
+                          </Button>
+                        )}
                       </li>
                     ))}
                     {parent.children.length === 0 && (
