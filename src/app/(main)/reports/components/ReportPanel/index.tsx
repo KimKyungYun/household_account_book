@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
 import EmptyState from '@/components/common/EmptyState';
@@ -261,13 +262,15 @@ export default function ReportPanel() {
             isPadded={false}
           />
         ) : (
-          <Table
-            caption={`${formatYearMonthLabel(yearMonth)} 카테고리별 지출`}
-            columns={categoryColumns}
-            rows={categories.data ?? []}
-            getRowKey={(row) => row.categoryId}
-            emptyContent="이 달 지출이 없습니다."
-          />
+          <Reveal>
+            <Table
+              caption={`${formatYearMonthLabel(yearMonth)} 카테고리별 지출`}
+              columns={categoryColumns}
+              rows={categories.data ?? []}
+              getRowKey={(row) => row.categoryId}
+              emptyContent="이 달 지출이 없습니다."
+            />
+          </Reveal>
         )}
       </Card>
 
@@ -281,12 +284,14 @@ export default function ReportPanel() {
             isPadded={false}
           />
         ) : (
-          <Table
-            caption={`${formatYearMonthLabel(yearMonth)} 구성원별 수입·지출`}
-            columns={memberColumns}
-            rows={memberStats.data ?? []}
-            getRowKey={(row) => row.memberId}
-          />
+          <Reveal>
+            <Table
+              caption={`${formatYearMonthLabel(yearMonth)} 구성원별 수입·지출`}
+              columns={memberColumns}
+              rows={memberStats.data ?? []}
+              getRowKey={(row) => row.memberId}
+            />
+          </Reveal>
         )}
       </Card>
 

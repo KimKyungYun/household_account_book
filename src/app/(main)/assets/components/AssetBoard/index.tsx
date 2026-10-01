@@ -7,13 +7,14 @@ import Amount from '@/components/common/Amount';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import ProgressBar from '@/components/common/ProgressBar';
 import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
-import { useCountUp } from '@/hooks/useCountUp';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { quietCategoryAxis, quietValueAxis, useBaseOption } from '@/components/common/CustomEcharts/useBaseOption';
@@ -55,7 +56,6 @@ export default function AssetBoard() {
   });
 
   const total = data?.totalBalance ?? 0;
-  const countedTotal = useCountUp(total);
 
   const removal = useMutation({
     mutationFn: (id: string) => deleteAsset(id),
@@ -152,11 +152,11 @@ export default function AssetBoard() {
           </Button>
         }
       >
-        <div className={styles.assetboard__summary}>
+        <Reveal className={styles.assetboard__summary}>
           <p className={styles.assetboard__total}>
             <span className={styles.assetboard__totallabel}>전체</span>
-            <Amount
-              value={countedTotal}
+            <CountUpAmount
+              value={total}
               tone="income"
               size="hero"
             />
@@ -170,7 +170,7 @@ export default function AssetBoard() {
               /> 넣었습니다.
             </p>
           )}
-        </div>
+        </Reveal>
       </Card>
 
       {points.some((point) => point.balance !== 0) && (

@@ -4,11 +4,20 @@
 .skeleton {
   display: block;
   flex-shrink: 0;
-  background-color: var(--surface-muted);
+  background-color: var(--skeleton-base);
+
+  // 빛 한 줄기가 왼쪽에서 오른쪽으로 지나간다. 배경을 화면(viewport)에 고정해 두어
+  // 화면의 모든 스켈레톤이 **같은 빛 하나**를 나눠 비춘다 — 칸마다 따로 깜빡이면 산만하다.
+  // (iOS Safari 는 fixed 를 무시해 칸마다 따로 흐르지만 모양은 같다.)
+  background-image: linear-gradient(90deg, transparent 0%, var(--skeleton-shine) 50%, transparent 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 40vw 100%;
   border-radius: s.$shape-sm;
-  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
 
   @include media.reduced-motion {
+    background-image: none;
     animation: none;
   }
 
@@ -16,14 +25,13 @@
     border-radius: s.$shape-full;
   }
 
-  @keyframes skeleton-pulse {
-    0%,
-    100% {
-      opacity: 1;
+  @keyframes skeleton-shimmer {
+    from {
+      background-position: -40vw 0;
     }
 
-    50% {
-      opacity: 0.45;
+    to {
+      background-position: 100vw 0;
     }
   }
 }
@@ -67,7 +75,7 @@
   // 칸 높이는 MonthGrid 와 맞춘다 — 데이터가 들어와도 카드 높이가 튀지 않는다.
   &--compact {
     .skeleton-calendar__cell {
-      min-height: 46px;
+      min-height: 52px;
 
       @include media.tablet-up {
         min-height: 62px;
@@ -81,11 +89,11 @@
   }
 
   &__cell {
-    min-height: 44px;
+    min-height: 56px;
     border-radius: s.$shape-lg;
 
     @include media.tablet-up {
-      min-height: 76px;
+      min-height: 84px;
     }
   }
 }

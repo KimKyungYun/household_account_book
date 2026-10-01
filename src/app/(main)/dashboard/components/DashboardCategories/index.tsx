@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import Amount from '@/components/common/Amount';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
 import CustomEcharts from '@/components/common/CustomEcharts';
 import { paletteColor } from '@/components/common/CustomEcharts/chartColors';
 import EmptyState from '@/components/common/EmptyState';
@@ -36,10 +37,12 @@ export default function DashboardCategories() {
     // 같은 값을 한 번 더 띄우면 고리와 가운데 총액만 덮는다.
     tooltip: { show: false },
     textStyle: { fontFamily: 'Pretendard, system-ui, sans-serif' },
-    animation: false,
     series: [
       {
         type: 'pie',
+        // 보기만 하는 고리다. 마우스·터치에 반응하지 않는다 — 조각이 튀어나오거나 커서가
+        // 바뀌면 누를 수 있는 것처럼 읽히는데, 눌러도 할 일이 없다. 수치는 옆 범례가 말한다.
+        silent: true,
         // 얇은 고리로 두고 가운데를 비운다 — 그 자리에 총액을 넣는다.
         radius: ['82%', '96%'],
         center: ['50%', '50%'],
@@ -113,7 +116,7 @@ export default function DashboardCategories() {
       title="분류별 지출"
       description="이번 달 지출을 큰 분류별로 보여줍니다."
     >
-      <div className={styles.dashboardcategories}>
+      <Reveal className={styles.dashboardcategories}>
         <div className={styles.dashboardcategories__chart}>
           <CustomEcharts
             option={option}
@@ -165,7 +168,7 @@ export default function DashboardCategories() {
             </li>
           ))}
         </ul>
-      </div>
+      </Reveal>
     </Card>
   );
 }

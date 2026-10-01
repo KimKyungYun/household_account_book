@@ -104,7 +104,7 @@ export function SkeletonCalendar({ isCompact = false }: { isCompact?: boolean })
 }
 
 /** 막대 차트의 윤곽. 높이는 실제 차트와 맞춰 받는다. */
-export function SkeletonChart({ height = 220, bars = 6 }: { height?: number; bars?: number }) {
+export function SkeletonChart({ height = 220, bars = 6 }: { height?: number | string; bars?: number }) {
   return (
     <div
       className={styles['skeleton-chart']}

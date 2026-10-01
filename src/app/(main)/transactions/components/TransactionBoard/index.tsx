@@ -3,9 +3,9 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
@@ -244,7 +244,7 @@ export default function TransactionBoard() {
             <dt>수입</dt>
             <dd>
               {isPending ? <SummarySkeleton /> : (
-                <Amount
+                <CountUpAmount
                   value={data?.summary.incomeTotal ?? 0}
                   tone="income"
                   size="large"
@@ -256,7 +256,7 @@ export default function TransactionBoard() {
             <dt>지출</dt>
             <dd>
               {isPending ? <SummarySkeleton /> : (
-                <Amount
+                <CountUpAmount
                   value={data?.summary.expenseTotal ?? 0}
                   tone="expense"
                   size="large"
@@ -268,7 +268,7 @@ export default function TransactionBoard() {
             <dt>남은 돈</dt>
             <dd>
               {isPending ? <SummarySkeleton /> : (
-                <Amount
+                <CountUpAmount
                   value={data?.summary.net ?? 0}
                   size="large"
                 />

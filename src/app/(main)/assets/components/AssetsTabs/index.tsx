@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Amount from '@/components/common/Amount';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import Skeleton from '@/components/common/Skeleton';
-import { useCountUp } from '@/hooks/useCountUp';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getAssets } from '@/service/asset';
 import { getLoans } from '@/service/loan';
@@ -40,7 +41,7 @@ export default function AssetsTabs() {
   /** 순자산에 넣기로 한 대출만. 뺀 것은 아래 '갚을 돈' 줄에서 따로 말한다. */
   const owed = loans.data?.totalOutstanding ?? 0;
   const excludedCount = loans.data?.excludedCount ?? 0;
-  const net = useCountUp(saved - owed);
+  const net = saved - owed;
 
   const isPending = assets.isPending || loans.isPending;
 
@@ -77,8 +78,8 @@ export default function AssetsTabs() {
               : '모은 돈에서 갚을 돈을 뺀 금액입니다.'
           }
         >
-          <div className={styles.assetstabs__summary}>
-            <Amount
+          <Reveal className={styles.assetstabs__summary}>
+            <CountUpAmount
               value={net}
               tone={net < 0 ? 'expense' : 'income'}
               size="hero"
@@ -117,7 +118,7 @@ export default function AssetsTabs() {
                 </div>
               )}
             </dl>
-          </div>
+          </Reveal>
         </Card>
       )}
 

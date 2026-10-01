@@ -2,11 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import Amount from '@/components/common/Amount';
 import Card from '@/components/common/Card';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import MoneyFlow from '@/components/common/MoneyFlow';
+import Reveal from '@/components/common/Reveal';
 import Skeleton from '@/components/common/Skeleton';
-import { useCountUp } from '@/hooks/useCountUp';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryShares, getOverview } from '@/service/stats';
 import { currentYearMonth, formatYearMonthLabel } from '@/utils/ts/formatDate';
@@ -36,9 +36,6 @@ export default function DashboardStats() {
   const income = data?.income ?? 0;
   const expense = data?.expense ?? 0;
   const net = data?.net ?? 0;
-
-  // 이 화면의 결론은 남은 돈이다. 0 에서 올라가며 눈이 그 자리에 머문다.
-  const countedNet = useCountUp(net);
 
   const segments = useMemo(
     () =>
@@ -98,12 +95,13 @@ export default function DashboardStats() {
       title={formatYearMonthLabel(yearMonth)}
       description={DESCRIPTION}
     >
-      <div className={styles.dashboardstats}>
+      <Reveal className={styles.dashboardstats}>
         {/* 이 달의 한 문장. 번 것에서 쓴 것을 뺀 값이 이 화면의 결론이다. */}
         <p className={styles.dashboardstats__hero}>
           <span className={styles.dashboardstats__herolabel}>{net < 0 ? '모자란 돈' : '남은 돈'}</span>
-          <Amount
-            value={countedNet}
+          {/* 이 화면의 결론은 남은 돈이다. 0 에서 올라가며 눈이 그 자리에 머문다. */}
+          <CountUpAmount
+            value={net}
             tone={net < 0 ? 'expense' : 'income'}
             size="hero"
           />
@@ -128,7 +126,7 @@ export default function DashboardStats() {
               번 돈
             </dt>
             <dd>
-              <Amount
+              <CountUpAmount
                 value={income}
                 tone="income"
                 size="medium"
@@ -146,7 +144,7 @@ export default function DashboardStats() {
               쓴 돈
             </dt>
             <dd>
-              <Amount
+              <CountUpAmount
                 value={expense}
                 tone="expense"
                 size="medium"
@@ -160,7 +158,7 @@ export default function DashboardStats() {
             </dd>
           </div>
         </dl>
-      </div>
+      </Reveal>
     </Card>
   );
 }

@@ -2,6 +2,7 @@
 @use "styles/tokens/typography" as t;
 @use "styles/utils/loading" as loading;
 @use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
 
 .budgetboard {
   &__head {
@@ -41,6 +42,8 @@
     margin-top: s.$gap-5;
     padding-top: s.$gap-5;
 
+    @include loading.fades;
+
     &--stale {
       @include loading.stale;
     }
@@ -66,12 +69,17 @@
   }
 
   &__body {
+    @include loading.fades;
+
     &--stale {
       @include loading.stale;
     }
   }
 
   &__list {
+    // 데이터가 들어오면 줄이 위에서부터 차례로 뜬다. 다시 받아 와도 같은 줄은 그대로다.
+    @include motion.enter-stagger("> li", 6px);
+
     display: flex;
     flex-direction: column;
     gap: s.$gap-5;

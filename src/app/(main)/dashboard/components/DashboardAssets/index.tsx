@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import EmptyState from '@/components/common/EmptyState';
 import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
@@ -70,10 +72,10 @@ export default function DashboardAssets() {
           description="적금이나 주식처럼 모으는 통을 만들면 여기에 쌓인 금액이 보입니다."
         />
       ) : (
-        <div className={styles.dashboardassets}>
+        <Reveal className={styles.dashboardassets}>
           <p className={styles.dashboardassets__total}>
             <span className={styles.dashboardassets__totallabel}>전체</span>
-            <Amount
+            <CountUpAmount
               value={data?.totalBalance ?? 0}
               tone="income"
               size="display"
@@ -106,7 +108,7 @@ export default function DashboardAssets() {
               </li>
             ))}
           </ul>
-        </div>
+        </Reveal>
       )}
     </Card>
   );

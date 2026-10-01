@@ -1,16 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { prefersMotion } from '@/utils/ts/prefersMotion';
 
 /** 감속 곡선. 끝에서 천천히 멎어야 숫자가 '멈췄다'고 느껴진다. */
 function easeOut(t: number): number {
   return 1 - (1 - t) ** 3;
-}
-
-function prefersMotion(): boolean {
-  if (typeof window === 'undefined') return false;
-
-  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 /**
@@ -22,6 +17,10 @@ function prefersMotion(): boolean {
  * 세는 상태를 금액이 아니라 **진행도(0~1)** 로 들고 있는다. 그래야 값이 바뀌어도
  * 효과를 다시 걸 필요가 없고, effect 안에서 동기적으로 setState 하지 않아도 된다.
  * `prefers-reduced-motion` 이면 진행도가 1 로 시작해 목표값이 바로 보인다.
+ *
+ * 세기는 **마운트할 때** 시작한다. 데이터를 기다리는 컴포넌트 꼭대기에서 부르면
+ * 응답이 0.8초보다 늦을 때 이미 다 센 뒤라 숫자가 그냥 뜬다. 데이터가 온 뒤에야
+ * 그려지는 자리에서 쓴다 — 금액이면 `CountUpAmount` 가 그 일을 한다.
  */
 export function useCountUp(target: number, duration = 800): number {
   const [progress, setProgress] = useState(() => (prefersMotion() ? 0 : 1));

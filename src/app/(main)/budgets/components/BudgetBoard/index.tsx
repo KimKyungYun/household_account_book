@@ -7,6 +7,7 @@ import Amount from '@/components/common/Amount';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import Icon from '@/components/common/Icon';
 import MoneyInput from '@/components/common/MoneyInput';
 import ProgressBar from '@/components/common/ProgressBar';
@@ -159,14 +160,14 @@ export default function BudgetBoard() {
           <div className={cn(styles.budgetboard__totals, { [styles['budgetboard__totals--stale']]: isPlaceholderData })}>
             <div className={styles.budgetboard__total}>
               <span className={styles.budgetboard__totallabel}>예산</span>
-              <Amount
+              <CountUpAmount
                 value={data.totals.budgetAmount}
                 size="large"
               />
             </div>
             <div className={styles.budgetboard__total}>
               <span className={styles.budgetboard__totallabel}>지출</span>
-              <Amount
+              <CountUpAmount
                 value={data.totals.actualAmount}
                 tone="expense"
                 size="large"
@@ -174,7 +175,7 @@ export default function BudgetBoard() {
             </div>
             <div className={styles.budgetboard__total}>
               <span className={styles.budgetboard__totallabel}>남은 예산</span>
-              <Amount
+              <CountUpAmount
                 value={data.totals.remaining}
                 tone={data.totals.remaining < 0 ? 'expense' : 'income'}
                 size="large"

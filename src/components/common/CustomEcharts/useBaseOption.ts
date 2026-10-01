@@ -49,9 +49,7 @@ export function useBaseOption(): { colors: ChartColors; base: EChartsOption } {
         valueFormatter: (value) => `${formatMoney(Number(value))}원`,
       },
       textStyle: { fontFamily: 'Pretendard, system-ui, sans-serif' },
-      // 막대가 자라는 연출은 이 앱에 필요 없다. 숫자를 바로 읽는 쪽이 낫고,
-      // 애니메이션이 없으면 다시 그릴 때 중간 상태로 멈출 일도 없다.
-      animation: false,
+      // 움직임은 EchartsCore 가 정한다 — 처음 그릴 때만 켜고 그 뒤로는 끈다.
     }),
     [colors],
   );

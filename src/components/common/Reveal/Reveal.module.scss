@@ -1,0 +1,6 @@
+@use "styles/utils/motion" as motion;
+
+.reveal {
+  // 카드 자체의 등장(10px)보다 덜 움직인다. 카드 안에서 한 번 더 크게 뜨면 출렁인다.
+  @include motion.enter(0s, 6px);
+}

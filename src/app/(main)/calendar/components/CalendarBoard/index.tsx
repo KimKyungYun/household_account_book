@@ -3,9 +3,10 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import Amount from '@/components/common/Amount';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import Reveal from '@/components/common/Reveal';
+import CountUpAmount from '@/components/common/CountUpAmount';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import Modal from '@/components/common/Modal';
@@ -121,14 +122,14 @@ export default function CalendarBoard() {
         {daily.isPending ? (
           <SkeletonCalendar />
         ) : (
-          <div
+          <Reveal
             className={cn(styles.calendarboard__month, { [styles['calendarboard__month--stale']]: daily.isPlaceholderData })}
             aria-busy={daily.isPlaceholderData}
           >
             <div className={styles.calendarboard__summary}>
               <span className={styles.calendarboard__summaryitem}>
                 번 돈
-                <Amount
+                <CountUpAmount
                   value={monthTotal.income}
                   tone="income"
                   size="medium"
@@ -137,7 +138,7 @@ export default function CalendarBoard() {
               </span>
               <span className={styles.calendarboard__summaryitem}>
                 쓴 돈
-                <Amount
+                <CountUpAmount
                   value={monthTotal.expense}
                   tone="expense"
                   size="medium"
@@ -153,7 +154,7 @@ export default function CalendarBoard() {
               selected={selected}
               onSelect={setSelected}
             />
-          </div>
+          </Reveal>
         )}
       </Card>
 
