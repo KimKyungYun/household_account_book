@@ -17,3 +17,14 @@ export function createHousehold(input: CreateHouseholdInput) {
 export function joinHousehold(input: JoinHouseholdInput) {
   return http.post<{ householdId: string; memberId: string }>('/household/join', input);
 }
+
+/**
+ * Auth.js 세션 엔드포인트를 한 번 불러 세션 쿠키를 새로 쓰게 한다.
+ *
+ * 가구 ID 는 찾은 뒤에만 토큰에 캐시되는데(lib/auth.ts), API 핸들러 안의 `auth()` 는
+ * 쿠키를 다시 쓰지 못한다. 이 엔드포인트는 쓴다 — 예전 토큰이나 온보딩 직후 토큰이
+ * 여기서 한 번 갱신되면 그 뒤 모든 요청에서 가구 조회가 빠진다.
+ */
+export function refreshSessionToken() {
+  return http.get<unknown>('/auth/session');
+}

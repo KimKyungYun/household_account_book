@@ -2,6 +2,7 @@ import { ZodError } from 'zod';
 import { auth } from '@/lib/auth';
 import { badRequest, HttpError, unauthorized } from '@/lib/api/httpError';
 import { logger } from '@/lib/logger';
+import { runWithTiming, SLOW_REQUEST_MS, toServerTimingHeader } from '@/lib/api/serverTiming';
 import type { NextRequest } from 'next/server';
 import type { ZodType } from 'zod';
 
@@ -12,6 +13,7 @@ import type { ZodType } from 'zod';
  *  2. **테넌트 키를 세션에서만 주입** — householdId 를 요청에서 받지 않는다
  *  3. zod 파싱 — 실패 시 400 + fieldErrors (react-hook-form 에 그대로 꽂힌다)
  *  4. 에러 → HTTP 매핑
+ *  5. 인증·DB·전체 시간을 `Server-Timing` 헤더로 (lib/api/serverTiming.ts)
  *
  * 2번이 이 앱의 최대 보안 지점이다. 핸들러 재량에 맡기지 않고 컨텍스트로 강제한다.
  */
@@ -112,33 +114,79 @@ function toResponse(error: unknown): Response {
   return Response.json({ code: 'INTERNAL', message: '오류가 발생했습니다.' }, { status: 500 });
 }
 
+function toResult(result: unknown): Response {
+  if (result instanceof Response) return result;
+  if (result === undefined) return new Response(null, { status: 204 });
+
+  return Response.json(result);
+}
+
+/**
+ * 세 가지 문이 공유하는 바깥 껍데기 — 에러 → 응답 변환과 시간 측정.
+ *
+ * `authenticate` 가 끝난 시점을 따로 재서 인증에 든 시간과 나머지를 가른다.
+ * 응답이 성공이든 에러든 `Server-Timing` 을 붙이고, 느린 요청은 로그로 남긴다.
+ */
+function respond<TAuth>(
+  request: NextRequest,
+  authenticate: () => Promise<TAuth>,
+  run: (auth: TAuth) => Promise<unknown>,
+): Promise<Response> {
+  return runWithTiming(async () => {
+    const startedAt = performance.now();
+    let authMs = 0;
+
+    let response: Response;
+    try {
+      const auth = await authenticate();
+      authMs = performance.now() - startedAt;
+      response = toResult(await run(auth));
+    } catch (error) {
+      response = toResponse(error);
+    }
+
+    const totalMs = performance.now() - startedAt;
+    const header = toServerTimingHeader({ authMs, totalMs });
+    // 엑셀처럼 핸들러가 직접 만든 응답은 헤더가 잠겨 있을 수 있다. 측정 실패로 응답을 깨지 않는다.
+    try {
+      response.headers.set('Server-Timing', header);
+    } catch {
+      /* 헤더를 못 붙여도 응답은 그대로 보낸다 */
+    }
+
+    if (totalMs >= SLOW_REQUEST_MS) {
+      logger.warn(`느린 요청 ${request.method} ${request.nextUrl.pathname}`, header);
+    }
+
+    return response;
+  });
+}
+
+async function requireUser() {
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id || !user.email) throw unauthorized();
+
+  return { ...user, id: user.id, email: user.email };
+}
+
 export function withHandler<TBody = undefined, TQuery = undefined, TParams = undefined>(
   schemas: Schemas<TBody, TQuery, TParams>,
   handler: (ctx: RequestContext, parsed: Parsed<TBody, TQuery, TParams>) => Promise<unknown>,
 ) {
-  return async (request: NextRequest, args: RouteArgs = {}): Promise<Response> => {
-    try {
-      const session = await auth();
-      const user = session?.user;
-      if (!user?.id || !user.email) throw unauthorized();
+  return (request: NextRequest, args: RouteArgs = {}): Promise<Response> =>
+    respond(request, requireUser, async (user) => {
       if (!user.householdId || !user.memberId) {
         throw new HttpError('FORBIDDEN', '가구 설정을 먼저 마쳐 주세요.');
       }
 
       const parsed = await parse(request, args, schemas);
-      const result = await handler(
+
+      return handler(
         { userId: user.id, email: user.email, householdId: user.householdId, memberId: user.memberId },
         parsed,
       );
-
-      if (result instanceof Response) return result;
-      if (result === undefined) return new Response(null, { status: 204 });
-
-      return Response.json(result);
-    } catch (error) {
-      return toResponse(error);
-    }
-  };
+    });
 }
 
 /** 온보딩처럼 가구가 아직 없는 상태에서도 불려야 하는 요청. */
@@ -146,26 +194,15 @@ export function withPreOnboardingHandler<TBody = undefined, TQuery = undefined, 
   schemas: Schemas<TBody, TQuery, TParams>,
   handler: (ctx: PreOnboardingContext, parsed: Parsed<TBody, TQuery, TParams>) => Promise<unknown>,
 ) {
-  return async (request: NextRequest, args: RouteArgs = {}): Promise<Response> => {
-    try {
-      const session = await auth();
-      const user = session?.user;
-      if (!user?.id || !user.email) throw unauthorized();
-
+  return (request: NextRequest, args: RouteArgs = {}): Promise<Response> =>
+    respond(request, requireUser, async (user) => {
       const parsed = await parse(request, args, schemas);
-      const result = await handler(
+
+      return handler(
         { userId: user.id, email: user.email, householdId: user.householdId, memberId: user.memberId },
         parsed,
       );
-
-      if (result instanceof Response) return result;
-      if (result === undefined) return new Response(null, { status: 204 });
-
-      return Response.json(result);
-    } catch (error) {
-      return toResponse(error);
-    }
-  };
+    });
 }
 
 /** 로그인 전에 열려 있어야 하는 요청(회원가입). 세션을 보지 않는다. */
@@ -173,17 +210,6 @@ export function withPublicHandler<TBody = undefined, TQuery = undefined, TParams
   schemas: Schemas<TBody, TQuery, TParams>,
   handler: (parsed: Parsed<TBody, TQuery, TParams>) => Promise<unknown>,
 ) {
-  return async (request: NextRequest, args: RouteArgs = {}): Promise<Response> => {
-    try {
-      const parsed = await parse(request, args, schemas);
-      const result = await handler(parsed);
-
-      if (result instanceof Response) return result;
-      if (result === undefined) return new Response(null, { status: 204 });
-
-      return Response.json(result);
-    } catch (error) {
-      return toResponse(error);
-    }
-  };
+  return (request: NextRequest, args: RouteArgs = {}): Promise<Response> =>
+    respond(request, async () => undefined, async () => handler(await parse(request, args, schemas)));
 }

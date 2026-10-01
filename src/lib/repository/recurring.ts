@@ -5,6 +5,7 @@ import { badRequest, notFound } from '@/lib/api/httpError';
 import { logger } from '@/lib/logger';
 import { nextOccurrence, occurrencesBetween } from '@/lib/domain/recurring';
 import { currentYearMonth, monthEnd, todayInSeoul } from '@/utils/ts/formatDate';
+import type { Prisma } from '@/generated/prisma/client';
 import type { RecurrenceRule } from '@/lib/domain/recurring';
 import type { CreateRecurringInput, UpdateRecurringInput } from '@/service/recurring/schema';
 import type { RecurringRuleDto } from '@/service/recurring/type';
@@ -182,6 +183,81 @@ export interface BackfillResult {
   skipped: number;
 }
 
+type BackfillRule = Pick<
+  Prisma.RecurringRuleGetPayload<{ select: typeof RULE_SELECT }>,
+  'id' | 'memberId' | 'type' | 'amount' | 'categoryId' | 'paymentMethodId' | 'splitMode' | 'assetId' | 'memo'
+>;
+
+/**
+ * 규칙 하나의 회차들을 **트랜잭션 한 번에** 만든다. 새로 만든 회차의 날짜를 돌려준다.
+ *
+ * 회차마다 트랜잭션을 따로 열면 회차 × 5번(BEGIN·회차·거래·연결·COMMIT)을 왕복한다.
+ * 몇 달 밀린 규칙이면 수십 번이다. 여기서는 회차 수와 무관하게 여섯 번이면 끝난다.
+ *
+ *  1. 이미 있는 회차(만들었거나 사용자가 지운 것)를 한 번에 읽어 거른다
+ *  2. 남은 날짜의 거래를 한 번에 만든다
+ *  3. 거래 ID 를 단 회차를 한 번에 넣는다
+ *  4. lastGeneratedOn 을 옮긴다
+ *
+ * 부부가 동시에 들어와 1과 3 사이에 상대가 같은 회차를 넣으면, 3이 (ruleId, occurrenceDate)
+ * 유니크에 걸려 **트랜잭션 전체가 롤백**된다. 2에서 만든 거래도 함께 사라지므로 한 벌만 남는다.
+ */
+async function createOccurrences(
+  ctx: { householdId: string; userId: string },
+  rule: BackfillRule,
+  dates: string[],
+): Promise<string[]> {
+  const lastDate = dates[dates.length - 1];
+
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.recurringOccurrence.findMany({
+      where: { ruleId: rule.id, occurrenceDate: { in: dates.map(toDateOnly) } },
+      select: { occurrenceDate: true },
+    });
+    const done = new Set(existing.map((row) => toDateString(row.occurrenceDate)));
+    const fresh = dates.filter((date) => !done.has(date));
+
+    if (fresh.length > 0) {
+      const transactions = await tx.transaction.createManyAndReturn({
+        data: fresh.map((date) => ({
+          householdId: ctx.householdId,
+          memberId: rule.memberId,
+          type: rule.type,
+          date: toDateOnly(date),
+          amount: rule.amount,
+          categoryId: rule.categoryId,
+          paymentMethodId: rule.paymentMethodId,
+          splitMode: rule.splitMode,
+          // 반복 규칙에 자산이 붙어 있으면 만들어지는 거래도 그 자산으로 쌓인다.
+          // 매달 적금이 자동으로 늘어나는 것이 이 줄이다.
+          assetId: rule.assetId,
+          memo: rule.memo,
+          source: 'RECURRING' as const,
+          recurringRuleId: rule.id,
+          createdById: ctx.userId,
+        })),
+        select: { id: true, date: true },
+      });
+
+      // 한 규칙 안에서 날짜는 겹치지 않으므로 날짜로 거래와 회차를 잇는다.
+      const txIdByDate = new Map(transactions.map((row) => [toDateString(row.date), row.id]));
+      await tx.recurringOccurrence.createMany({
+        data: fresh.map((date) => ({
+          ruleId: rule.id,
+          occurrenceDate: toDateOnly(date),
+          transactionId: txIdByDate.get(date) ?? null,
+        })),
+      });
+    }
+
+    if (lastDate) {
+      await tx.recurringRule.update({ where: { id: rule.id }, data: { lastGeneratedOn: toDateOnly(lastDate) } });
+    }
+
+    return fresh;
+  });
+}
+
 /**
  * 미생성 회차를 채운다.
  *
@@ -194,7 +270,7 @@ export interface BackfillResult {
  * 아예 돌지 않아 테스트 경로가 갈라진다. 대신 앱에 들어올 때 이 함수가 돈다.
  *
  * 중복 생성은 `RecurringOccurrence` 의 (ruleId, occurrenceDate) 유니크가 막는다.
- * 회차를 **먼저** 넣고 성공했을 때만 거래를 만들기 때문에, 부부가 동시에 접속해도 한 건만 남는다.
+ * 회차와 거래를 한 트랜잭션에 넣어, 부부가 동시에 접속해도 한 벌만 남는다 (createOccurrences).
  */
 export async function backfillRecurring(
   ctx: { householdId: string; userId: string },
@@ -222,58 +298,16 @@ export async function backfillRecurring(
     const dates = occurrencesBetween(toRule(rule), from, until);
     if (dates.length === 0) continue;
 
-    for (const date of dates) {
-      try {
-        await prisma.$transaction(async (tx) => {
-          const occurrence = await tx.recurringOccurrence.createMany({
-            data: [{ ruleId: rule.id, occurrenceDate: toDateOnly(date) }],
-            skipDuplicates: true,
-          });
-          // 이미 처리한 회차(생성됐거나 사용자가 지운 것)면 건드리지 않는다.
-          if (occurrence.count === 0) {
-            result.skipped += 1;
-
-            return;
-          }
-
-          const created = await tx.transaction.create({
-            data: {
-              householdId: ctx.householdId,
-              memberId: rule.memberId,
-              type: rule.type,
-              date: toDateOnly(date),
-              amount: rule.amount,
-              categoryId: rule.categoryId,
-              paymentMethodId: rule.paymentMethodId,
-              splitMode: rule.splitMode,
-              // 반복 규칙에 자산이 붙어 있으면 만들어지는 거래도 그 자산으로 쌓인다.
-              // 매달 적금이 자동으로 늘어나는 것이 이 줄이다.
-              assetId: rule.assetId,
-              memo: rule.memo,
-              source: 'RECURRING',
-              recurringRuleId: rule.id,
-              createdById: ctx.userId,
-            },
-            select: { id: true },
-          });
-
-          await tx.recurringOccurrence.update({
-            where: { ruleId_occurrenceDate: { ruleId: rule.id, occurrenceDate: toDateOnly(date) } },
-            data: { transactionId: created.id },
-          });
-
-          if (date > today) result.upcoming += 1;
-          else result.created += 1;
-        });
-      } catch (error) {
-        // 한 회차가 실패해도 나머지는 계속 만든다. 다음 진입에서 다시 시도된다.
-        logger.error(`반복 거래 생성 실패 (${rule.name} ${date})`, error);
+    try {
+      const created = await createOccurrences(ctx, rule, dates);
+      for (const date of created) {
+        if (date > today) result.upcoming += 1;
+        else result.created += 1;
       }
-    }
-
-    const lastDate = dates[dates.length - 1];
-    if (lastDate) {
-      await prisma.recurringRule.update({ where: { id: rule.id }, data: { lastGeneratedOn: toDateOnly(lastDate) } });
+      result.skipped += dates.length - created.length;
+    } catch (error) {
+      // 한 규칙이 실패해도 나머지 규칙은 계속 만든다. lastGeneratedOn 이 그대로라 다음 진입에서 다시 시도된다.
+      logger.error(`반복 거래 생성 실패 (${rule.name})`, error);
     }
   }
 

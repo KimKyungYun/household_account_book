@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@/generated/prisma/client';
+import type { TxClient } from '@/lib/prisma';
 import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import { currentYearMonth, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
 import type { AutoDepositInput, CreateAssetInput, UpdateAssetInput } from '@/service/asset/schema';
@@ -104,7 +104,9 @@ export async function listAssets(
   householdId: string,
   options: { includeInactive?: boolean } = {},
 ): Promise<AssetSummaryDto> {
-  const [rows, added, autoDeposits] = await Promise.all([
+  // 이번 달에 새로 들어간 금액도 앞의 조회와 무관하므로 같이 보낸다.
+  const { from, toExclusive } = monthRange(currentYearMonth());
+  const [rows, added, autoDeposits, thisMonth] = await Promise.all([
     prisma.asset.findMany({
       where: { householdId, ...(options.includeInactive ? {} : { isActive: true }) },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -112,6 +114,14 @@ export async function listAssets(
     }),
     sumByAsset(householdId),
     autoDepositsByAsset(householdId),
+    prisma.transaction.aggregate({
+      where: {
+        householdId,
+        assetId: { not: null },
+        date: { gte: new Date(from), lt: new Date(toExclusive) },
+      },
+      _sum: { amount: true },
+    }),
   ]);
 
   const assets: AssetDto[] = rows.map((row) => {
@@ -125,17 +135,6 @@ export async function listAssets(
       transactionCount: hit?.count ?? 0,
       autoDeposit: autoDeposits.get(row.id) ?? null,
     };
-  });
-
-  // 이번 달에 새로 들어간 금액.
-  const { from, toExclusive } = monthRange(currentYearMonth());
-  const thisMonth = await prisma.transaction.aggregate({
-    where: {
-      householdId,
-      assetId: { not: null },
-      date: { gte: new Date(from), lt: new Date(toExclusive) },
-    },
-    _sum: { amount: true },
   });
 
   return {
@@ -221,7 +220,7 @@ export async function assertAssetUsable(householdId: string, assetId: string) {
  * 규칙이 둘 이상 붙어 있으면 아무것도 하지 않는다. 어느 것을 고칠지 폼이 정할 수 없다.
  */
 async function syncAutoDeposit(
-  tx: Prisma.TransactionClient,
+  tx: TxClient,
   ctx: { householdId: string; memberId: string; assetId: string; assetName: string },
   input: AutoDepositInput | null,
 ) {

@@ -109,20 +109,15 @@ export async function putBudgets(householdId: string, input: PutBudgetsInput) {
   });
   if (owned.length !== new Set(ids).size) throw badRequest('카테고리를 찾을 수 없습니다.');
 
-  await prisma.$transaction(async (tx) => {
-    for (const item of input.items) {
-      if (item.amount === null) {
-        await tx.budget.deleteMany({ where: { householdId, categoryId: item.categoryId, yearMonth: input.yearMonth } });
-        continue;
-      }
-
-      await tx.budget.upsert({
-        where: { householdId_categoryId_yearMonth: { householdId, categoryId: item.categoryId, yearMonth: input.yearMonth } },
-        update: { amount: item.amount },
-        create: { householdId, categoryId: item.categoryId, yearMonth: input.yearMonth, amount: item.amount },
-      });
-    }
-  });
+  // 항목마다 upsert 를 돌면 카테고리 수만큼 왕복한다. 이번에 손댄 카테고리의 행을 지우고
+  // 값이 있는 것만 다시 넣으면 항목 수와 무관하게 두 번이면 된다(copyBudgets 와 같은 방식).
+  const filled = input.items.filter((item): item is typeof item & { amount: number } => item.amount !== null);
+  await prisma.$transaction([
+    prisma.budget.deleteMany({ where: { householdId, yearMonth: input.yearMonth, categoryId: { in: ids } } }),
+    prisma.budget.createMany({
+      data: filled.map((item) => ({ householdId, categoryId: item.categoryId, yearMonth: input.yearMonth, amount: item.amount })),
+    }),
+  ]);
 
   return { yearMonth: input.yearMonth };
 }

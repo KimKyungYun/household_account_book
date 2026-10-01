@@ -21,7 +21,6 @@ declare module 'next-auth' {
       name?: string | null;
       householdId: string | null;
       memberId: string | null;
-      displayName: string | null;
     };
   }
 }
@@ -69,34 +68,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     signIn: ({ user }) => (user.email ? isEmailAllowed(user.email) : false),
 
-    jwt: ({ token, user }) => {
+    /**
+     * 가구·구성원 ID 를 **찾은 뒤에만** 토큰에 캐시한다.
+     *
+     * 모든 API 요청이 이 콜백을 지나므로, 매번 DB 에서 읽으면 요청마다 왕복이 한 번씩 붙는다.
+     * 그렇다고 무조건 캐시하면 온보딩 직후(가구가 막 생긴 시점) 토큰이 낡아
+     * "가구 설정을 먼저 마쳐 주세요"에 갇힌다.
+     *
+     * 그래서 비어 있을 때만 다시 읽는다. 가구가 없는 동안은 매번 조회되다가, 생기는 순간
+     * 토큰에 박히고 그 뒤로는 조회하지 않는다. 가구를 떠나는 기능이 없으므로
+     * 한 번 정해진 값은 바뀌지 않는다 — 생기면 이 가정을 다시 봐야 한다.
+     */
+    jwt: async ({ token, user }) => {
       if (user?.id) token.sub = user.id;
+
+      if (token.sub && !token.householdId) {
+        const member = await prisma.householdMember.findUnique({
+          where: { userId: token.sub },
+          select: { id: true, householdId: true },
+        });
+        token.householdId = member?.householdId ?? null;
+        token.memberId = member?.id ?? null;
+      }
 
       return token;
     },
 
-    /**
-     * 가구·구성원은 **토큰에 캐시하지 않고** 매번 읽는다.
-     *
-     * 캐시하면 온보딩 직후(가구가 막 생긴 시점) 토큰이 낡아 "가구 설정을 먼저 마쳐 주세요"에
-     * 갇힌다. 풀려면 세션 갱신 트리거가 필요하고 그건 SessionProvider 를 부른다.
-     * 2인 앱에서 요청당 조회 1회는 무의미한 비용이라 낡음 버그가 생길 여지를 지우는 쪽을 택했다.
-     */
-    session: async ({ session, token }) => {
-      const userId = token.sub ?? '';
-      const member = userId
-        ? await prisma.householdMember.findUnique({
-          where: { userId },
-          select: { id: true, householdId: true, displayName: true },
-        })
-        : null;
-
+    session: ({ session, token }) => {
       session.user = {
         ...session.user,
-        id: userId,
-        householdId: member?.householdId ?? null,
-        memberId: member?.id ?? null,
-        displayName: member?.displayName ?? null,
+        id: token.sub ?? '',
+        // 토큰은 쿠키에서 풀려 나온 값이라 타입이 unknown 이다. 문자열일 때만 믿는다.
+        householdId: typeof token.householdId === 'string' ? token.householdId : null,
+        memberId: typeof token.memberId === 'string' ? token.memberId : null,
       };
 
       return session;

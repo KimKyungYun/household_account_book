@@ -1,6 +1,8 @@
+import FetchingBar from '@/components/layout/FetchingBar';
 import MobileMenu from '@/components/layout/MobileMenu';
 import MobileTabBar from '@/components/layout/MobileTabBar';
 import PageTransition from '@/components/layout/PageTransition';
+import SessionTokenSync from '@/components/layout/SessionTokenSync';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/TopBar';
 import styles from './AppShell.module.scss';
@@ -18,6 +20,8 @@ import type { ReactNode } from 'react';
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.appshell}>
+      <FetchingBar />
+
       <aside className={styles.appshell__aside}>
         <Sidebar />
       </aside>
@@ -35,6 +39,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <MobileMenu />
+      <SessionTokenSync />
     </div>
   );
 }

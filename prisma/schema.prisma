@@ -11,6 +11,9 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  // 관계(select 안의 member·category 등)를 관계마다 따로 묻지 않고 조인 한 번으로 가져온다.
+  // DB 가 멀수록 왕복 횟수가 곧 응답 시간이라, 거래 목록 한 번에 왕복 3~4회가 1회로 준다.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

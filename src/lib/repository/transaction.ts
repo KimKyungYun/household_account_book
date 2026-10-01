@@ -194,11 +194,13 @@ export async function createTransaction(
     if (existing) return existing;
   }
 
-  const category = input.categoryId ? await assertCategoryUsable(ctx.householdId, input.categoryId, input.type) : null;
-  if (input.type === 'TRANSFER' && input.assetId) await assertAssetUsable(ctx.householdId, input.assetId);
-
-  await assertMemberUsable(ctx.householdId, input.memberId);
-  if (input.paymentMethodId) await assertPaymentMethodUsable(ctx.householdId, input.paymentMethodId);
+  // 참조 검사는 서로 무관하므로 한 번에 보낸다. 하나라도 실패하면 그 에러가 그대로 던져진다.
+  const [category] = await Promise.all([
+    input.categoryId ? assertCategoryUsable(ctx.householdId, input.categoryId, input.type) : null,
+    input.type === 'TRANSFER' && input.assetId ? assertAssetUsable(ctx.householdId, input.assetId) : null,
+    assertMemberUsable(ctx.householdId, input.memberId),
+    input.paymentMethodId ? assertPaymentMethodUsable(ctx.householdId, input.paymentMethodId) : null,
+  ]);
 
   // 이체는 정산 대상이 아니므로 분담 모드를 가질 수 없다(DB CHECK 와 같은 규칙).
   const splitMode = input.type === 'TRANSFER'
@@ -234,10 +236,12 @@ export async function updateTransaction(householdId: string, id: string, input: 
   if (!current) throw notFound('거래를 찾을 수 없습니다.');
   if (current.version !== input.version) throw staleWrite();
 
-  if (input.categoryId) await assertCategoryUsable(householdId, input.categoryId, current.type);
-  if (input.assetId) await assertAssetUsable(householdId, input.assetId);
-  if (input.memberId) await assertMemberUsable(householdId, input.memberId);
-  if (input.paymentMethodId) await assertPaymentMethodUsable(householdId, input.paymentMethodId);
+  await Promise.all([
+    input.categoryId ? assertCategoryUsable(householdId, input.categoryId, current.type) : null,
+    input.assetId ? assertAssetUsable(householdId, input.assetId) : null,
+    input.memberId ? assertMemberUsable(householdId, input.memberId) : null,
+    input.paymentMethodId ? assertPaymentMethodUsable(householdId, input.paymentMethodId) : null,
+  ]);
 
   const updated = await prisma.transaction.updateMany({
     where: { id, householdId, version: input.version },

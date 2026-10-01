@@ -1,6 +1,8 @@
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
 import { assertMemberUsable, assertPaymentMethodUsable } from '@/lib/repository/reference';
 import { badRequest, notFound } from '@/lib/api/httpError';
+import { logger } from '@/lib/logger';
 import { currentYearMonth, monthEnd, todayInSeoul } from '@/utils/ts/formatDate';
 import { buildSchedule } from '@/utils/ts/loanSchedule';
 import type { LoanTerms } from '@/utils/ts/loanSchedule';
@@ -376,6 +378,110 @@ export interface LoanBackfillResult {
   skipped: number;
 }
 
+interface DuePayment {
+  id: string;
+  dueDate: Date;
+  principalAmount: number;
+  interestAmount: number;
+  loan: {
+    id: string;
+    name: string;
+    memberId: string;
+    paymentMethodId: string | null;
+    interestCategoryId: string;
+    principalCategoryId: string;
+  };
+}
+
+/**
+ * 대출 하나의 밀린 회차를 **트랜잭션 한 번에** 거래로 옮긴다. 실제로 옮긴 회차의 날짜를 돌려준다.
+ *
+ * 회차마다 트랜잭션을 따로 열면 회차 × 6번을 왕복한다. 2년 전에 시작한 대출을 등록하면
+ * 24회차 × 6 = 144번이다. 여기서는 회차 수와 무관하게 여섯 번이면 끝난다.
+ *
+ *  1. 아직 비어 있는 회차를 updateMany 로 잡는다 — 행 잠금이 걸려 상대 요청은 커밋까지 기다린다
+ *  2. 잡힌 회차를 다시 읽는다. 상대가 먼저 채운 회차는 여기서 빠진다
+ *  3. 이자·원금 거래를 한 번에 만든다
+ *  4. 회차에 거래 ID 를 한 번에 적는다 — 값이 행마다 달라 Prisma 로는 한 문장이 안 되므로 SQL 로 쓴다
+ */
+async function createLoanTransactions(
+  ctx: { householdId: string; userId: string },
+  payments: DuePayment[],
+): Promise<string[]> {
+  const ids = payments.map((payment) => payment.id);
+
+  return prisma.$transaction(async (tx) => {
+    await tx.loanPayment.updateMany({
+      where: { id: { in: ids }, interestTxId: null, principalTxId: null },
+      data: { skipped: false },
+    });
+    const open = await tx.loanPayment.findMany({
+      where: { id: { in: ids }, interestTxId: null, principalTxId: null },
+      select: { id: true },
+    });
+    const openIds = new Set(open.map((row) => row.id));
+    const claimed = payments.filter((payment) => openIds.has(payment.id));
+    if (claimed.length === 0) return [];
+
+    const rows = claimed.flatMap((payment) => {
+      const { loan } = payment;
+      const base = {
+        householdId: ctx.householdId,
+        memberId: loan.memberId,
+        date: payment.dueDate,
+        paymentMethodId: loan.paymentMethodId,
+        source: 'RECURRING' as const,
+        loanId: loan.id,
+        createdById: ctx.userId,
+      };
+
+      return [
+        ...(payment.interestAmount > 0
+          ? [{
+            ...base,
+            type: 'EXPENSE' as const,
+            amount: payment.interestAmount,
+            categoryId: loan.interestCategoryId,
+            splitMode: 'SHARED' as const,
+            memo: `${loan.name} 이자`,
+          }]
+          : []),
+        ...(payment.principalAmount > 0
+          ? [{
+            ...base,
+            type: 'TRANSFER' as const,
+            amount: payment.principalAmount,
+            categoryId: loan.principalCategoryId,
+            // 이체는 정산에서 빠진다 — DB CHECK 가 TRANSFER 에 SHARED 를 막는다.
+            splitMode: 'PERSONAL' as const,
+            memo: `${loan.name} 원금상환`,
+          }]
+          : []),
+      ];
+    });
+
+    const created = rows.length > 0
+      ? await tx.transaction.createManyAndReturn({ data: rows, select: { id: true, date: true, type: true } })
+      : [];
+
+    // 한 대출의 상환일은 달마다 하나라 (날짜, 종류)로 거래와 회차를 잇는다.
+    const txIdOf = new Map(created.map((row) => [`${toDateString(row.date)}|${row.type}`, row.id]));
+    const links = claimed.map((payment) => {
+      const date = toDateString(payment.dueDate);
+
+      return Prisma.sql`(${payment.id}::text, ${txIdOf.get(`${date}|EXPENSE`) ?? null}::text, ${txIdOf.get(`${date}|TRANSFER`) ?? null}::text)`;
+    });
+    await tx.$executeRaw`
+      UPDATE "LoanPayment" AS p
+      SET "interestTxId" = v.interest, "principalTxId" = v.principal
+      FROM (VALUES ${Prisma.join(links)}) AS v(id, interest, principal)
+      WHERE p.id = v.id
+    `;
+
+    return claimed.map((payment) => toDateString(payment.dueDate));
+  });
+}
+
 /**
  * 상환 회차를 거래로 옮긴다.
  *
@@ -388,7 +494,8 @@ export interface LoanBackfillResult {
  * 한 건으로 합치면 '이번 달 쓴 돈' 이 원금까지 세어 부풀고, 순저축이 무너진다.
  *
  * 중복 생성은 `LoanPayment` 의 `interestTxId`/`principalTxId` 가 이미 찼는지로 막는다.
- * 거래를 만들고 회차에 연결하는 것을 한 트랜잭션에 묶어, 부부가 동시에 들어와도 한 벌만 남는다.
+ * 거래를 만들고 회차에 연결하는 것을 한 트랜잭션에 묶어, 부부가 동시에 들어와도 한 벌만 남는다
+ * (createLoanTransactions).
  */
 export async function backfillLoans(
   ctx: { householdId: string; userId: string },
@@ -425,75 +532,26 @@ export async function backfillLoans(
     orderBy: { dueDate: 'asc' },
   });
 
+  // 대출별로 묶어 대출 하나를 트랜잭션 한 번에 처리한다.
+  const byLoan = new Map<string, DuePayment[]>();
   for (const payment of due) {
-    const date = toDateString(payment.dueDate);
-    const { loan } = payment;
+    const list = byLoan.get(payment.loan.id) ?? [];
+    list.push(payment);
+    byLoan.set(payment.loan.id, list);
+  }
 
+  for (const payments of byLoan.values()) {
     try {
-      await prisma.$transaction(async (tx) => {
-        // 이 회차를 먼저 잠근다. 이미 채워졌으면 다른 요청이 만든 것이다.
-        const claimed = await tx.loanPayment.updateMany({
-          where: { id: payment.id, interestTxId: null, principalTxId: null },
-          data: { skipped: false },
-        });
-        if (claimed.count === 0) {
-          result.skipped += 1;
-
-          return;
-        }
-
-        const base = {
-          householdId: ctx.householdId,
-          memberId: loan.memberId,
-          date: toDateOnly(date),
-          paymentMethodId: loan.paymentMethodId,
-          splitMode: 'SHARED' as const,
-          source: 'RECURRING' as const,
-          loanId: loan.id,
-          createdById: ctx.userId,
-        };
-
-        const interestTx =
-          payment.interestAmount > 0
-            ? await tx.transaction.create({
-              data: {
-                ...base,
-                type: 'EXPENSE',
-                amount: payment.interestAmount,
-                categoryId: loan.interestCategoryId,
-                memo: `${loan.name} 이자`,
-              },
-              select: { id: true },
-            })
-            : null;
-
-        const principalTx =
-          payment.principalAmount > 0
-            ? await tx.transaction.create({
-              data: {
-                ...base,
-                type: 'TRANSFER',
-                amount: payment.principalAmount,
-                categoryId: loan.principalCategoryId,
-                // 이체는 정산에서 빠진다 — DB CHECK 가 TRANSFER 에 SHARED 를 막는다.
-                splitMode: 'PERSONAL',
-                memo: `${loan.name} 원금상환`,
-              },
-              select: { id: true },
-            })
-            : null;
-
-        await tx.loanPayment.update({
-          where: { id: payment.id },
-          data: { interestTxId: interestTx?.id ?? null, principalTxId: principalTx?.id ?? null },
-        });
-
+      const claimed = await createLoanTransactions(ctx, payments);
+      for (const date of claimed) {
         if (date > today) result.upcoming += 1;
         else result.created += 1;
-      });
-    } catch {
-      // 한 회차가 실패해도 나머지는 계속 만든다. 다음 진입에서 다시 시도된다.
-      result.skipped += 1;
+      }
+      result.skipped += payments.length - claimed.length;
+    } catch (error) {
+      // 한 대출이 실패해도 나머지는 계속 만든다. 회차가 비어 있으니 다음 진입에서 다시 시도된다.
+      logger.error(`대출 상환 거래 생성 실패 (${payments[0]?.loan.name ?? ''})`, error);
+      result.skipped += payments.length;
     }
   }
 
