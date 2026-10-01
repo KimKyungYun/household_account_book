@@ -11,7 +11,6 @@ export const DEFAULT_THEME: ThemeMode = 'light';
 interface ThemeState {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  toggleTheme: () => void;
 }
 
 /** 선택된 테마를 html[data-theme]에 반영 (테마 토큰 전환). */
@@ -54,13 +53,12 @@ const plainThemeStorage: StateStorage = {
 
 const useThemeStore = create(
   persist<ThemeState>(
-    (set, get) => ({
+    (set) => ({
       theme: DEFAULT_THEME,
       setTheme: (theme) => {
         applyTheme(theme);
         set({ theme });
       },
-      toggleTheme: () => get().setTheme(get().theme === 'dark' ? 'light' : 'dark'),
     }),
     {
       name: THEME_STORAGE_KEY,
@@ -75,10 +73,6 @@ const useThemeStore = create(
 
 export function useTheme(): ThemeMode {
   return useThemeStore((s) => s.theme);
-}
-
-export function useToggleTheme(): () => void {
-  return useThemeStore((s) => s.toggleTheme);
 }
 
 export default useThemeStore;

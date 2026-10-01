@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Button from '@/components/common/Button';
 import Icon from '@/components/common/Icon';
-import ThemeToggle from '@/components/layout/ThemeToggle';
 import { titleOfPath } from '@/routes/nav';
 import { PATH } from '@/routes/paths';
 import { useUiStore } from '@/stores/uiStore';
@@ -20,8 +19,6 @@ export default function TopBar() {
       <h1 className={styles.topbar__title}>{titleOfPath(pathname)}</h1>
 
       <div className={styles.topbar__actions}>
-        <ThemeToggle />
-
         {/* 하단탭에도 같은 버튼이 있지만, 화면 위쪽을 보고 있을 때 엄지를 내렸다
             올릴 필요가 없도록 여기에도 둔다. 좁은 폭에서만 보인다. */}
         <button
