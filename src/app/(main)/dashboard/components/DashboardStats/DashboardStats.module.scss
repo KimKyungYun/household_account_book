@@ -20,61 +20,14 @@
     @include t.label-small;
   }
 
-  // 번 돈과 쓴 돈. 띠 바로 아래 한 줄에 둬서 띠와 한 덩이로 읽히게 한다.
-  &__pair {
-    display: flex;
-    flex-wrap: wrap;
-    gap: s.$gap-4 s.$gap-6;
-    margin: 0;
-
-    @include media.tablet-up {
-      gap: s.$gap-4 s.$gap-11;
-    }
-  }
-
-  // 라벨과 금액을 세로로 쌓지 않고 한 줄에 놓는다 — 두 줄이면 카드가 그만큼 길어진다.
-  &__item {
-    display: inline-flex;
-    align-items: baseline;
+  // 번 돈과 쓴 돈을 좌우로. 폰에서도 나란히 둬야 둘을 한눈에 비교한다.
+  &__boxes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: s.$gap-3;
 
-    dt {
-      display: inline-flex;
-      align-items: center;
-      gap: s.$gap-2;
-      color: var(--text-secondary);
-
-      @include t.label-small;
+    @include media.tablet-up {
+      gap: s.$gap-4;
     }
-
-    dd {
-      display: inline-flex;
-      align-items: baseline;
-      gap: s.$gap-2;
-      margin: 0;
-    }
-  }
-
-  // 차트 범례와 같은 색 표식 — 화면 전체에서 초록=수입, 빨강=지출이 한 뜻이 된다.
-  &__mark {
-    width: 6px;
-    height: 6px;
-    border-radius: 2px;
-
-    &[data-kind="income"] {
-      background-color: var(--amount-income);
-    }
-
-    &[data-kind="expense"] {
-      background-color: var(--amount-expense);
-    }
-  }
-
-  &__delta {
-    color: var(--text-tertiary);
-
-    @include t.label-small;
-
-    font-size: 11px;
   }
 }

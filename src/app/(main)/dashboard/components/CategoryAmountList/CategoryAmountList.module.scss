@@ -1,0 +1,123 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.categoryamountlist {
+  // 데이터가 들어오면 줄이 위에서부터 차례로 뜬다.
+  @include motion.enter-stagger("> li", 6px);
+
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-4;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &--compact {
+    gap: s.$gap-3;
+
+    .categoryamountlist__icon {
+      width: 26px;
+      height: 26px;
+      font-size: 14px;
+    }
+
+    .categoryamountlist__name {
+      @include t.body-small;
+    }
+
+    // 폰에서 요약 상자는 화면의 절반 폭이다. 한 줄에 이름과 금액을 다 넣으면 이름이
+    // 한 글자만 남으므로, 이름 아래로 금액을 내린다.
+    @include media.mobile {
+      .categoryamountlist__item {
+        grid-template:
+          "icon name" auto
+          "icon amount" auto / auto minmax(0, 1fr);
+        row-gap: 0;
+      }
+
+      .categoryamountlist__icon {
+        grid-area: icon;
+      }
+
+      .categoryamountlist__body {
+        grid-area: name;
+      }
+
+      .categoryamountlist__amount {
+        grid-area: amount;
+        justify-content: flex-start;
+      }
+    }
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  // 분류 색을 옅게 깐 둥근 칸에 이모지 하나.
+  &__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    line-height: 1;
+    background-color: color-mix(in srgb, var(--chip) 18%, transparent);
+    border-radius: s.$shape-xl;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    min-width: 0;
+  }
+
+  &__name {
+    overflow: hidden;
+    color: var(--text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include t.label-medium;
+  }
+
+  &__share {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+    color: var(--text-tertiary);
+
+    @include a.amount-small;
+
+    font-size: 11px;
+  }
+
+  // 비중을 길이로도 보여준다 — 숫자만 있으면 큰 분류와 작은 분류의 차이가 눈에 덜 들어온다.
+  &__bar {
+    flex: 1;
+    max-width: 160px;
+    height: 4px;
+    overflow: hidden;
+    background-color: var(--surface-muted);
+    border-radius: s.$shape-full;
+  }
+
+  &__barfill {
+    display: block;
+    height: 100%;
+    background-color: var(--chip);
+    border-radius: s.$shape-full;
+  }
+
+  &__amount {
+    justify-content: flex-end;
+    white-space: nowrap;
+  }
+}

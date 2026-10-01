@@ -33,7 +33,7 @@ export default function DashboardCalendar() {
   return (
     <Card
       title={`${formatYearMonthLabel(yearMonth)} 달력`}
-      description="날짜를 누르면 그날 내역을 볼 수 있습니다."
+      description="날짜를 누르면 그날 내역을 볼 수 있어요"
     >
       {isPending ? (
         <SkeletonCalendar isCompact />

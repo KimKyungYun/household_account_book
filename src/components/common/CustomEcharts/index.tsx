@@ -18,7 +18,8 @@ const EchartsCore = dynamic(() => import('./EchartsCore'), {
 
 interface CustomEchartsProps {
   option: EChartsOption;
-  height?: number;
+  /** px 고정 높이. `'100%'` 면 부모가 정한 높이를 채운다 — 옆 카드에 맞춰 늘어나는 자리에 쓴다. */
+  height?: number | '100%';
   ariaLabel: string;
 }
 

@@ -9,7 +9,7 @@ export function getMonthlyTrend(params: { from: string; to: string }) {
   return http.get<MonthlyPointDto[]>('/stats/monthly', params);
 }
 
-export function getCategoryShares(params: { yearMonth: string; level?: number; limit?: number }) {
+export function getCategoryShares(params: { yearMonth: string; type?: 'EXPENSE' | 'INCOME'; level?: number; limit?: number }) {
   return http.get<CategoryShareDto[]>('/stats/categories', params);
 }
 

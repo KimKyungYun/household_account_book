@@ -99,3 +99,14 @@ export function relationForKind(kind: HouseholdKind, current: MemberRelation): M
 
   return HOUSEHOLD_KIND_RULES[kind].relations[0] ?? 'OTHER';
 }
+
+/**
+ * 문구의 주어 — '우리 부부가 모은 자산이에요' 처럼 장부의 주인을 부를 때 쓴다.
+ * 개인 장부는 '우리'가 어색하므로 표시 이름으로 부른다.
+ */
+export function householdSubject(kind: HouseholdKind, displayName?: string | null): string {
+  if (kind === 'COUPLE') return '우리 부부가';
+  if (kind === 'FAMILY') return '우리 가족이';
+
+  return displayName ? `${displayName}님이` : '내가';
+}

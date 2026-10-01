@@ -1,21 +1,28 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import Card from '@/components/common/Card';
 import CountUpAmount from '@/components/common/CountUpAmount';
-import MoneyFlow from '@/components/common/MoneyFlow';
 import Reveal from '@/components/common/Reveal';
 import Skeleton from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryShares, getOverview } from '@/service/stats';
 import { currentYearMonth, formatYearMonthLabel } from '@/utils/ts/formatDate';
+import { categoryParamsOf } from '../../utils/categoryParams';
+import MoneyBox from '../MoneyBox';
 import styles from './DashboardStats.module.scss';
 
-/** 띠에 이름을 달 수 있는 분류 수. 그 밖은 한 칸으로 묶는다. */
-const FLOW_SEGMENTS = 6;
+const DESCRIPTION = '이번 달에 예정된 거래까지 미리 계산된 금액이에요';
 
-const DESCRIPTION = '아직 날짜가 오지 않은 거래까지 더한 이번 달 전체입니다.';
+/** 전월 대비 지출 — 줄었으면 칭찬, 늘었으면 담백하게. */
+function deltaText(rate: number | null): string | null {
+  if (rate === null) return null;
+
+  const percent = Math.round(Math.abs(rate) * 100);
+  if (percent === 0) return '지난달과 비슷하게 썼어요';
+
+  return rate < 0 ? `지난달보다 ${percent}% 덜 썼어요` : `지난달보다 ${percent}% 더 썼어요`;
+}
 
 export default function DashboardStats() {
   const yearMonth = currentYearMonth();
@@ -25,28 +32,16 @@ export default function DashboardStats() {
     queryFn: () => getOverview(yearMonth),
   });
 
-  // 띠를 분류 색으로 쪼개려면 분류별 지출이 필요하다. 도넛이 쓰는 쿼리와
-  // 같은 키라 한 번만 받아 온다.
-  const categoryParams = { yearMonth, level: 1, limit: 8 };
-  const categories = useQuery({
-    queryKey: QUERY_KEY.STATS.CATEGORIES(categoryParams),
-    queryFn: () => getCategoryShares(categoryParams),
+  const expenseParams = categoryParamsOf(yearMonth, 'EXPENSE');
+  const incomeParams = categoryParamsOf(yearMonth, 'INCOME');
+  const expenseRows = useQuery({
+    queryKey: QUERY_KEY.STATS.CATEGORIES(expenseParams),
+    queryFn: () => getCategoryShares(expenseParams),
   });
-
-  const income = data?.income ?? 0;
-  const expense = data?.expense ?? 0;
-  const net = data?.net ?? 0;
-
-  const segments = useMemo(
-    () =>
-      (categories.data ?? []).slice(0, FLOW_SEGMENTS).map((row) => ({
-        id: row.categoryId,
-        name: row.name,
-        amount: row.amount,
-        colorHex: row.colorHex,
-      })),
-    [categories.data],
-  );
+  const incomeRows = useQuery({
+    queryKey: QUERY_KEY.STATS.CATEGORIES(incomeParams),
+    queryFn: () => getCategoryShares(incomeParams),
+  });
 
   if (isPending) {
     return (
@@ -55,7 +50,7 @@ export default function DashboardStats() {
         title={formatYearMonthLabel(yearMonth)}
         description={DESCRIPTION}
       >
-        {/* 남은 돈 · 띠 · 번 돈/쓴 돈 — 실제 배치를 그대로 따른다. */}
+        {/* 남은 돈 · 번 돈/쓴 돈 두 상자 — 실제 배치를 그대로 따른다. */}
         <div
           className={styles.dashboardstats}
           role="status"
@@ -71,23 +66,19 @@ export default function DashboardStats() {
               height={44}
             />
           </div>
-          <Skeleton height={14} />
-          <div className={styles.dashboardstats__pair}>
-            <Skeleton
-              width={150}
-              height={20}
-            />
-            <Skeleton
-              width={150}
-              height={20}
-            />
+          <div className={styles.dashboardstats__boxes}>
+            <Skeleton height={180} />
+            <Skeleton height={180} />
           </div>
         </div>
       </Card>
     );
   }
 
-  const delta = data?.expenseDeltaRate ?? null;
+  const income = data?.income ?? 0;
+  const expense = data?.expense ?? 0;
+  const net = data?.net ?? 0;
+  const delta = deltaText(data?.expenseDeltaRate ?? null);
 
   return (
     <Card
@@ -99,7 +90,6 @@ export default function DashboardStats() {
         {/* 이 달의 한 문장. 번 것에서 쓴 것을 뺀 값이 이 화면의 결론이다. */}
         <p className={styles.dashboardstats__hero}>
           <span className={styles.dashboardstats__herolabel}>{net < 0 ? '모자란 돈' : '남은 돈'}</span>
-          {/* 이 화면의 결론은 남은 돈이다. 0 에서 올라가며 눈이 그 자리에 머문다. */}
           <CountUpAmount
             value={net}
             tone={net < 0 ? 'expense' : 'income'}
@@ -107,57 +97,24 @@ export default function DashboardStats() {
           />
         </p>
 
-        {/* 번 돈 한 줄에서 쓴 돈이 빠져나가고 남은 만큼이 비어 있다. */}
-        <MoneyFlow
-          income={income}
-          expense={expense}
-          segments={segments}
-        />
-
-        {/* 띠가 말한 것을 숫자로 받는다. 한 줄에 둬야 띠와 한 덩이로 읽힌다. */}
-        <dl className={styles.dashboardstats__pair}>
-          <div className={styles.dashboardstats__item}>
-            <dt>
-              <span
-                className={styles.dashboardstats__mark}
-                data-kind="income"
-                aria-hidden="true"
-              />
-              번 돈
-            </dt>
-            <dd>
-              <CountUpAmount
-                value={income}
-                tone="income"
-                size="medium"
-              />
-            </dd>
-          </div>
-
-          <div className={styles.dashboardstats__item}>
-            <dt>
-              <span
-                className={styles.dashboardstats__mark}
-                data-kind="expense"
-                aria-hidden="true"
-              />
-              쓴 돈
-            </dt>
-            <dd>
-              <CountUpAmount
-                value={expense}
-                tone="expense"
-                size="medium"
-              />
-              {delta !== null && (
-                <span className={styles.dashboardstats__delta}>
-                  전월 대비 {delta > 0 ? '+' : ''}
-                  {(delta * 100).toFixed(0)}%
-                </span>
-              )}
-            </dd>
-          </div>
-        </dl>
+        {/* 번 돈과 쓴 돈을 좌우 상자로 나눠, 각각 어디서 들어오고 어디로 나갔는지 몇 줄씩 보여 준다. */}
+        <div className={styles.dashboardstats__boxes}>
+          <MoneyBox
+            kind="income"
+            label="번 돈"
+            total={income}
+            rows={incomeRows.data}
+            emptyText="아직 들어온 돈이 없어요"
+          />
+          <MoneyBox
+            kind="expense"
+            label="쓴 돈"
+            total={expense}
+            rows={expenseRows.data}
+            emptyText="아직 쓴 돈이 없어요"
+            footnote={delta}
+          />
+        </div>
       </Reveal>
     </Card>
   );

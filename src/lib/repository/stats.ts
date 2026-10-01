@@ -68,6 +68,7 @@ export async function getCategoryShares(
   yearMonth: string,
   level: number,
   limit: number,
+  type: 'EXPENSE' | 'INCOME' = 'EXPENSE',
 ): Promise<CategoryShareDto[]> {
   const current = monthRange(yearMonth);
   const previous = monthRange(shiftYearMonth(yearMonth, -1));
@@ -76,14 +77,14 @@ export async function getCategoryShares(
     prisma.transaction.findMany({
       where: {
         householdId,
-        type: 'EXPENSE',
+        type,
         date: { gte: new Date(previous.from), lt: new Date(current.toExclusive) },
       },
       select: { date: true, amount: true, categoryId: true },
     }),
     prisma.category.findMany({
-      where: { householdId, kind: 'EXPENSE' },
-      select: { id: true, name: true, colorHex: true, level: true, parentId: true },
+      where: { householdId, kind: type },
+      select: { id: true, name: true, colorHex: true, icon: true, level: true, parentId: true },
     }),
   ]);
 
@@ -117,6 +118,7 @@ export async function getCategoryShares(
       categoryId,
       name: byId.get(categoryId)?.name ?? '분류 없음',
       colorHex: byId.get(categoryId)?.colorHex ?? null,
+      icon: byId.get(categoryId)?.icon ?? null,
       amount: entry.amount,
       share: total === 0 ? 0 : entry.amount / total,
       prevAmount: entry.prevAmount,

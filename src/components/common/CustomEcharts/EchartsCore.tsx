@@ -23,7 +23,7 @@ const INTRO_MS = 600;
 
 interface EchartsCoreProps {
   option: EChartsOption;
-  height: number;
+  height: number | '100%';
   ariaLabel: string;
 }
 

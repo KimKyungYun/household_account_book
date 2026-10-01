@@ -9,6 +9,8 @@ export interface CategoryShareDto {
   categoryId: string;
   name: string;
   colorHex: string | null;
+  /** 사용자가 정한 아이콘(이모지). 없으면 화면이 이름으로 골라 준다(categoryEmoji). */
+  icon: string | null;
   amount: number;
   /** 0~1 */
   share: number;

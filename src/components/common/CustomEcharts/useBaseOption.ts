@@ -102,3 +102,32 @@ export function quietCategoryAxis(colors: ChartColors, data: string[], rotate = 
     },
   };
 }
+
+/** '#rrggbb' 에 투명도를 붙인다. 다른 형식(rgb() 등)이면 그대로 돌려준다. */
+function withAlpha(color: string, alpha: number): string {
+  const hex = /^#([0-9a-f]{6})$/i.exec(color.trim())?.[1];
+  if (!hex) return color;
+
+  const [r, g, b] = [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16));
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * 위에서 아래로 옅어지는 막대 색.
+ *
+ * 꽉 찬 단색 막대 여러 개는 화면에서 무겁다. 끝(위)만 진하고 바닥으로 갈수록 옅게 두면
+ * 높이는 그대로 읽히면서 카드가 가벼워진다. `isFocused` 는 이번 달처럼 눈이 먼저 가야 할 막대다.
+ */
+export function fadingBar(color: string, isFocused = false) {
+  return {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: isFocused
+      ? [{ offset: 0, color: withAlpha(color, 1) }, { offset: 1, color: withAlpha(color, 0.45) }]
+      : [{ offset: 0, color: withAlpha(color, 0.6) }, { offset: 1, color: withAlpha(color, 0.12) }],
+  };
+}

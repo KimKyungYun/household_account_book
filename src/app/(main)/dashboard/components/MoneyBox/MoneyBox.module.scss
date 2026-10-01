@@ -1,0 +1,56 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.moneybox {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-4;
+  min-width: 0;
+  padding: s.$gap-5;
+  border-radius: s.$shape-2xl;
+
+  // 번 돈은 초록, 쓴 돈은 빨강을 아주 옅게 깐다 — 금액 색과 한 뜻이다.
+  // 불투명한 배경 토큰 대신 금액 색을 섞어 깔아 다크에서도 카드 위에 은은하게 얹힌다.
+  &[data-kind="income"] {
+    background-color: color-mix(in srgb, var(--amount-income) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--amount-income) 14%, transparent);
+  }
+
+  &[data-kind="expense"] {
+    background-color: color-mix(in srgb, var(--amount-expense) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--amount-expense) 13%, transparent);
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-1;
+    min-width: 0;
+  }
+
+  &__label {
+    color: var(--text-secondary);
+
+    @include t.label-small;
+  }
+
+  &__list {
+    flex: 1;
+  }
+
+  &__empty {
+    margin: 0;
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+
+  &__footnote {
+    margin: 0;
+    padding-top: s.$gap-3;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--border-subtle);
+
+    @include t.label-small;
+  }
+}

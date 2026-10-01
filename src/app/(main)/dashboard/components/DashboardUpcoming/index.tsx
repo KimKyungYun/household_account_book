@@ -45,7 +45,7 @@ export default function DashboardUpcoming() {
     return (
       <Card
         title="예정된 수입·지출"
-        description={`앞으로 ${WINDOW_DAYS}일 안에 들어오고 나갈 예정입니다.`}
+        description={'다가오는 한 달 동안의 예상 거래 목록이에요'}
       >
         <SkeletonRows
           count={3}
@@ -71,11 +71,11 @@ export default function DashboardUpcoming() {
     return (
       <Card
         title="예정된 수입·지출"
-        description="월급·월세처럼 정해진 날에 들어오거나 나가는 금액을 미리 보여줍니다."
+        description="월급·월세처럼 정해진 날 오가는 돈을 미리 보여 드려요"
       >
         <EmptyState
-          title="한 달 안에 예정된 항목이 없습니다"
-          description="월급과 매달 나가는 금액을 등록하면 여기에 표시됩니다."
+          title="한 달 안에 예정된 거래가 없어요"
+          description="월급이나 매달 나가는 돈을 등록하면 여기에 보여 드릴게요."
           action={
             <Link href={PATH.RECURRINGS}>
               <Button size="sm">등록하러 가기</Button>
@@ -89,7 +89,7 @@ export default function DashboardUpcoming() {
   return (
     <Card
       title="예정된 수입·지출"
-      description={`앞으로 ${WINDOW_DAYS}일 안에 들어오고 나갈 예정입니다.`}
+      description={'다가오는 한 달 동안의 예상 거래 목록이에요'}
       action={
         <Amount
           value={incoming - outgoing}

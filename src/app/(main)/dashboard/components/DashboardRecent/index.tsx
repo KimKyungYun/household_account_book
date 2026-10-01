@@ -24,7 +24,7 @@ export default function DashboardRecent() {
     <Card
       isFlush
       title="최근 거래"
-      description="줄 왼쪽의 색은 결제한 사람을 나타냅니다."
+      description="최근에 적은 거래예요"
       action={
         <Link href={PATH.TRANSACTIONS}>
           <Button
@@ -40,8 +40,8 @@ export default function DashboardRecent() {
         <SkeletonRows count={5} />
       ) : (data?.items.length ?? 0) === 0 ? (
         <EmptyState
-          title="아직 기록이 없습니다"
-          description="등록한 거래가 여기에 표시됩니다."
+          title="아직 기록이 없어요"
+          description="거래를 적으면 여기에 보여 드릴게요."
           action={
             <Link href={PATH.TRANSACTION_NEW}>
               <Button size="sm">거래 등록</Button>

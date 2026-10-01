@@ -2,6 +2,19 @@
 @use "styles/tokens/typography" as t;
 
 .dashboardtrend {
+  // 카드 본문이 옆 카드에 맞춰 늘어난 높이를 그대로 받는다.
+  &__content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  // 남는 높이를 차트가 가져간다. 카드가 늘어나지 않는 한 줄 배치에서는 최소 높이로 선다.
+  &__chart {
+    flex: 1;
+    min-height: 190px;
+  }
+
   &__keys {
     display: flex;
     gap: s.$gap-5;

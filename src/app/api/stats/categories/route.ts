@@ -6,4 +6,4 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export const GET = withHandler({ query: categoryStatsQuerySchema }, (ctx, { query }) =>
-  getCategoryShares(ctx.householdId, query.yearMonth, query.level, query.limit));
+  getCategoryShares(ctx.householdId, query.yearMonth, query.level, query.limit, query.type));
