@@ -104,8 +104,19 @@
   }
 
   &--flush {
+    // 여백 없이 붙은 줄이 카드의 둥근 모서리를 넘지 않게 본문을 모서리대로 자른다.
+    // 왼쪽 색 띠(border-inline-start)처럼 가장자리에 닿는 장식이 모서리 밖으로 삐져나온다.
+    // 카드 전체가 아니라 본문만 자른다 — 헤더 오른쪽 자리에 펼쳐지는 것을 막지 않는다.
     .card__body {
+      overflow: hidden;
       padding: 0;
+      border-bottom-right-radius: inherit;
+      border-bottom-left-radius: inherit;
+
+      // 헤더가 없으면 본문이 카드 윗변에도 닿는다.
+      &:first-child {
+        border-radius: inherit;
+      }
     }
   }
 }

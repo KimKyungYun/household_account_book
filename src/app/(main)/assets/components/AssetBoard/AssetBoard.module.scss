@@ -70,8 +70,9 @@
       }
     }
 
+    // 카드 본문이 둥근 모서리대로 잘리므로 바깥 링은 가장자리에서 잘린다. 안쪽으로 그린다.
     &:focus-visible {
-      box-shadow: var(--focus-ring);
+      box-shadow: inset var(--focus-ring);
     }
 
     &[data-archived="true"] {
