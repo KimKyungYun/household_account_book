@@ -161,22 +161,25 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
           )}
         </FormField>
 
-        <FormField
-          label="누구의 돈인가요"
-          hint="둘이 함께 모으면 '공동'으로 둡니다."
-        >
-          {({ id }) => (
-            <Select
-              id={id}
-              value={ownerMemberId}
-              onChange={(event) => setOwnerMemberId(event.target.value)}
-              options={[
-                { value: '', label: '공동' },
-                ...members.map((member) => ({ value: member.id, label: member.displayName })),
-              ]}
-            />
-          )}
-        </FormField>
+        {/* 혼자 쓰는 장부에는 '누구의 돈'을 가를 상대가 없다. */}
+        {members.length > 1 && (
+          <FormField
+            label="누구의 돈인가요"
+            hint="함께 모으면 '공동'으로 둡니다."
+          >
+            {({ id }) => (
+              <Select
+                id={id}
+                value={ownerMemberId}
+                onChange={(event) => setOwnerMemberId(event.target.value)}
+                options={[
+                  { value: '', label: '공동' },
+                  ...members.map((member) => ({ value: member.id, label: member.displayName })),
+                ]}
+              />
+            )}
+          </FormField>
+        )}
 
         <FormField
           label="시작 잔액"

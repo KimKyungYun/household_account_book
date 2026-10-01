@@ -79,7 +79,8 @@ export const DEFAULT_PAYMENT_METHODS: readonly { name: string; kind: PaymentMeth
 ];
 
 /** 구성원 기본값 — slot 0 이 남편, 1 이 와이프. 표시명은 온보딩에서 바꿀 수 있다. */
+/** 로컬 시드용 부부 가구의 두 사람. 색은 MEMBER_COLORS 의 앞 두 칸과 같다. */
 export const DEFAULT_MEMBERS = [
-  { slot: 0, displayName: '남편', colorHex: '#1f6feb' },
-  { slot: 1, displayName: '와이프', colorHex: '#d97706' },
+  { slot: 0, relation: 'HUSBAND', displayName: '남편', colorHex: '#1f6feb' },
+  { slot: 1, relation: 'WIFE', displayName: '와이프', colorHex: '#d97706' },
 ] as const;

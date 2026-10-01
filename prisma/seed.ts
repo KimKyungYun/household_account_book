@@ -121,8 +121,9 @@ async function main() {
     const passwordHash = await bcrypt.hash(MEMBER_PASSWORD, 12);
     const user = await prisma.user.upsert({
       where: { email },
-      update: { passwordHash },
-      create: { email, name: member.displayName, passwordHash },
+      // 시드 계정은 인증을 마친 것으로 둔다. 로컬에서 메일 없이 바로 로그인한다.
+      update: { passwordHash, emailVerified: new Date() },
+      create: { email, name: member.displayName, passwordHash, emailVerified: new Date(), privacyAgreedAt: new Date() },
     });
 
     await prisma.householdMember.upsert({
@@ -132,6 +133,7 @@ async function main() {
         householdId: household.id,
         userId: user.id,
         slot: member.slot,
+        relation: member.relation,
         displayName: member.displayName,
         colorHex: member.colorHex,
       },

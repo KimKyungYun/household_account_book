@@ -136,7 +136,7 @@ export default function RecurringBoard() {
         ) : (data?.length ?? 0) === 0 ? (
           <EmptyState
             title="등록된 항목이 없습니다"
-            description="두 사람의 월급, 월세, 통신비처럼 매달 같은 날 들어오거나 나가는 금액을 등록해 보세요."
+            description="월급, 월세, 통신비처럼 매달 같은 날 들어오거나 나가는 금액을 등록해 보세요."
             action={
               <Button
                 size="sm"

@@ -1,18 +1,34 @@
 @use "styles/tokens/spacing" as s;
-@use "styles/tokens/typography" as t;
 @use "styles/utils/media" as media;
 
 .memberssection {
   display: grid;
   gap: s.$gap-5;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 
-  @include media.tablet-up {
+  @include media.desktop-up {
     grid-template-columns: 1fr 1fr;
   }
 
-  &__note {
-    color: var(--text-secondary);
+  // 색 점 · 이름 · 관계. 관계를 묻지 않는 '개인'이면 이름이 남은 폭을 다 쓴다.
+  &__member {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) minmax(88px, auto);
+    align-items: end;
+    gap: s.$gap-3;
+  }
 
-    @include t.body-small;
+  // 입력칸 높이의 가운데에 맞춘다.
+  &__dot {
+    width: 10px;
+    height: 10px;
+    margin-bottom: 17px;
+    border-radius: s.$shape-full;
+  }
+
+  &__name {
+    min-width: 0;
   }
 }

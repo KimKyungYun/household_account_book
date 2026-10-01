@@ -1,8 +1,15 @@
 import { prisma } from '@/lib/prisma';
-import { conflict, notFound } from '@/lib/api/httpError';
+import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS } from '@/lib/seed/defaults';
+import { HOUSEHOLD_KIND_RULES, isRelationAllowed, memberColorOf, RELATION_LABEL, relationForKind } from '@/service/household/kind';
+import type { HouseholdKind, MemberRelation } from '@/generated/prisma/enums';
 
-const MAX_MEMBERS = 2;
+function assertRelation(kind: HouseholdKind, relation: MemberRelation) {
+  if (!isRelationAllowed(kind, relation)) {
+    const message = `${HOUSEHOLD_KIND_RULES[kind].label} 가구에서는 '${RELATION_LABEL[relation]}'을(를) 고를 수 없습니다.`;
+    throw badRequest(message, { relation: message });
+  }
+}
 
 /**
  * 가구 생성 + 기본 카테고리·결제수단 시딩을 **한 트랜잭션**으로 처리한다.
@@ -10,10 +17,13 @@ const MAX_MEMBERS = 2;
  */
 export async function createHousehold(params: {
   userId: string;
+  kind: HouseholdKind;
   householdName: string;
   displayName: string;
-  slot: number;
+  relation: MemberRelation;
 }) {
+  assertRelation(params.kind, params.relation);
+
   const already = await prisma.householdMember.findUnique({
     where: { userId: params.userId },
     select: { householdId: true },
@@ -21,15 +31,17 @@ export async function createHousehold(params: {
   if (already) throw conflict('이미 가구에 속해 있습니다.');
 
   return prisma.$transaction(async (tx) => {
-    const household = await tx.household.create({ data: { name: params.householdName } });
+    const household = await tx.household.create({ data: { name: params.householdName, kind: params.kind } });
 
+    // 만든 사람이 첫 자리다. 색과 목록 순서가 들어온 순서를 따른다.
     const member = await tx.householdMember.create({
       data: {
         householdId: household.id,
         userId: params.userId,
-        slot: params.slot,
+        slot: 0,
+        relation: params.relation,
         displayName: params.displayName,
-        colorHex: params.slot === 0 ? '#1f6feb' : '#d97706',
+        colorHex: memberColorOf(0),
       },
     });
 
@@ -78,8 +90,35 @@ export async function createHousehold(params: {
   }, { timeout: 20_000 });
 }
 
-/** 배우자 합류. 정원은 2명이고, 남은 자리(slot)를 자동으로 준다. */
-export async function joinHousehold(params: { userId: string; inviteCode: string; displayName: string }) {
+/**
+ * 초대 코드로 들어가기 전에 어느 가구인지 보여 준다. 합류 폼이 유형에 맞는 관계를 고르게 한다.
+ * 코드를 아는 사람에게만 가구 이름·유형·남은 자리를 알려 준다.
+ */
+export async function findInvite(inviteCode: string) {
+  const household = await prisma.household.findUnique({
+    where: { inviteCode },
+    select: { name: true, kind: true, _count: { select: { members: true } } },
+  });
+  if (!household) throw notFound('초대 코드를 찾을 수 없습니다.');
+
+  const capacity = HOUSEHOLD_KIND_RULES[household.kind].capacity;
+
+  return {
+    name: household.name,
+    kind: household.kind,
+    memberCount: household._count.members,
+    capacity,
+    isFull: household._count.members >= capacity,
+  };
+}
+
+/** 초대 코드로 합류. 정원은 가구 유형이 정하고, 비어 있는 가장 앞 자리(slot)를 준다. */
+export async function joinHousehold(params: {
+  userId: string;
+  inviteCode: string;
+  displayName: string;
+  relation: MemberRelation;
+}) {
   const already = await prisma.householdMember.findUnique({
     where: { userId: params.userId },
     select: { householdId: true },
@@ -88,26 +127,63 @@ export async function joinHousehold(params: { userId: string; inviteCode: string
 
   const household = await prisma.household.findUnique({
     where: { inviteCode: params.inviteCode },
-    select: { id: true, members: { select: { slot: true } } },
+    select: { id: true, kind: true, members: { select: { slot: true } } },
   });
   if (!household) throw notFound('초대 코드를 찾을 수 없습니다.');
-  if (household.members.length >= MAX_MEMBERS) {
-    throw conflict('이 가구는 이미 두 사람이 쓰고 있습니다.');
+
+  const rule = HOUSEHOLD_KIND_RULES[household.kind];
+  if (household.members.length >= rule.capacity) {
+    throw conflict(`이 가구는 정원(${rule.capacity}명)이 다 찼습니다.`);
   }
+  assertRelation(household.kind, params.relation);
 
   const takenSlots = new Set(household.members.map((member) => member.slot));
-  const slot = takenSlots.has(0) ? 1 : 0;
+  const slot = Array.from({ length: rule.capacity }, (_, index) => index).find((index) => !takenSlots.has(index)) ?? 0;
 
+  // 두 사람이 같은 자리를 동시에 잡으면 (householdId, slot) 유니크가 한쪽을 막는다.
   const member = await prisma.householdMember.create({
     data: {
       householdId: household.id,
       userId: params.userId,
       slot,
+      relation: params.relation,
       displayName: params.displayName,
-      colorHex: slot === 0 ? '#1f6feb' : '#d97706',
+      colorHex: memberColorOf(slot),
     },
     select: { id: true, householdId: true },
   });
 
   return { householdId: member.householdId, memberId: member.id };
+}
+
+/**
+ * 가구 유형을 바꾼다. 지금 인원이 새 정원보다 많으면 바꿀 수 없다.
+ * 새 유형에서 고를 수 없는 관계는 가까운 것으로 옮긴다(남편 → 아빠 등).
+ */
+export async function changeHouseholdKind(householdId: string, kind: HouseholdKind) {
+  const members = await prisma.householdMember.findMany({
+    where: { householdId },
+    select: { id: true, relation: true },
+  });
+
+  const rule = HOUSEHOLD_KIND_RULES[kind];
+  if (members.length > rule.capacity) {
+    throw badRequest(`지금 ${members.length}명이 함께 쓰고 있어 ${rule.label} 장부(최대 ${rule.capacity}명)로 바꿀 수 없습니다.`);
+  }
+
+  await prisma.$transaction([
+    prisma.household.update({ where: { id: householdId }, data: { kind } }),
+    ...members
+      .filter((member) => !isRelationAllowed(kind, member.relation))
+      .map((member) =>
+        prisma.householdMember.update({
+          where: { id: member.id },
+          data: { relation: relationForKind(kind, member.relation) },
+        })),
+  ]);
+}
+
+export async function assertMemberRelations(householdId: string, relations: MemberRelation[]) {
+  const household = await prisma.household.findUniqueOrThrow({ where: { id: householdId }, select: { kind: true } });
+  for (const relation of relations) assertRelation(household.kind, relation);
 }

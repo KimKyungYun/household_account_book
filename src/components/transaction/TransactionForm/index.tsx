@@ -11,6 +11,8 @@ import SegmentedControl from '@/components/common/SegmentedControl';
 import Select from '@/components/common/Select';
 import Skeleton from '@/components/common/Skeleton';
 import CategoryPicker from '@/components/transaction/CategoryPicker';
+import MemberPicker from '@/components/household/MemberPicker';
+import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { useMe } from '@/hooks/useMe';
 import { useRecentCategories } from '@/hooks/useRecentCategories';
 import { isApiError } from '@/interface/errorType';
@@ -113,6 +115,7 @@ export function TransactionForm({
   withSubmitButton = false,
 }: TransactionFormProps) {
   const me = useMe();
+  const { hasOthers, isShared } = useHouseholdRule();
   const { recentIds, remember } = useRecentCategories();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -339,27 +342,31 @@ export function TransactionForm({
         )}
       </FormField>
 
-      <FormField
-        label={WORDING[form.type].member}
-        error={fieldErrors.memberId}
-      >
-        {() => (
-          <SegmentedControl
-            name="transaction-member"
-            options={members.map((member) => ({ value: member.id, label: member.displayName }))}
-            value={memberId}
-            onChange={(value) => patch({ memberId: value })}
-            ariaLabel={WORDING[form.type].member}
-          />
-        )}
-      </FormField>
+      {/* 혼자면 답이 하나뿐이라 묻지 않는다. 저장할 때는 그 한 사람으로 들어간다. */}
+      {hasOthers && (
+        <FormField
+          label={WORDING[form.type].member}
+          error={fieldErrors.memberId}
+        >
+          {({ id }) => (
+            <MemberPicker
+              id={id}
+              name="transaction-member"
+              label={WORDING[form.type].member}
+              members={members}
+              value={memberId}
+              onChange={(value) => patch({ memberId: value })}
+            />
+          )}
+        </FormField>
+      )}
 
-      {form.type === 'EXPENSE' && (
+      {form.type === 'EXPENSE' && isShared && (
         <FormField
           label="나누기"
           hint={
             form.splitMode === 'SHARED'
-              ? '둘의 살림에 들어간 돈으로 표시합니다.'
+              ? '함께하는 살림에 들어간 돈으로 표시합니다.'
               : '용돈처럼 한 사람에게만 속한 돈으로 표시합니다.'
           }
         >

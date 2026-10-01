@@ -1,0 +1,64 @@
+@use "styles/tokens/motion" as m;
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+.kindpicker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$gap-3;
+
+  &__option {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    padding: s.$gap-4;
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-xl;
+    cursor: pointer;
+    transition:
+      background-color m.$dur-quick m.$ease-out,
+      border-color m.$dur-quick m.$ease-out;
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+
+    // 라디오는 숨기되 키보드 포커스는 카드 테두리로 보여 준다.
+    &:has(:focus-visible) {
+      box-shadow: var(--focus-ring);
+    }
+
+    &--selected {
+      background-color: var(--primary-subtle);
+      border-color: var(--primary);
+    }
+  }
+
+  &__radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &__label {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__description {
+    color: var(--text-tertiary);
+    word-break: keep-all;
+
+    @include t.body-small;
+  }
+}

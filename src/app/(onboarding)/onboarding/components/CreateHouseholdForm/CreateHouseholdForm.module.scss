@@ -1,0 +1,23 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/utils/media" as media;
+
+.createhouseholdform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  // 이름과 관계는 한 사람에 대한 것이라 넓은 화면에서 한 줄에 둔다.
+  &__row {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include media.tablet-up {
+      grid-template-columns: 2fr 1fr;
+
+      // 관계를 묻지 않는 '개인'이면 이름 칸이 한 줄을 다 쓴다.
+      > :only-child {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+}

@@ -6,4 +6,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export const POST = withPreOnboardingHandler({ body: joinHouseholdSchema }, (ctx, { body }) =>
-  joinHousehold({ userId: ctx.userId, inviteCode: body.inviteCode, displayName: body.displayName }));
+  joinHousehold({
+    userId: ctx.userId,
+    inviteCode: body.inviteCode,
+    displayName: body.displayName,
+    relation: body.relation,
+  }));

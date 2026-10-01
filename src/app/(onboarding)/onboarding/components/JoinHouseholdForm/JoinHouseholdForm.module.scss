@@ -1,0 +1,52 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+@use "styles/utils/motion" as motion;
+
+.joinhouseholdform {
+  display: flex;
+  flex-direction: column;
+  gap: s.$gap-5;
+
+  // 코드 칸 옆에 확인 버튼. 버튼은 입력칸 높이에 맞춰 아래로 붙인다.
+  &__code {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: s.$gap-3;
+  }
+
+  &__check {
+    // FormField 라벨 높이만큼 내려 입력칸과 나란히 둔다.
+    margin-top: 26px;
+  }
+
+  &__found {
+    @include motion.enter(0s, 6px);
+
+    margin: 0;
+    padding: s.$gap-4;
+    color: var(--text-secondary);
+    background-color: var(--primary-subtle);
+    border-radius: s.$shape-lg;
+
+    @include t.body-medium;
+
+    strong {
+      color: var(--text-primary);
+    }
+  }
+
+  &__row {
+    display: grid;
+    gap: s.$gap-5;
+
+    @include media.tablet-up {
+      grid-template-columns: 2fr 1fr;
+
+      > :only-child {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+}

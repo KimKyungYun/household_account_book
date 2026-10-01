@@ -11,6 +11,8 @@ import MoneyInput from '@/components/common/MoneyInput';
 import SegmentedControl from '@/components/common/SegmentedControl';
 import Select from '@/components/common/Select';
 import CategoryPicker from '@/components/transaction/CategoryPicker';
+import MemberPicker from '@/components/household/MemberPicker';
+import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { useMe } from '@/hooks/useMe';
 import { useRecentCategories } from '@/hooks/useRecentCategories';
 import { isApiError } from '@/interface/errorType';
@@ -85,6 +87,7 @@ interface FormState {
 
 export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: RecurringFormModalProps) {
   const me = useMe();
+  const { hasOthers, isShared } = useHouseholdRule();
   const { recentIds } = useRecentCategories();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -325,21 +328,24 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
           )}
         </FormField>
 
-        <FormField
-          label={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
-        >
-          {() => (
-            <SegmentedControl
-              name="recurring-member"
-              options={members.map((member) => ({ value: member.id, label: member.displayName }))}
-              value={memberId}
-              onChange={(value) => patch({ memberId: value })}
-              ariaLabel={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
-            />
-          )}
-        </FormField>
+        {hasOthers && (
+          <FormField
+            label={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
+          >
+            {({ id }) => (
+              <MemberPicker
+                id={id}
+                name="recurring-member"
+                label={form.type === 'INCOME' ? '받는 사람' : '내는 사람'}
+                members={members}
+                value={memberId}
+                onChange={(value) => patch({ memberId: value })}
+              />
+            )}
+          </FormField>
+        )}
 
-        {form.type === 'EXPENSE' && (
+        {form.type === 'EXPENSE' && isShared && (
           <FormField label="나누기">
             {() => (
               <SegmentedControl

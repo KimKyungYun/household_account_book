@@ -7,7 +7,6 @@ import { PATH } from '@/routes/paths';
 
 /**
  * 인증은 이메일 + 비밀번호(Credentials) 하나만 쓴다.
- * 두 사람만 쓰는 앱에 소셜 로그인 설정을 얹을 이유가 없고, 매직링크는 SMTP 가 필요하다.
  *
  * Credentials 는 DB 세션을 쓸 수 없어 전략이 jwt 다. 세션에는 householdId / memberId 를
  * 실어 모든 Route Handler 가 테넌트 키를 세션에서만 얻게 한다.
@@ -67,12 +66,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user?.id) token.sub = user.id;
 
       if (token.sub && !token.householdId) {
-        const member = await prisma.householdMember.findUnique({
-          where: { userId: token.sub },
-          select: { id: true, householdId: true },
+        const found = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { membership: { select: { id: true, householdId: true } } },
         });
-        token.householdId = member?.householdId ?? null;
-        token.memberId = member?.id ?? null;
+        // 토큰은 남았는데 계정이 지워졌다(계정 정리 등). 세션을 끊어 다시 로그인하게 한다 —
+        // 그대로 두면 없는 사용자로 가구를 만들려다 외래 키 오류(500)가 난다.
+        if (!found) return null;
+
+        token.householdId = found.membership?.householdId ?? null;
+        token.memberId = found.membership?.id ?? null;
       }
 
       return token;

@@ -75,7 +75,7 @@ export default function DashboardUpcoming() {
       >
         <EmptyState
           title="한 달 안에 예정된 항목이 없습니다"
-          description="두 사람의 월급과 매달 나가는 금액을 등록하면 여기에 표시됩니다."
+          description="월급과 매달 나가는 금액을 등록하면 여기에 표시됩니다."
           action={
             <Link href={PATH.RECURRINGS}>
               <Button size="sm">등록하러 가기</Button>

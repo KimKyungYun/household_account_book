@@ -17,9 +17,10 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
       select: {
         id: true,
         slot: true,
+        relation: true,
         displayName: true,
         colorHex: true,
-        household: { select: { id: true, name: true, currency: true, inviteCode: true } },
+        household: { select: { id: true, name: true, kind: true, currency: true, inviteCode: true } },
       },
     })
     : null;
@@ -28,7 +29,7 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
     ? await prisma.householdMember.findMany({
       where: { householdId: member.household.id },
       orderBy: { slot: 'asc' },
-      select: { id: true, slot: true, displayName: true, colorHex: true },
+      select: { id: true, slot: true, relation: true, displayName: true, colorHex: true },
     })
     : [];
 
@@ -37,6 +38,7 @@ export const GET = withPreOnboardingHandler({}, async (ctx) => {
     member: member && {
       id: member.id,
       slot: member.slot,
+      relation: member.relation,
       displayName: member.displayName,
       colorHex: member.colorHex,
     },

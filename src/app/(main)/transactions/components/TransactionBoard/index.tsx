@@ -24,6 +24,7 @@ import { QUERY_KEY } from '@/interface/key/queryKey';
 import { deleteTransaction, getTransactions } from '@/service/transaction';
 import { cn } from '@/utils/ts/cn';
 import { currentYearMonth, formatYearMonthLabel, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
+import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { useMe } from '@/hooks/useMe';
 import type { TransactionListDto, TransactionListItemDto } from '@/service/transaction/type';
 import styles from './TransactionBoard.module.scss';
@@ -76,6 +77,7 @@ export default function TransactionBoard() {
   const debouncedKeyword = useDebounce(keyword, 300);
   const queryClient = useQueryClient();
   const me = useMe();
+  const { hasOthers } = useHouseholdRule();
   const excel = useExcelDownload();
 
   const params = {
@@ -198,22 +200,25 @@ export default function TransactionBoard() {
               )}
             </FormField>
 
-            <FormField label="결제한 사람">
-              {({ id }) => (
-                <Select
-                  id={id}
-                  options={[
-                    { value: '', label: '두 사람 모두' },
-                    ...(me.data?.members ?? []).map((member) => ({ value: member.id, label: member.displayName })),
-                  ]}
-                  value={memberFilter}
-                  onChange={(event) => {
-                    setMemberFilter(event.target.value);
-                    setPage(1);
-                  }}
-                />
-              )}
-            </FormField>
+            {/* 혼자 쓰는 장부면 걸러 볼 사람이 없다. */}
+            {hasOthers && (
+              <FormField label="결제한 사람">
+                {({ id }) => (
+                  <Select
+                    id={id}
+                    options={[
+                      { value: '', label: '모두' },
+                      ...(me.data?.members ?? []).map((member) => ({ value: member.id, label: member.displayName })),
+                    ]}
+                    value={memberFilter}
+                    onChange={(event) => {
+                      setMemberFilter(event.target.value);
+                      setPage(1);
+                    }}
+                  />
+                )}
+              </FormField>
+            )}
 
             <FormField label="검색">
               {({ id }) => (

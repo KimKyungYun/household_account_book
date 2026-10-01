@@ -77,7 +77,9 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
   const [termMonths, setTermMonths] = useState(loan ? String(loan.termMonths) : '');
   const [gracePeriodMonths, setGracePeriodMonths] = useState(loan ? String(loan.gracePeriodMonths) : '0');
   const [firstPaymentDate, setFirstPaymentDate] = useState(loan?.firstPaymentDate ?? todayInSeoul());
-  const [memberId, setMemberId] = useState(loan?.member.id ?? '');
+  const [pickedMemberId, setMemberId] = useState(loan?.member.id ?? '');
+  // 혼자 쓰는 장부면 고를 것이 없다. 그 한 사람이 갚는 사람이다.
+  const memberId = pickedMemberId || (members.length === 1 ? members[0]?.id ?? '' : '');
   const [interestCategoryId, setInterestCategoryId] = useState(loan?.interestCategory.id ?? '');
   const [principalCategoryId, setPrincipalCategoryId] = useState(loan?.principalCategory.id ?? '');
   const [memo, setMemo] = useState(loan?.memo ?? '');
@@ -365,23 +367,25 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
           </dl>
         )}
 
-        <FormField
-          label="상환하는 사람"
-          hint="만들어지는 거래의 결제자가 됩니다."
-          error={errors.memberId}
-        >
-          {({ id }) => (
-            <Select
-              id={id}
-              value={memberId}
-              onChange={(event) => setMemberId(event.target.value)}
-              options={[
-                { value: '', label: '고르기' },
-                ...members.map((member) => ({ value: member.id, label: member.displayName })),
-              ]}
-            />
-          )}
-        </FormField>
+        {members.length > 1 && (
+          <FormField
+            label="상환하는 사람"
+            hint="만들어지는 거래의 결제자가 됩니다."
+            error={errors.memberId}
+          >
+            {({ id }) => (
+              <Select
+                id={id}
+                value={memberId}
+                onChange={(event) => setMemberId(event.target.value)}
+                options={[
+                  { value: '', label: '고르기' },
+                  ...members.map((member) => ({ value: member.id, label: member.displayName })),
+                ]}
+              />
+            )}
+          </FormField>
+        )}
 
         <FormField
           label="이자를 적을 분류"

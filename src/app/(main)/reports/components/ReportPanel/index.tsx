@@ -15,6 +15,7 @@ import SegmentedControl from '@/components/common/SegmentedControl';
 import { SkeletonChart, SkeletonRows } from '@/components/common/Skeleton';
 import Table from '@/components/common/Table';
 import { useExcelDownload } from '@/hooks/useExcelDownload';
+import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryShares, getMemberStats, getMonthlyTrend } from '@/service/stats';
 import { currentYearMonth, formatYearMonthLabel, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
@@ -46,6 +47,7 @@ export default function ReportPanel() {
   const [level, setLevel] = useState(1);
   const [yearMonth, setYearMonth] = useState(currentYearMonth());
   const excel = useExcelDownload();
+  const { hasOthers } = useHouseholdRule();
 
   const to = currentYearMonth();
   const from = shiftYearMonth(to, -(months - 1));
@@ -274,26 +276,29 @@ export default function ReportPanel() {
         )}
       </Card>
 
-      <Card
-        title="사람별 수입·지출"
-        description="각자 쓴 돈은 나누지 않습니다."
-      >
-        {memberStats.isPending ? (
-          <SkeletonRows
-            count={2}
-            isPadded={false}
-          />
-        ) : (
-          <Reveal>
-            <Table
-              caption={`${formatYearMonthLabel(yearMonth)} 구성원별 수입·지출`}
-              columns={memberColumns}
-              rows={memberStats.data ?? []}
-              getRowKey={(row) => row.memberId}
+      {/* 혼자 쓰는 장부면 사람별로 가를 것이 없다. */}
+      {hasOthers && (
+        <Card
+          title="사람별 수입·지출"
+          description="각자 쓴 돈은 나누지 않습니다."
+        >
+          {memberStats.isPending ? (
+            <SkeletonRows
+              count={2}
+              isPadded={false}
             />
-          </Reveal>
-        )}
-      </Card>
+          ) : (
+            <Reveal>
+              <Table
+                caption={`${formatYearMonthLabel(yearMonth)} 구성원별 수입·지출`}
+                columns={memberColumns}
+                rows={memberStats.data ?? []}
+                getRowKey={(row) => row.memberId}
+              />
+            </Reveal>
+          )}
+        </Card>
+      )}
 
       <Card
         title="엑셀로 내보내기"

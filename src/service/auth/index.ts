@@ -1,6 +1,6 @@
 import { http } from '@/service/httpClient';
-import type { CreateHouseholdInput, JoinHouseholdInput, SignupInput } from '@/service/auth/schema';
-import type { MeDto } from '@/service/auth/type';
+import type { ChangePasswordInput, CreateHouseholdInput, JoinHouseholdInput, SignupInput } from '@/service/auth/schema';
+import type { InviteDto, MeDto } from '@/service/auth/type';
 
 export function getMe() {
   return http.get<MeDto>('/me');
@@ -8,6 +8,14 @@ export function getMe() {
 
 export function signup(input: SignupInput) {
   return http.post<{ id: string; email: string; name: string | null }>('/auth/signup', input);
+}
+
+export function changePassword(input: ChangePasswordInput) {
+  return http.patch<undefined>('/me/password', input);
+}
+
+export function getInvite(code: string) {
+  return http.get<InviteDto>(`/household/invite/${encodeURIComponent(code)}`);
 }
 
 export function createHousehold(input: CreateHouseholdInput) {

@@ -1,7 +1,54 @@
 @use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
 
 .signupform {
   display: flex;
   flex-direction: column;
   gap: s.$gap-5;
+
+  &__consent {
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-2;
+    padding: s.$gap-4;
+    background-color: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$shape-lg;
+  }
+
+  &__check {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-3;
+    color: var(--text-primary);
+    cursor: pointer;
+
+    @include t.label-medium;
+
+    input {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+  }
+
+  &__consentdetail {
+    margin: 0;
+    padding-inline-start: calc(18px + #{s.$gap-3});
+    color: var(--text-tertiary);
+    word-break: keep-all;
+
+    @include t.body-small;
+  }
+
+  &__error {
+    margin: 0;
+    padding-inline-start: calc(18px + #{s.$gap-3});
+    color: var(--status-error);
+
+    @include t.body-small;
+  }
 }
