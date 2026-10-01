@@ -5,7 +5,9 @@ import styles from './Calendar.module.scss';
 export default function CalendarPage() {
   return (
     <div className={styles.calendar}>
-      <CalendarBoard />
+      <div className={styles.calendar__layout}>
+        <CalendarBoard />
+      </div>
     </div>
   );
 }

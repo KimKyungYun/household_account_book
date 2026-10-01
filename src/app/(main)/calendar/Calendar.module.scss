@@ -3,27 +3,34 @@
 @use "styles/utils/motion" as motion;
 
 .calendar {
-  // 카드는 저마다 등장 애니메이션을 갖고 있다. 여기서는 순서만 준다.
-  @include motion.stagger-delay;
-
-  display: flex;
-  flex-direction: column;
-  gap: s.$gap-5;
+  // 나란히 둘지는 화면 폭이 아니라 **본문이 실제로 받은 폭**으로 정한다.
+  // 화면 폭(901px~)으로 정하면 사이드바 248px 를 뺀 600px 남짓에 달력 560px 를 넣고
+  // 남은 40px 에 그날 목록을 욱여넣어, 글자가 한 자씩 세로로 쌓였다.
+  container-type: inline-size;
   max-width: s.$container-max;
   margin: 0 auto;
 
-  @include media.tablet-up {
-    gap: s.$gap-6;
-  }
+  &__layout {
+    // 카드는 저마다 등장 애니메이션을 갖고 있다. 여기서는 순서만 준다.
+    @include motion.stagger-delay;
 
-  // 넓은 화면에서는 달력과 그날 목록을 나란히 둔다. 세로로 쌓으면 달력 하나로
-  // 화면이 다 차고, 고른 날짜의 거래를 보려면 스크롤을 내려야 한다.
-  @include media.desktop-up {
-    display: grid;
-    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+    gap: s.$gap-5;
 
-    // 두 카드는 성격이 다르다 — 달력은 높이가 정해져 있고 목록은 날짜마다 길이가
-    // 크게 달라진다. 억지로 맞추면 한쪽에 빈 자리가 남는다.
-    align-items: start;
+    @include media.tablet-up {
+      gap: s.$gap-6;
+    }
+
+    // 달력(560) + 간격 + 목록이 읽힐 최소 폭(320)이 들어갈 때만 나란히 둔다.
+    // 세로로 쌓으면 달력 하나로 화면이 다 차고, 고른 날짜의 거래를 보려면 스크롤을 내려야 한다.
+    @container (width > 904px) {
+      display: grid;
+      grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+
+      // 두 카드는 성격이 다르다 — 달력은 높이가 정해져 있고 목록은 날짜마다 길이가
+      // 크게 달라진다. 억지로 맞추면 한쪽에 빈 자리가 남는다.
+      align-items: start;
+    }
   }
 }

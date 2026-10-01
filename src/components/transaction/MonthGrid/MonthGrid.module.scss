@@ -30,22 +30,23 @@
   }
 
   &__blank {
-    aspect-ratio: 1;
+    min-height: 56px;
   }
 
   // 날짜·수입·지출이 각자 제 줄을 갖는다. flex 로 쌓으면 수입이 없는 날의 지출이
   // 한 줄 위로 올라와, 옆으로 훑을 때 빨간 숫자가 칸마다 다른 높이에 나타난다.
   &__day {
     display: grid;
-    grid-template-rows: auto 1fr 1fr;
+    grid-template-rows: auto auto auto;
     justify-items: center;
     align-content: start;
     gap: 1px;
 
-    // 폰에서는 정사각형이 자연스럽다. 넓은 화면에서 그대로 두면 칸이 커지는 만큼
-    // 세로도 자라 6주짜리 달이 화면을 넘는다(1440px 에서 946px 까지 잰 값이다).
-    aspect-ratio: 1;
-    padding: s.$gap-2 2px;
+    // 칸 높이는 정사각형이 아니라 **세 줄(날짜·수입·지출)이 들어가는 높이**로 정한다.
+    // 폰에서 정사각형으로 두면 칸이 42px 까지 줄어 금액 줄이 7px 로 눌려 잘렸다(375px 실측).
+    // 넓은 화면에서 정사각형이면 칸이 커지는 만큼 세로도 자라 6주짜리 달이 화면을 넘는다.
+    min-height: 56px;
+    padding: s.$gap-2 0;
     overflow: hidden;
     border: 1px solid transparent;
     border-radius: s.$shape-md;
@@ -100,7 +101,15 @@
     max-width: 100%;
     overflow: hidden;
     font-size: 10px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
     white-space: nowrap;
+
+    // 폰의 칸 안쪽 폭은 40px 남짓이다. '4,766만' 일곱 자가 10px 에서 45px 라 잘렸다.
+    @include media.mobile {
+      font-size: 9px;
+      letter-spacing: -0.03em;
+    }
   }
 
   // 줄을 못 박는다. 수입이 없어도 지출은 언제나 셋째 줄이다.
@@ -117,12 +126,11 @@
     @include media.tablet-up {
       .monthgrid__day,
       .monthgrid__blank {
-        aspect-ratio: auto;
-        min-height: 76px;
+        min-height: 84px;
       }
 
       .monthgrid__day {
-        padding: s.$gap-2;
+        padding: s.$gap-3 s.$gap-2;
       }
     }
   }
@@ -131,8 +139,7 @@
   &[data-variant="compact"] {
     .monthgrid__day,
     .monthgrid__blank {
-      aspect-ratio: auto;
-      min-height: 46px;
+      min-height: 52px;
     }
 
     .monthgrid__daymoney {
