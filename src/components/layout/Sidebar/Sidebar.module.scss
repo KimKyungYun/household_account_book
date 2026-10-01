@@ -31,18 +31,21 @@
   }
 
   // 마크 자체가 두 사람의 색을 품은 그림이다. 배경 판을 덧대지 않는다.
+  // 넓은 화면에서는 글자까지 합친 로고(__lockup)가 대신 선다.
   &__mark {
     flex-shrink: 0;
-  }
-
-  &__wordmark {
-    display: none;
-    white-space: nowrap;
-
-    @include t.label-large;
 
     @include media.desktop-up {
-      display: inline;
+      display: none;
+    }
+  }
+
+  &__lockup {
+    display: none;
+    flex-shrink: 0;
+
+    @include media.desktop-up {
+      display: block;
     }
   }
 

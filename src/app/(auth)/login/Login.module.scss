@@ -14,12 +14,9 @@
     text-align: center;
   }
 
-  &__mark {
-    flex-shrink: 0;
-  }
-
   &__title {
-    @include t.heading-medium;
+    margin: 0;
+    line-height: 0;
   }
 
   &__lead {
