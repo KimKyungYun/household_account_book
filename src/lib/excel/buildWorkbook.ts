@@ -73,7 +73,6 @@ export async function buildWorkbook(
         splitMode: true,
         merchant: true,
         memo: true,
-        status: true,
         member: { select: { id: true, displayName: true } },
         category: { select: { name: true, parent: { select: { name: true } } } },
         paymentMethod: { select: { name: true } },
@@ -101,7 +100,6 @@ interface Row {
   splitMode: string;
   merchant: string | null;
   memo: string | null;
-  status: string;
   member: { id: string; displayName: string };
   category: { name: string; parent: { name: string } | null } | null;
   paymentMethod: { name: string } | null;
