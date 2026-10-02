@@ -58,6 +58,7 @@ export default function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
 
   return (
     <Modal
+      urlKey="password-change"
       isOpen={isOpen}
       onClose={close}
       title="비밀번호 변경"

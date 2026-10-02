@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '@/components/common/Icon';
+import { useModalHistory } from '@/hooks/useModalHistory';
 import { cn } from '@/utils/ts/cn';
 import styles from './Modal.module.scss';
 import type { ReactNode } from 'react';
@@ -10,6 +11,11 @@ import type { ReactNode } from 'react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * 열려 있는 동안 주소에 붙는 이름 — `?modal=<urlKey>`.
+   * 모달이 방문 기록 한 칸을 차지하므로 뒤로가기를 누르면 페이지는 그대로 두고 모달만 닫힌다.
+   */
+  urlKey: string;
   title: string;
   description?: string;
   size?: 'md' | 'lg';
@@ -45,6 +51,7 @@ const OPENED: object[] = [];
 export function Modal({
   isOpen,
   onClose,
+  urlKey,
   title,
   description,
   size = 'md',
@@ -65,6 +72,8 @@ export function Modal({
   */
   const closeRef = useRef(onClose);
   const tokenRef = useRef({});
+
+  useModalHistory(isOpen, urlKey, onClose);
 
   useEffect(() => {
     closeRef.current = onClose;

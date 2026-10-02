@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  /** 주소에 붙는 이름(`?modal=`). 화면마다 무엇을 확인하는지 적는다 — 'transaction-delete'. */
+  urlKey: string;
   title: string;
   description?: string;
   /** 실행 버튼 문구. 무슨 일이 일어나는지 그대로 적는다 — '확인' 대신 '삭제'. */
@@ -22,6 +24,7 @@ export function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
+  urlKey,
   title,
   description,
   confirmLabel,
@@ -33,6 +36,7 @@ export function ConfirmDialog({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      urlKey={urlKey}
       title={title}
       description={description}
       footer={

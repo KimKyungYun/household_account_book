@@ -102,6 +102,7 @@ export default function AssetFormModal({ isOpen, asset, onClose, onSaved, onDele
 
   return (
     <Modal
+      urlKey="asset-form"
       isOpen={isOpen}
       onClose={onClose}
       title={asset ? '자산 고치기' : '자산 만들기'}

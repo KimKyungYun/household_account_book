@@ -374,6 +374,7 @@ export default function TransactionBoard() {
 
       {/* 600px 이하에서는 Modal 이 스스로 바텀시트가 된다. */}
       <Modal
+        urlKey="transaction-create"
         isOpen={isCreating}
         onClose={() => setIsCreating(false)}
         title="거래 등록"
@@ -403,6 +404,7 @@ export default function TransactionBoard() {
       </Modal>
 
       <Modal
+        urlKey="transaction-edit"
         key={editing?.id ?? 'none'}
         isOpen={Boolean(editing)}
         onClose={() => setEditing(null)}
@@ -446,6 +448,7 @@ export default function TransactionBoard() {
       </Modal>
 
       <ConfirmDialog
+        urlKey="transaction-delete"
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}

@@ -309,6 +309,7 @@ export default function AssetBoard() {
       )}
 
       <ConfirmDialog
+        urlKey="asset-delete"
         isOpen={Boolean(deleteTarget)}
         title={`'${deleteTarget?.name ?? ''}'을(를) 지울까요?`}
         description={

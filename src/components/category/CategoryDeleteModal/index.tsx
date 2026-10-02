@@ -74,6 +74,7 @@ export default function CategoryDeleteModal({ category, groups, onClose, onDone 
 
   return (
     <Modal
+      urlKey="category-delete"
       isOpen={Boolean(category)}
       onClose={onClose}
       title={`'${category?.name ?? ''}' 지우기`}

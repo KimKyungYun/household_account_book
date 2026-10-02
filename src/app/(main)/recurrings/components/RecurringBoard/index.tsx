@@ -228,6 +228,7 @@ export default function RecurringBoard() {
       />
 
       <ConfirmDialog
+        urlKey="recurring-delete"
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}

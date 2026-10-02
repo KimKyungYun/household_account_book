@@ -244,6 +244,7 @@ export default function LoanBoard() {
 
       {deleteTarget && (
         <ConfirmDialog
+          urlKey="loan-delete"
           isOpen
           title={`'${deleteTarget.name}' 을 지울까요?`}
           description="대출만 사라지고, 이미 갚은 기록은 거래에 그대로 남아요. 다 갚은 대출이라면 지우는 대신 '보관'해 두는 걸 추천해요."

@@ -131,6 +131,7 @@ export default function HouseholdSection() {
       </Card>
 
       <ConfirmDialog
+        urlKey="invite-rotate"
         isOpen={isRotating}
         onClose={() => setIsRotating(false)}
         onConfirm={() => rotation.mutate()}

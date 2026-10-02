@@ -32,6 +32,7 @@ export default function MobileMenu() {
 
   return (
     <Modal
+      urlKey="menu"
       isOpen={isOpen}
       onClose={closeMenu}
       placement="drawer"

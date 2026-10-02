@@ -91,6 +91,7 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
   return (
     <>
       <Modal
+        urlKey="category-select"
         isOpen={isOpen}
         onClose={close}
         title="분류 고르기"

@@ -186,6 +186,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
   return (
     <Modal
+      urlKey="loan-form"
       isOpen={isOpen}
       onClose={onClose}
       title={loan ? '대출 고치기' : '대출 등록'}

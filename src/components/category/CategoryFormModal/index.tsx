@@ -147,6 +147,7 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
 
   return (
     <Modal
+      urlKey="category-form"
       isOpen={Boolean(target)}
       onClose={onClose}
       title={titleOf(target)}

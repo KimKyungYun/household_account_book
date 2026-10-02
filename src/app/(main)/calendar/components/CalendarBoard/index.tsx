@@ -202,6 +202,7 @@ export default function CalendarBoard() {
       </Card>
 
       <Modal
+        urlKey="transaction-create"
         isOpen={isCreating}
         onClose={() => setIsCreating(false)}
         title={`${formatDateLabel(selected)} 거래 등록`}
@@ -232,6 +233,7 @@ export default function CalendarBoard() {
       </Modal>
 
       <Modal
+        urlKey="transaction-edit"
         key={editing?.id ?? 'none'}
         isOpen={Boolean(editing)}
         onClose={() => setEditing(null)}

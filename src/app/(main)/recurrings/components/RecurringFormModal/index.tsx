@@ -199,6 +199,7 @@ export default function RecurringFormModal({ rule, isOpen, onClose, onSaved }: R
 
   return (
     <Modal
+      urlKey="recurring-form"
       isOpen={isOpen}
       onClose={onClose}
       title={rule ? '반복되는 돈 수정' : '매달 반복되는 돈'}

@@ -30,6 +30,7 @@ export default function LoanScheduleModal({ isOpen, loan, onClose }: LoanSchedul
 
   return (
     <Modal
+      urlKey="loan-schedule"
       isOpen={isOpen}
       onClose={onClose}
       title={`${loan.name} 상환 계획`}
