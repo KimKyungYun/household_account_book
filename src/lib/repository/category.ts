@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import { badRequest, conflict, forbidden, notFound } from '@/lib/api/httpError';
+import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import type { CategoryKind, SplitMode } from '@/generated/prisma/enums';
 import type { CategoryNodeDto, CategoryTreeDto } from '@/service/category/type';
 
 const KIND_ORDER: CategoryKind[] = ['EXPENSE', 'INCOME', 'TRANSFER'];
 
-/** 2단 트리 + 거래 건수. 한 번의 조회로 화면이 필요한 것을 다 만든다. */
+/** 2단 트리 + 쓰이는 곳 건수. 한 번의 조회로 화면이 필요한 것을 다 만든다. */
 export async function getCategoryTree(
   householdId: string,
   options: { kind?: CategoryKind; includeInactive?: boolean },
@@ -27,9 +27,8 @@ export async function getCategoryTree(
       colorHex: true,
       sortOrder: true,
       isActive: true,
-      isSystem: true,
       defaultSplitMode: true,
-      _count: { select: { transactions: true } },
+      _count: { select: { transactions: true, recurringRules: true, loanInterests: true, loanPrincipals: true } },
     },
   });
 
@@ -38,13 +37,15 @@ export async function getCategoryTree(
     name: row.name,
     kind: row.kind,
     level: row.level,
+    parentId: row.parentId,
     icon: row.icon,
     colorHex: row.colorHex,
     sortOrder: row.sortOrder,
     isActive: row.isActive,
-    isSystem: row.isSystem,
     defaultSplitMode: row.defaultSplitMode,
     transactionCount: row._count.transactions,
+    recurringCount: row._count.recurringRules,
+    loanCount: row._count.loanInterests + row._count.loanPrincipals,
     children: [],
   });
 
@@ -64,9 +65,13 @@ export async function getCategoryTree(
   }
 
   // 거래는 소분류에만 달린다. 대분류 건수를 직접 달린 것만 세면 하위에 2건이 있어도
-  // 대분류가 '0건'으로 보여 삭제해도 되는 것처럼 읽힌다.
+  // 대분류가 '0건'으로 보여 지워도 되는 것처럼 읽힌다. 대분류를 지우면 소분류도 함께 없어지므로 다 더한다.
   for (const root of roots) {
-    root.transactionCount += root.children.reduce((sum, child) => sum + child.transactionCount, 0);
+    for (const child of root.children) {
+      root.transactionCount += child.transactionCount;
+      root.recurringCount += child.recurringCount;
+      root.loanCount += child.loanCount;
+    }
   }
 
   const kinds = options.kind ? [options.kind] : KIND_ORDER;
@@ -137,17 +142,43 @@ export async function updateCategory(
     defaultSplitMode?: SplitMode | null;
     isActive?: boolean;
     sortOrder?: number;
+    /** 소분류를 다른 대분류 밑으로 옮긴다. 거래는 소분류에 달려 있으니 그대로 따라간다. */
+    parentId?: string;
   },
 ) {
   const current = await prisma.category.findFirst({
     where: { id, householdId },
-    select: { id: true, parentId: true, name: true, level: true },
+    select: { id: true, parentId: true, name: true, level: true, kind: true },
   });
   if (!current) throw notFound('카테고리를 찾을 수 없어요.');
 
-  if (input.name && input.name !== current.name) {
+  const isMoving = input.parentId !== undefined && input.parentId !== current.parentId;
+  let movedSortOrder: number | undefined;
+  if (isMoving) {
+    if (current.level !== 2) throw badRequest('큰 분류는 옮길 수 없어요.');
+    const parent = await prisma.category.findFirst({
+      where: { id: input.parentId, householdId },
+      select: { level: true, kind: true },
+    });
+    if (!parent) throw notFound('옮길 큰 분류를 찾을 수 없어요.');
+    if (parent.level !== 1) throw badRequest('큰 분류 밑으로만 옮길 수 있어요.');
+    if (parent.kind !== current.kind) throw badRequest('종류가 다른 분류로는 옮길 수 없어요.');
+
+    // 옮겨 간 곳에서는 맨 뒤에 선다.
+    const last = await prisma.category.findFirst({
+      where: { householdId, parentId: input.parentId },
+      orderBy: { sortOrder: 'desc' },
+      select: { sortOrder: true },
+    });
+    movedSortOrder = (last?.sortOrder ?? -1) + 1;
+  }
+
+  // 이름 겹침은 '옮겨 갈 곳'에서 본다. 옮기면서 이름을 안 바꿔도 거기에 같은 이름이 있으면 막는다.
+  const parentId = isMoving ? input.parentId : current.parentId;
+  const name = input.name ?? current.name;
+  if (isMoving || name !== current.name) {
     const duplicate = await prisma.category.findFirst({
-      where: { householdId, parentId: current.parentId, name: input.name, id: { not: id } },
+      where: { householdId, parentId, name, id: { not: id } },
       select: { id: true },
     });
     if (duplicate) throw conflict('같은 이름이 이미 있어요.', { name: '같은 이름이 이미 있어요.' });
@@ -168,62 +199,82 @@ export async function updateCategory(
       ...(input.defaultSplitMode === undefined ? {} : { defaultSplitMode: input.defaultSplitMode }),
       ...(input.isActive === undefined ? {} : { isActive: input.isActive, archivedAt: input.isActive ? null : new Date() }),
       ...(input.sortOrder === undefined ? {} : { sortOrder: input.sortOrder }),
+      ...(isMoving ? { parentId: input.parentId, sortOrder: movedSortOrder } : {}),
     },
     select: { id: true },
   });
 }
 
 /**
- * 삭제는 거래가 하나도 없을 때만 허용한다.
- * 있으면 409 로 건수를 알려 주고, 화면이 '옮기고 삭제'(merge)로 유도한다.
- * 기본 카테고리(isSystem)는 개명만 되고 삭제되지 않는다.
+ * 같은 자리(같은 대분류 밑, 또는 같은 종류의 대분류끼리)의 순서를 받은 차례대로 다시 매긴다.
+ * 위·아래로 한 칸씩 옮길 때 두 줄만 바꾸면 기존 sortOrder 가 겹쳐 있을 때 순서가 엉킨다.
+ * 형제 전체를 0 부터 다시 매겨 그런 일을 없앤다.
  */
-export async function deleteCategory(householdId: string, id: string) {
-  const category = await prisma.category.findFirst({
-    where: { id, householdId },
-    select: {
-      id: true,
-      isSystem: true,
-      _count: { select: { transactions: true, children: true, budgets: true, recurringRules: true } },
-    },
+export async function reorderCategories(householdId: string, orderedIds: readonly string[]) {
+  const rows = await prisma.category.findMany({
+    where: { id: { in: [...orderedIds] }, householdId },
+    select: { id: true, parentId: true, kind: true },
   });
-  if (!category) throw notFound('카테고리를 찾을 수 없어요.');
-  if (category.isSystem) throw forbidden('기본 카테고리는 삭제할 수 없어요. 보관 처리해 주세요.');
-  if (category._count.children > 0) throw conflict('소분류가 남아 있어요. 먼저 정리해 주세요.');
-  if (category._count.transactions > 0) {
-    throw conflict(`이 카테고리에 거래 ${category._count.transactions}건이 있어요. 다른 카테고리로 옮긴 뒤 지워 주세요.`);
-  }
-  if (category._count.recurringRules > 0) throw conflict('이 카테고리를 쓰는 반복 거래가 있어요.');
+  if (rows.length !== orderedIds.length) throw notFound('카테고리를 찾을 수 없어요.');
 
-  await prisma.$transaction([
-    prisma.budget.deleteMany({ where: { categoryId: id } }),
-    prisma.category.delete({ where: { id } }),
-  ]);
+  const [first] = rows;
+  if (first && rows.some((row) => row.parentId !== first.parentId || row.kind !== first.kind)) {
+    throw badRequest('같은 자리의 분류끼리만 순서를 바꿀 수 있어요.');
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) => prisma.category.update({ where: { id }, data: { sortOrder: index } })),
+  );
 }
 
-/** 거래·예산·반복규칙을 다른 카테고리로 통째로 옮기고 원본을 보관한다. */
-export async function mergeCategory(householdId: string, id: string, intoCategoryId: string) {
-  if (id === intoCategoryId) throw badRequest('같은 카테고리로는 옮길 수 없어요.');
+/**
+ * 분류를 지운다. 대분류면 딸린 소분류까지 함께 지운다.
+ *
+ * 거래·반복 거래·대출이 이 분류(들)를 쓰고 있으면 `intoCategoryId` 로 옮길 곳을 받아
+ * 한 번에 옮긴 뒤 지운다. 옮길 곳 없이 부르면 409 로 돌려보낸다 — 화면이 옮길 곳을 고르게 한다.
+ * 예산은 (분류, 연월) 유니크라 옮기면 겹친다. 지우는 분류의 예산은 함께 지운다.
+ */
+export async function removeCategory(householdId: string, id: string, intoCategoryId?: string) {
+  const category = await prisma.category.findFirst({
+    where: { id, householdId },
+    select: { id: true, kind: true, children: { select: { id: true } } },
+  });
+  if (!category) throw notFound('카테고리를 찾을 수 없어요.');
 
-  const [source, target] = await Promise.all([
-    prisma.category.findFirst({ where: { id, householdId }, select: { id: true, kind: true, isSystem: true } }),
-    prisma.category.findFirst({ where: { id: intoCategoryId, householdId }, select: { id: true, kind: true, level: true } }),
+  const ids = [category.id, ...category.children.map((child) => child.id)];
+  const inIds = { in: ids };
+
+  const [transactions, recurringRules, loans] = await Promise.all([
+    prisma.transaction.count({ where: { householdId, categoryId: inIds } }),
+    prisma.recurringRule.count({ where: { householdId, categoryId: inIds } }),
+    prisma.loan.count({ where: { householdId, OR: [{ interestCategoryId: inIds }, { principalCategoryId: inIds }] } }),
   ]);
-  if (!source || !target) throw notFound('카테고리를 찾을 수 없어요.');
-  if (source.kind !== target.kind) throw badRequest('종류가 다른 카테고리로는 옮길 수 없어요.');
-  if (target.level !== 2) throw badRequest('소분류로만 옮길 수 있어요.');
+  const isInUse = transactions + recurringRules + loans > 0;
+
+  if (isInUse) {
+    if (!intoCategoryId) throw conflict('이 분류를 쓰는 곳이 있어요. 옮길 분류를 골라 주세요.');
+    if (ids.includes(intoCategoryId)) throw badRequest('지우는 분류로는 옮길 수 없어요.');
+
+    const target = await prisma.category.findFirst({
+      where: { id: intoCategoryId, householdId },
+      select: { kind: true, level: true, isActive: true },
+    });
+    if (!target) throw notFound('옮길 분류를 찾을 수 없어요.');
+    if (target.kind !== category.kind) throw badRequest('종류가 다른 분류로는 옮길 수 없어요.');
+    if (target.level !== 2) throw badRequest('세부 분류로만 옮길 수 있어요.');
+    if (!target.isActive) throw badRequest('보관된 분류로는 옮길 수 없어요.');
+  }
 
   await prisma.$transaction(async (tx) => {
-    await tx.transaction.updateMany({ where: { householdId, categoryId: id }, data: { categoryId: intoCategoryId } });
-    await tx.recurringRule.updateMany({ where: { householdId, categoryId: id }, data: { categoryId: intoCategoryId } });
-    // 예산은 (카테고리, 연월) 유니크라 그대로 옮기면 충돌한다. 원본 예산은 지운다.
-    await tx.budget.deleteMany({ where: { householdId, categoryId: id } });
-
-    if (source.isSystem) {
-      await tx.category.update({ where: { id }, data: { isActive: false, archivedAt: new Date() } });
-
-      return;
+    if (isInUse && intoCategoryId) {
+      await tx.transaction.updateMany({ where: { householdId, categoryId: inIds }, data: { categoryId: intoCategoryId } });
+      await tx.recurringRule.updateMany({ where: { householdId, categoryId: inIds }, data: { categoryId: intoCategoryId } });
+      await tx.loan.updateMany({ where: { householdId, interestCategoryId: inIds }, data: { interestCategoryId: intoCategoryId } });
+      await tx.loan.updateMany({ where: { householdId, principalCategoryId: inIds }, data: { principalCategoryId: intoCategoryId } });
     }
-    await tx.category.delete({ where: { id } });
+    await tx.budget.deleteMany({ where: { householdId, categoryId: inIds } });
+    // 자식부터 지운다. 부모를 먼저 지우면 parentId 외래키에 걸린다.
+    await tx.category.deleteMany({ where: { householdId, parentId: category.id } });
+    await tx.category.delete({ where: { id: category.id } });
   });
 }

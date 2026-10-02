@@ -1,5 +1,5 @@
 import { withHandler } from '@/lib/api/withHandler';
-import { deleteCategory, updateCategory } from '@/lib/repository/category';
+import { removeCategory, updateCategory } from '@/lib/repository/category';
 import { categoryIdParamsSchema, updateCategorySchema } from '@/service/category/schema';
 
 export const runtime = 'nodejs';
@@ -11,5 +11,5 @@ export const PATCH = withHandler(
 );
 
 export const DELETE = withHandler({ params: categoryIdParamsSchema }, async (ctx, { params }) => {
-  await deleteCategory(ctx.householdId, params.id);
+  await removeCategory(ctx.householdId, params.id);
 });

@@ -1,0 +1,147 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/media" as media;
+
+.categorygroup {
+  padding: s.$gap-4;
+  background-color: var(--surface-subtle);
+  border-radius: s.$shape-lg;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-3;
+  }
+
+  &__name {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  // 머리줄(flex)에서 오른쪽으로 밀어 두는 건수.
+  &__count {
+    margin-left: auto;
+    color: var(--text-tertiary);
+
+    @include a.amount-small;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: s.$gap-2;
+
+    // 폰에서는 순서 단추만 이름 줄에 남고, 나머지 단추는 이름 아래 한 줄로 내려간다.
+    @include media.mobile {
+      width: 100%;
+      margin-left: calc(#{s.$gap-2} * -1);
+    }
+  }
+
+  &__children {
+    display: grid;
+    gap: 2px;
+    margin-top: s.$gap-3;
+
+    @include media.desktop-up {
+      grid-template-columns: 1fr 1fr;
+      column-gap: s.$gap-5;
+    }
+  }
+
+  // 건수 칸을 고정폭으로 둔다. auto 로 두면 '3건'과 '1,234건'의 폭이 달라
+  // 옆 항목끼리 단추 위치가 어긋난다. 부모가 2열 격자라 자식을 거기에
+  // 태울 수 없어(subgrid 로도 열 수가 맞지 않는다) 폭을 직접 정한다.
+  &__child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 48px auto;
+    align-items: center;
+    gap: s.$gap-2;
+    padding: s.$gap-1 s.$gap-2 s.$gap-1 s.$gap-3;
+    border-radius: s.$shape-sm;
+
+    @include media.hover-supported {
+      &:hover {
+        background-color: var(--surface-hover);
+      }
+    }
+  }
+
+  &__childname {
+    overflow: hidden;
+    color: var(--text-secondary);
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    @include t.body-small;
+
+    &:focus-visible {
+      border-radius: s.$shape-sm;
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  // 세부 분류 줄(grid)의 건수. 칸이 고정이라 밀 필요 없이 오른쪽에 붙인다.
+  &__childcount {
+    color: var(--text-tertiary);
+    text-align: right;
+
+    @include a.amount-small;
+  }
+
+  &__childactions {
+    display: flex;
+    align-items: center;
+    gap: s.$gap-1;
+  }
+
+  &__order {
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  &__orderbutton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--text-tertiary);
+    background: none;
+    border: 0;
+    border-radius: s.$shape-sm;
+    cursor: pointer;
+
+    @include media.hover-supported {
+      &:hover:not(:disabled) {
+        color: var(--text-primary);
+        background-color: var(--surface-hover);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
+
+    // 맨 위·맨 아래에서는 갈 곳이 없다. 자리는 남겨 두어 줄마다 단추 위치가 같게 한다.
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+
+  &__nochild {
+    padding: s.$gap-2 s.$gap-3;
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

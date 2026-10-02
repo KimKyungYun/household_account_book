@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
@@ -10,8 +10,9 @@ import FormField from '@/components/common/FormField';
 import Input from '@/components/common/Input';
 import Modal from '@/components/common/Modal';
 import Select from '@/components/common/Select';
-import { createCategory, updateCategory } from '@/service/category';
+import { createCategory, getCategoryTree, updateCategory } from '@/service/category';
 import { isApiError } from '@/interface/errorType';
+import { QUERY_KEY } from '@/interface/key/queryKey';
 import type { CategoryKind, SplitMode } from '@/generated/prisma/enums';
 import type { CategoryNodeDto } from '@/service/category/type';
 import EmojiPicker from './EmojiPicker';
@@ -46,6 +47,8 @@ const formSchema = z.object({
   defaultSplitMode: z.enum(['', 'SHARED', 'PERSONAL']),
   /** 대분류 아이콘. null 이면 이름으로 자동. 소분류에는 쓰지 않는다. */
   icon: z.string().nullable(),
+  /** 세부 분류를 고칠 때 속할 큰 분류. 바꾸면 그 밑으로 옮긴다. */
+  parentId: z.string(),
 });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -91,9 +94,21 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
       name: target?.mode === 'edit' ? target.category.name : '',
       defaultSplitMode: defaultSplitOf(target),
       icon: target?.mode === 'edit' ? target.category.icon : null,
+      parentId: target?.mode === 'edit' ? target.category.parentId ?? '' : '',
     },
   });
   const isParent = isParentTarget(target);
+  const isEditingChild = target?.mode === 'edit' && target.category.level === 2;
+
+  // 옮겨 갈 큰 분류 목록. 분류 화면·고르기 창과 같은 캐시를 쓴다.
+  const tree = useQuery({
+    queryKey: QUERY_KEY.CATEGORY.TREE({ kind }),
+    queryFn: () => getCategoryTree({ kind }),
+    enabled: isEditingChild,
+  });
+  const parentOptions = (tree.data ?? [])
+    .flatMap((group) => group.categories)
+    .map((parent) => ({ value: parent.id, label: parent.name }));
   const [watchedName, watchedIcon] = useWatch({ control, name: ['name', 'icon'] });
 
   const { mutateAsync, isPending } = useMutation({
@@ -106,6 +121,7 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
           name: values.name,
           defaultSplitMode: splitMode,
           ...(isParent ? { icon: values.icon } : {}),
+          ...(isEditingChild && values.parentId !== target.category.parentId ? { parentId: values.parentId } : {}),
         });
 
         return saved.id;
@@ -143,15 +159,12 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
     onSaved(savedId);
   });
 
-  const isEditingSystem = target?.mode === 'edit' && target.category.isSystem;
-
   return (
     <Modal
       urlKey="category-form"
       isOpen={Boolean(target)}
       onClose={onClose}
       title={titleOf(target)}
-      description={isEditingSystem ? '처음부터 있던 분류는 이름과 기본 설정만 바꿀 수 있어요.' : undefined}
       footer={
         <div className={styles.categoryformmodal__actions}>
           <Button
@@ -192,6 +205,22 @@ export default function CategoryFormModal({ target, kind, onClose, onSaved }: Ca
             />
           )}
         </FormField>
+
+        {isEditingChild && parentOptions.length > 1 && (
+          <FormField
+            label="큰 분류"
+            hint="다른 큰 분류로 옮겨도 거래는 그대로 따라가요."
+          >
+            {({ id, describedBy }) => (
+              <Select
+                id={id}
+                options={parentOptions}
+                aria-describedby={describedBy}
+                {...register('parentId')}
+              />
+            )}
+          </FormField>
+        )}
 
         {isParent && (
           <FormField

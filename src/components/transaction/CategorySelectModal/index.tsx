@@ -83,7 +83,9 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
   };
 
   const onDeleted = () => {
-    if (deleteTarget?.id === value) onChange(null);
+    // 고른 분류를, 또는 그것이 딸린 큰 분류를 지웠으면 고른 값도 비운다.
+    const removed = [deleteTarget?.id, ...(deleteTarget?.children ?? []).map((child) => child.id)];
+    if (value && removed.includes(value)) onChange(null);
     setDeleteTarget(null);
     refresh();
   };
@@ -96,7 +98,7 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
         onClose={close}
         title="분류 고르기"
         description={isEditing
-          ? '칩을 누르면 이름을 바꾸고, ✕ 를 누르면 지워요. 처음부터 있던 분류는 지울 수 없어요.'
+          ? '칩을 누르면 고치고, ✕ 를 누르면 지워요. 처음부터 있던 분류도 마음대로 바꿀 수 있어요.'
           : '고르면 바로 거래에 적혀요.'}
         size="lg"
         footer={
@@ -170,7 +172,14 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
                           variant="ghost"
                           onClick={() => setFormTarget({ mode: 'edit', category: parent })}
                         >
-                          이름 바꾸기
+                          고치기
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(parent)}
+                        >
+                          지우기
                         </Button>
                       </span>
                     )}
@@ -196,13 +205,12 @@ export default function CategorySelectModal({ isOpen, onClose, tree, kind, value
                               ? setFormTarget({ mode: 'edit', category: child })
                               : select(child.id))}
                             aria-pressed={isEditing ? undefined : child.id === value}
-                            title={isEditing ? '이름 바꾸기' : undefined}
+                            title={isEditing ? '고치기' : undefined}
                           >
                             {child.name}
                           </button>
 
-                          {/* 기본 분류는 지울 수 없다(이름만 바꾼다). */}
-                          {isEditing && !child.isSystem && (
+                          {isEditing && (
                             <button
                               type="button"
                               className={styles.categoryselectmodal__remove}

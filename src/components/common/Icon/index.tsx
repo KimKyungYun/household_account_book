@@ -18,6 +18,8 @@ export type IconName =
   | 'logout'
   | 'chevronLeft'
   | 'chevronRight'
+  | 'chevronUp'
+  | 'chevronDown'
   | 'close'
   | 'search'
   | 'download'
@@ -53,6 +55,8 @@ const PATHS: Record<IconName, string> = {
   logout: 'M15 16.5l4.5-4.5L15 7.5M19.5 12H9M12 20H6.5a1.5 1.5 0 0 1-1.5-1.5v-13A1.5 1.5 0 0 1 6.5 4H12',
   chevronLeft: 'M14.5 6.5 9 12l5.5 5.5',
   chevronRight: 'M9.5 6.5 15 12l-5.5 5.5',
+  chevronUp: 'M6.5 14.5 12 9l5.5 5.5',
+  chevronDown: 'M6.5 9.5 12 15l5.5-5.5',
   close: 'M6.5 6.5l11 11M17.5 6.5l-11 11',
   search: 'M11 17.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Zm4.8-1.7L20 20',
   download: 'M12 4v11m0 0-4-4m4 4 4-4M4.5 19.5h15',

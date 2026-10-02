@@ -51,6 +51,8 @@ export const updateCategorySchema = z.object({
   icon: iconSchema,
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().min(0).optional(),
+  /** 소분류를 다른 대분류 밑으로 옮길 때. */
+  parentId: z.string().min(1).optional(),
 });
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 
@@ -58,5 +60,11 @@ export const mergeCategorySchema = z.object({
   intoCategoryId: z.string().min(1, '옮길 카테고리를 골라 주세요.'),
 });
 export type MergeCategoryInput = z.infer<typeof mergeCategorySchema>;
+
+/** 같은 자리 분류들의 새 순서. 맨 위부터 차례로. */
+export const reorderCategoriesSchema = z.object({
+  orderedIds: z.array(z.string().min(1)).min(1).max(200),
+});
+export type ReorderCategoriesInput = z.infer<typeof reorderCategoriesSchema>;
 
 export const categoryIdParamsSchema = z.object({ id: z.string().min(1) });

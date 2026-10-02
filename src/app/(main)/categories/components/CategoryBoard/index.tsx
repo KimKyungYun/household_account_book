@@ -1,23 +1,25 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import Badge from '@/components/common/Badge';
+import { toast } from 'react-toastify';
 import Button from '@/components/common/Button';
-import CategoryIcon from '@/components/common/CategoryIcon';
 import Card from '@/components/common/Card';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import SegmentedControl from '@/components/common/SegmentedControl';
 import { SkeletonRows } from '@/components/common/Skeleton';
+import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
-import { getCategoryTree } from '@/service/category';
+import { getCategoryTree, reorderCategories } from '@/service/category';
 import type { CategoryKind } from '@/generated/prisma/enums';
-import type { CategoryNodeDto } from '@/service/category/type';
+import type { CategoryNodeDto, CategoryTreeDto } from '@/service/category/type';
 import CategoryDeleteModal from '@/components/category/CategoryDeleteModal';
 import CategoryFormModal, { categoryFormKey } from '@/components/category/CategoryFormModal';
 import type { CategoryFormTarget } from '@/components/category/CategoryFormModal';
+import CategoryGroup from '../CategoryGroup';
 import styles from './CategoryBoard.module.scss';
+import type { MoveOffset } from '../CategoryGroup';
 
 const KIND_OPTIONS = [
   { value: 'EXPENSE', label: '쓴 돈' },
@@ -32,6 +34,19 @@ const KIND_HINT: Record<CategoryKind, string> = {
     '계좌끼리 옮긴 돈, 카드값, 적금 납입처럼 쓴 것도 번 것도 아닌 돈이에요. 합계에서는 빠져요.',
 };
 
+/** 트리 캐시에서 한 자리(대분류끼리, 또는 한 대분류의 세부 분류끼리)의 순서를 바꾼다. */
+function withOrder(tree: CategoryTreeDto[], orderedIds: readonly string[]): CategoryTreeDto[] {
+  const rank = new Map(orderedIds.map((id, index) => [id, index]));
+  const sortSiblings = (nodes: CategoryNodeDto[]) => (nodes.some((node) => rank.has(node.id))
+    ? [...nodes].sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
+    : nodes);
+
+  return tree.map((group) => ({
+    ...group,
+    categories: sortSiblings(group.categories).map((parent) => ({ ...parent, children: sortSiblings(parent.children) })),
+  }));
+}
+
 export default function CategoryBoard() {
   const [kind, setKind] = useState<CategoryKind>('EXPENSE');
   const [formTarget, setFormTarget] = useState<CategoryFormTarget | null>(null);
@@ -44,6 +59,39 @@ export default function CategoryBoard() {
   });
 
   const groups = data?.[0]?.categories ?? [];
+  const treeKey = QUERY_KEY.CATEGORY.TREE({ kind });
+
+  // 누르는 즉시 순서를 바꿔 보이고, 실패하면 되돌린다.
+  const reorder = useMutation({
+    mutationFn: (orderedIds: string[]) => reorderCategories({ orderedIds }),
+    onMutate: async (orderedIds) => {
+      await queryClient.cancelQueries({ queryKey: treeKey });
+      const snapshot = queryClient.getQueryData<CategoryTreeDto[]>(treeKey);
+      queryClient.setQueryData<CategoryTreeDto[]>(treeKey, (tree) => (tree ? withOrder(tree, orderedIds) : tree));
+
+      return { snapshot };
+    },
+    onError: (error, _ids, context) => {
+      queryClient.setQueryData(treeKey, context?.snapshot);
+      toast.error(isApiError(error) ? error.message : '순서를 바꾸지 못했어요.');
+    },
+    // 거래 입력 창의 분류 순서도 같은 캐시를 보므로 함께 새로 받는다.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY.CATEGORY.ALL }),
+  });
+
+  const move = (category: CategoryNodeDto, offset: MoveOffset) => {
+    const siblings = category.parentId
+      ? groups.find((parent) => parent.id === category.parentId)?.children ?? []
+      : groups;
+    const ids = siblings.map((sibling) => sibling.id);
+    const from = ids.indexOf(category.id);
+    const to = from + offset;
+    if (from < 0 || to < 0 || to >= ids.length) return;
+
+    [ids[from], ids[to]] = [ids[to] as string, ids[from] as string];
+    reorder.mutate(ids);
+  };
+
   const refresh = () => {
     setFormTarget(null);
     setDeleteTarget(null);
@@ -100,75 +148,18 @@ export default function CategoryBoard() {
             />
           ) : (
             <ul className={styles.categoryboard__groups}>
-              {groups.map((parent) => (
-                <li
+              {groups.map((parent, index) => (
+                <CategoryGroup
                   key={parent.id}
-                  className={styles.categoryboard__group}
-                >
-                  <div className={styles.categoryboard__grouphead}>
-                    <CategoryIcon
-                      name={parent.name}
-                      icon={parent.icon}
-                      color={parent.colorHex}
-                    />
-                    <span className={styles.categoryboard__groupname}>{parent.name}</span>
-                    {parent.defaultSplitMode === 'PERSONAL' && <Badge tone="neutral">각자 돈</Badge>}
-                    <span className={styles.categoryboard__count}>거래 {parent.transactionCount}건</span>
-
-                    <div className={styles.categoryboard__groupactions}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setFormTarget({ mode: 'create-child', parent })}
-                      >
-                        세부 분류 추가
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setFormTarget({ mode: 'edit', category: parent })}
-                      >
-                        이름 바꾸기
-                      </Button>
-                    </div>
-                  </div>
-
-                  <ul className={styles.categoryboard__children}>
-                    {parent.children.map((child) => (
-                      <li
-                        key={child.id}
-                        className={styles.categoryboard__child}
-                      >
-                        <button
-                          type="button"
-                          className={styles.categoryboard__childname}
-                          onClick={() => setFormTarget({ mode: 'edit', category: child })}
-                          title="이름 바꾸기"
-                        >
-                          {child.name}
-                        </button>
-                        <span className={styles.categoryboard__childcount}>
-                          {child.transactionCount === 0 ? '' : `${child.transactionCount}건`}
-                        </span>
-                        {/* 기본 분류는 지울 수 없다(이름만 바꾼다). 누르면 거절당할 단추는 두지 않는다. */}
-                        {!child.isSystem && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setDeleteTarget(child)}
-                          >
-                            지우기
-                          </Button>
-                        )}
-                      </li>
-                    ))}
-                    {parent.children.length === 0 && (
-                      <li className={styles.categoryboard__nochild}>
-                        세부 분류가 없어 이 분류로는 거래를 등록할 수 없어요.
-                      </li>
-                    )}
-                  </ul>
-                </li>
+                  parent={parent}
+                  isFirst={index === 0}
+                  isLast={index === groups.length - 1}
+                  isReordering={reorder.isPending}
+                  onAddChild={(target) => setFormTarget({ mode: 'create-child', parent: target })}
+                  onEdit={(category) => setFormTarget({ mode: 'edit', category })}
+                  onDelete={setDeleteTarget}
+                  onMove={move}
+                />
               ))}
             </ul>
           )}
