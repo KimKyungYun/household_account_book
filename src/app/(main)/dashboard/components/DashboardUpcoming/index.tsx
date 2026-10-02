@@ -94,14 +94,27 @@ export default function DashboardUpcoming() {
       icon="⏰"
       description={'다가오는 한 달 동안의 예상 거래 목록이에요'}
       action={
+        <Link href={PATH.RECURRINGS}>
+          <Button
+            size="sm"
+            variant="ghost"
+          >
+            전체 보기
+          </Button>
+        </Link>
+      }
+    >
+      {/* 이 기간에 들어오고 나갈 돈을 더한 값. 목록을 읽기 전에 결론부터 본다. */}
+      <p className={styles.dashboardupcoming__net}>
+        <span className={styles.dashboardupcoming__netlabel}>들어오고 나갈 돈을 더하면</span>
         <Amount
           value={incoming - outgoing}
           size="medium"
           tone={incoming - outgoing < 0 ? 'expense' : 'income'}
           signMode="value"
         />
-      }
-    >
+      </p>
+
       <ul
         className={styles.dashboardupcoming}
         role="list"

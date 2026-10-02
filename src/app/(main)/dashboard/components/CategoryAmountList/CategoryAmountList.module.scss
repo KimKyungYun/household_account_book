@@ -1,3 +1,4 @@
+@use "styles/tokens/motion" as m;
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
 @use "styles/utils/amount" as a;
@@ -52,6 +53,31 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: s.$gap-3;
+
+    // 누를 수 있는 줄. 바깥으로 여백을 조금 빼 누를 자리를 넓히고, 올리면 바탕이 옅게 깔린다.
+    &--link {
+      margin: calc(#{s.$gap-2} * -1);
+      padding: s.$gap-2;
+      color: inherit;
+      border-radius: s.$shape-lg;
+      transition: background-color m.$dur-quick m.$ease-out;
+
+      @include motion.press(0.99);
+
+      @include media.reduced-motion {
+        transition: none;
+      }
+
+      @include media.hover-supported {
+        &:hover {
+          background-color: var(--surface-hover);
+        }
+      }
+
+      &:focus-visible {
+        box-shadow: var(--focus-ring);
+      }
+    }
   }
 
   &__body {

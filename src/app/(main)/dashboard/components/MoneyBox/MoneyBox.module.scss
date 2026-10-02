@@ -1,5 +1,6 @@
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
 
 .moneybox {
   display: flex;
@@ -28,10 +29,41 @@
     min-width: 0;
   }
 
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$gap-2;
+  }
+
   &__label {
     color: var(--text-secondary);
 
     @include t.label-small;
+  }
+
+  // 상자 머리 오른쪽의 작은 링크. 상자마다 하나라 버튼보다 가볍게 둔다.
+  &__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin: calc(#{s.$gap-2} * -1) calc(#{s.$gap-2} * -1) calc(#{s.$gap-2} * -1) 0;
+    padding: s.$gap-2;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    border-radius: s.$shape-md;
+
+    @include t.label-small;
+
+    @include media.hover-supported {
+      &:hover {
+        color: var(--text-primary);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--focus-ring);
+    }
   }
 
   &__list {

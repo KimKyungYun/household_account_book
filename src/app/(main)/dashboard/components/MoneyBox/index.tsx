@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import CountUpAmount from '@/components/common/CountUpAmount';
+import Icon from '@/components/common/Icon';
 import { SkeletonRows } from '@/components/common/Skeleton';
 import type { CategoryShareDto } from '@/service/stats/type';
 import CategoryAmountList from '../CategoryAmountList';
@@ -17,10 +19,14 @@ interface MoneyBoxProps {
   emptyText: string;
   /** 상자 맨 아래 한 줄(전월 대비 등). */
   footnote?: ReactNode;
+  /** '전체 보기'가 여는 주소 — 이번 달 이 종류의 거래 목록. */
+  href: string;
+  /** 분류 줄을 눌렀을 때 여는 주소. */
+  rowHrefOf: (row: CategoryShareDto) => string;
 }
 
 /** 번 돈 / 쓴 돈 상자 — 합계와 많이 차지한 분류 몇 개. */
-export default function MoneyBox({ kind, label, total, rows, emptyText, footnote }: MoneyBoxProps) {
+export default function MoneyBox({ kind, label, total, rows, emptyText, footnote, href, rowHrefOf }: MoneyBoxProps) {
   return (
     <section
       className={styles.moneybox}
@@ -28,7 +34,20 @@ export default function MoneyBox({ kind, label, total, rows, emptyText, footnote
       aria-label={label}
     >
       <header className={styles.moneybox__head}>
-        <span className={styles.moneybox__label}>{label}</span>
+        <span className={styles.moneybox__top}>
+          <span className={styles.moneybox__label}>{label}</span>
+          <Link
+            href={href}
+            className={styles.moneybox__more}
+            aria-label={`${label} 전체 보기`}
+          >
+            전체 보기
+            <Icon
+              name="chevronRight"
+              size={14}
+            />
+          </Link>
+        </span>
         <CountUpAmount
           value={total}
           tone={kind}
@@ -49,6 +68,7 @@ export default function MoneyBox({ kind, label, total, rows, emptyText, footnote
           <CategoryAmountList
             rows={rows.slice(0, TOP_COUNT)}
             size="compact"
+            hrefOf={rowHrefOf}
           />
         )}
       </div>

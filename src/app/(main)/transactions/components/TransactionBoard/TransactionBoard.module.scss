@@ -25,13 +25,21 @@
     @include t.label-large;
   }
 
+  // 종류·분류·결제한 사람·검색. 혼자 쓰는 장부면 결제한 사람이 빠진다.
+  // 몇 칸이든 폭에 맞춰 줄을 바꾸고, 줄이 넘어간 검색칸은 남은 폭을 다 쓴다.
   &__controls {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: s.$gap-4;
-    align-items: end;
+    align-items: flex-end;
 
-    @include media.tablet-up {
-      grid-template-columns: 1fr 1fr 2fr;
+    > * {
+      flex: 1 1 140px;
+      min-width: 0;
+    }
+
+    > :last-child {
+      flex: 2 1 240px;
     }
   }
 

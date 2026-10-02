@@ -1,6 +1,7 @@
 'use client';
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import Button from '@/components/common/Button';
@@ -26,8 +27,12 @@ import { cn } from '@/utils/ts/cn';
 import { currentYearMonth, formatYearMonthLabel, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
 import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { useMe } from '@/hooks/useMe';
+import { PATH, TRANSACTIONS_QUERY } from '@/routes/paths';
+import type { CategoryKind } from '@/generated/prisma/enums';
 import type { TransactionListDto, TransactionListItemDto } from '@/service/transaction/type';
+import CategoryFilter from '../CategoryFilter';
 import styles from './TransactionBoard.module.scss';
+import type { CategoryFilterValue } from '../CategoryFilter';
 
 const TYPE_FILTERS = [
   { value: '', label: '쓴 돈·번 돈' },
@@ -36,6 +41,14 @@ const TYPE_FILTERS = [
   // 이체는 기본 목록에서 빠져 있다 — 계좌 이동·카드대금 납부는 쓴 돈이 아니다.
   { value: 'TRANSFER', label: '옮긴 돈만' },
 ];
+
+/** 종류 필터마다 고를 수 있는 분류 종류. '쓴 돈·번 돈'이면 둘 다 보여 준다. */
+const CATEGORY_KINDS_OF: Record<string, readonly CategoryKind[]> = {
+  '': ['EXPENSE', 'INCOME'],
+  EXPENSE: ['EXPENSE'],
+  INCOME: ['INCOME'],
+  TRANSFER: ['TRANSFER'],
+};
 
 const PAGE_SIZE = 30;
 
@@ -64,9 +77,29 @@ function withoutTransaction(list: TransactionListDto, id: string): TransactionLi
   };
 }
 
+/** 주소에 실려 온 필터(대시보드의 '전체 보기'·분류 줄). 이상한 값은 버린다. */
+function initialFilterOf(search: URLSearchParams) {
+  const type = search.get(TRANSACTIONS_QUERY.TYPE) ?? '';
+  const month = search.get(TRANSACTIONS_QUERY.MONTH) ?? '';
+  const categoryId = search.get(TRANSACTIONS_QUERY.CATEGORY);
+  const validType = TYPE_FILTERS.some((option) => option.value === type) ? type : '';
+
+  return {
+    type: validType,
+    yearMonth: /^\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : currentYearMonth(),
+    // 대시보드는 종류를 함께 실어 보낸다. 분류의 종류는 그걸로 짐작한다.
+    category: categoryId ? { id: categoryId, kind: (validType || null) as CategoryKind | null } : null,
+  };
+}
+
 export default function TransactionBoard() {
-  const [yearMonth, setYearMonth] = useState(currentYearMonth());
-  const [typeFilter, setTypeFilter] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // 처음 열릴 때 한 번만 주소를 읽는다. 그 뒤로는 화면의 필터가 주인이다.
+  const [initial] = useState(() => initialFilterOf(searchParams));
+  const [yearMonth, setYearMonth] = useState(initial.yearMonth);
+  const [typeFilter, setTypeFilter] = useState(initial.type);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue | null>(initial.category);
   const [memberFilter, setMemberFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -86,7 +119,24 @@ export default function TransactionBoard() {
     pageSize: PAGE_SIZE,
     ...(typeFilter ? { type: [typeFilter] } : {}),
     ...(memberFilter ? { memberId: [memberFilter] } : {}),
+    // 대분류를 고르면 서버가 그 아래 소분류까지 함께 센다.
+    ...(categoryFilter ? { categoryId: [categoryFilter.id] } : {}),
     ...(debouncedKeyword ? { q: debouncedKeyword } : {}),
+  };
+
+  // 주소로 걸려 온 분류를 바꾸면 주소의 필터도 지운다 — 새로고침했을 때 옛 분류가 다시 걸리지 않게.
+  const changeCategory = (next: CategoryFilterValue | null) => {
+    setCategoryFilter(next);
+    setPage(1);
+    if (searchParams.size > 0) router.replace(PATH.TRANSACTIONS, { scroll: false });
+  };
+
+  // 종류를 바꿨는데 고른 분류가 그 종류에 없으면 분류를 푼다. 걸러진 채 0건만 보이는 일을 막는다.
+  const changeType = (nextType: string) => {
+    setTypeFilter(nextType);
+    setPage(1);
+    const kinds = CATEGORY_KINDS_OF[nextType] ?? [];
+    if (categoryFilter && !(categoryFilter.kind && kinds.includes(categoryFilter.kind))) setCategoryFilter(null);
   };
 
   // 달·필터를 바꾸는 동안 앞의 목록을 흐리게 남겨 둔다. 빈 상자로 깜빡이지 않는다.
@@ -193,13 +243,16 @@ export default function TransactionBoard() {
                   id={id}
                   options={TYPE_FILTERS}
                   value={typeFilter}
-                  onChange={(event) => {
-                    setTypeFilter(event.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(event) => changeType(event.target.value)}
                 />
               )}
             </FormField>
+
+            <CategoryFilter
+              kinds={CATEGORY_KINDS_OF[typeFilter] ?? []}
+              value={categoryFilter}
+              onChange={changeCategory}
+            />
 
             {/* 혼자 쓰는 장부면 걸러 볼 사람이 없다. */}
             {hasOthers && (
@@ -239,6 +292,7 @@ export default function TransactionBoard() {
               )}
             </FormField>
           </div>
+
         </div>
 
         {/* 합계는 페이지 합계가 아니라 지금 필터 전체 기준이다. */}

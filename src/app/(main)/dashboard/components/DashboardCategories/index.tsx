@@ -8,6 +8,7 @@ import Reveal from '@/components/common/Reveal';
 import { SkeletonRows } from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryShares } from '@/service/stats';
+import { transactionsPath } from '@/routes/paths';
 import { currentYearMonth } from '@/utils/ts/formatDate';
 import { categoryParamsOf } from '../../utils/categoryParams';
 import CategoryAmountList from '../CategoryAmountList';
@@ -16,9 +17,10 @@ import styles from './DashboardCategories.module.scss';
 const TITLE = '분류별 지출';
 const DESCRIPTION = '이번 달은 이렇게 돈을 썼어요';
 
-/** 이번 달 지출을 분류마다 아이콘·비중·금액으로 늘어놓고, 맨 아래에 총합을 둔다. */
+/** 이번 달 지출을 분류마다 아이콘·비중·금액으로 늘어놓고, 맨 아래에 총합을 둔다. 줄을 누르면 그 분류의 거래로 간다. */
 export default function DashboardCategories() {
-  const params = categoryParamsOf(currentYearMonth(), 'EXPENSE');
+  const yearMonth = currentYearMonth();
+  const params = categoryParamsOf(yearMonth, 'EXPENSE');
   const { data, isPending } = useQuery({
     queryKey: QUERY_KEY.STATS.CATEGORIES(params),
     queryFn: () => getCategoryShares(params),
@@ -45,7 +47,11 @@ export default function DashboardCategories() {
         />
       ) : (
         <Reveal className={styles.dashboardcategories}>
-          <CategoryAmountList rows={rows} />
+          {/* 분류를 누르면 이번 달 그 분류의 거래만 걸러 보여 준다. */}
+          <CategoryAmountList
+            rows={rows}
+            hrefOf={(row) => transactionsPath({ type: 'EXPENSE', yearMonth, categoryId: row.categoryId })}
+          />
 
           <p className={styles.dashboardcategories__total}>
             <span className={styles.dashboardcategories__totallabel}>총 지출</span>

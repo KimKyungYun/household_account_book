@@ -7,6 +7,7 @@ import Reveal from '@/components/common/Reveal';
 import Skeleton from '@/components/common/Skeleton';
 import { QUERY_KEY } from '@/interface/key/queryKey';
 import { getCategoryShares, getOverview } from '@/service/stats';
+import { transactionsPath } from '@/routes/paths';
 import { currentYearMonth, formatYearMonthLabel } from '@/utils/ts/formatDate';
 import { categoryParamsOf } from '../../utils/categoryParams';
 import MoneyBox from '../MoneyBox';
@@ -108,6 +109,8 @@ export default function DashboardStats() {
             total={income}
             rows={incomeRows.data}
             emptyText="아직 들어온 돈이 없어요"
+            href={transactionsPath({ type: 'INCOME', yearMonth })}
+            rowHrefOf={(row) => transactionsPath({ type: 'INCOME', yearMonth, categoryId: row.categoryId })}
           />
           <MoneyBox
             kind="expense"
@@ -116,6 +119,8 @@ export default function DashboardStats() {
             rows={expenseRows.data}
             emptyText="아직 쓴 돈이 없어요"
             footnote={delta}
+            href={transactionsPath({ type: 'EXPENSE', yearMonth })}
+            rowHrefOf={(row) => transactionsPath({ type: 'EXPENSE', yearMonth, categoryId: row.categoryId })}
           />
         </div>
       </Reveal>
