@@ -6,6 +6,9 @@
   flex-direction: column;
   gap: s.$gap-3;
 
+  // 그리드·플렉스 칸 안에서 입력칸의 기본 최소 폭 때문에 칸이 밀려 나가지 않게 한다.
+  min-width: 0;
+
   &__label {
     display: inline-flex;
     align-items: center;

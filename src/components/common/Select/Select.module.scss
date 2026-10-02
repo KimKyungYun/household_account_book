@@ -3,10 +3,14 @@
 @use "styles/utils/glass" as glass;
 @use "styles/utils/media" as media;
 
+// 사파리는 select 의 최소 폭을 '가장 긴 선택지 글자 폭'으로 잡는다. 칸이 그보다 좁으면
+// 줄어들지 못하고 밖으로 삐져나온다 — 휴대폰에서 두 칸을 나란히 두면 그대로 터진다.
+// 상자와 select 모두 줄어들 수 있게 열고, 고른 글이 길면 말줄임으로 자른다.
 .select {
   position: relative;
   display: flex;
   width: 100%;
+  min-width: 0;
 
   // 화살표는 배경으로 그린다 — 네이티브 select 안에 요소를 넣을 수 없다.
   &::after {
@@ -34,6 +38,10 @@
 
   &__field {
     width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     height: var(--control-height);
     padding: 0 s.$gap-8 0 s.$gap-4;
     color: var(--text-primary);
