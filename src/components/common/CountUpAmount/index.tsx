@@ -19,6 +19,7 @@ export function CountUpAmount({ value, ...rest }: CountUpAmountProps) {
     <Amount
       {...rest}
       value={counted}
+      sizingValue={value}
     />
   );
 }

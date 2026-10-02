@@ -254,6 +254,7 @@ export default function TransactionBoard() {
                   value={data?.summary.incomeTotal ?? 0}
                   tone="income"
                   size="large"
+                  isFit
                 />
               )}
             </dd>
@@ -266,6 +267,7 @@ export default function TransactionBoard() {
                   value={data?.summary.expenseTotal ?? 0}
                   tone="expense"
                   size="large"
+                  isFit
                 />
               )}
             </dd>
@@ -277,6 +279,7 @@ export default function TransactionBoard() {
                 <CountUpAmount
                   value={data?.summary.net ?? 0}
                   size="large"
+                  isFit
                 />
               )}
             </dd>

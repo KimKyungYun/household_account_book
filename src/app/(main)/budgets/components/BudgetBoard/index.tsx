@@ -165,6 +165,7 @@ export default function BudgetBoard() {
               <CountUpAmount
                 value={data.totals.budgetAmount}
                 size="large"
+                isFit
               />
             </div>
             <div className={styles.budgetboard__total}>
@@ -173,6 +174,7 @@ export default function BudgetBoard() {
                 value={data.totals.actualAmount}
                 tone="expense"
                 size="large"
+                isFit
               />
             </div>
             <div className={styles.budgetboard__total}>
@@ -181,6 +183,7 @@ export default function BudgetBoard() {
                 value={data.totals.remaining}
                 tone={data.totals.remaining < 0 ? 'expense' : 'income'}
                 size="large"
+                isFit
               />
             </div>
           </div>

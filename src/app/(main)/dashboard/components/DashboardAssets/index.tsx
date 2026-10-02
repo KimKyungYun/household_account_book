@@ -87,6 +87,7 @@ export default function DashboardAssets() {
               value={data?.totalBalance ?? 0}
               tone="income"
               size="display"
+              isFit
             />
           </p>
 

@@ -162,6 +162,7 @@ export default function AssetBoard() {
               value={total}
               tone="income"
               size="hero"
+              isFit
             />
           </p>
           {(data?.addedThisMonth ?? 0) > 0 && (

@@ -96,6 +96,7 @@ export default function DashboardStats() {
             value={net}
             tone={net < 0 ? 'expense' : 'income'}
             size="hero"
+            isFit
           />
         </p>
 

@@ -33,6 +33,7 @@ export default function MoneyBox({ kind, label, total, rows, emptyText, footnote
           value={total}
           tone={kind}
           size="large"
+          isFit
         />
       </header>
 

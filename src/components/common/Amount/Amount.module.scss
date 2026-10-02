@@ -46,11 +46,28 @@
   // 자릿수가 늘면 글자를 줄인다. 고정폭 서체라 한 자가 늘 때마다 폭이 그만큼 커지고,
   // 40px 로 두면 12억이 모바일 카드를 17px 넘어간다(실측).
   // 제 크기의 배수로 줄인다 — em 은 부모 기준이라 40px 가 13px 로 무너진다.
+  &[data-scale] {
+    font-size: calc(var(--amount-font-size) * var(--amount-scale, 1));
+  }
+
   &[data-scale="tight"] {
-    font-size: calc(var(--amount-font-size) * 0.85);
+    --amount-scale: 0.85;
   }
 
   &[data-scale="tighter"] {
-    font-size: calc(var(--amount-font-size) * 0.72);
+    --amount-scale: 0.72;
   }
+
+  // 칸에 맞추기. 글자 수로 줄인 크기와 '칸 폭 ÷ 금액의 em 폭' 중 작은 쪽을 쓴다.
+  // 컨테이너 쿼리 단위(cqi)를 모르는 브라우저는 이 줄을 버리고 위의 크기를 그대로 쓴다.
+  &--fit[data-scale] {
+    font-size: min(calc(var(--amount-font-size) * var(--amount-scale, 1)), calc(100cqi / var(--amount-ems)));
+  }
+}
+
+// isFit 금액을 감싸는 틀. 자기 폭을 칸 폭으로 내어 주고, 금액은 그 폭을 기준으로 글자를 줄인다.
+.amountfit {
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
 }
