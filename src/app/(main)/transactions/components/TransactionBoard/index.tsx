@@ -31,6 +31,7 @@ import { PATH, TRANSACTIONS_QUERY } from '@/routes/paths';
 import type { CategoryKind } from '@/generated/prisma/enums';
 import type { TransactionListDto, TransactionListItemDto } from '@/service/transaction/type';
 import CategoryFilter from '../CategoryFilter';
+import RecurringTransactions from '../RecurringTransactions';
 import styles from './TransactionBoard.module.scss';
 import type { CategoryFilterValue } from '../CategoryFilter';
 
@@ -344,6 +345,11 @@ export default function TransactionBoard() {
           </div>
         </dl>
       </Card>
+
+      <RecurringTransactions
+        yearMonth={yearMonth}
+        onSelect={setEditing}
+      />
 
       <Card
         isFlush

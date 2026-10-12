@@ -31,8 +31,9 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
           color={transaction.category?.colorHex}
         />
         <span className={styles.transactionrow__main}>
+          {/* 반복 거래로 적힌 건은 가게 이름이 없다. 분류 이름보다 규칙 이름(월세)이 더 알려 준다. */}
           <span className={styles.transactionrow__title}>
-            {transaction.merchant || transaction.category?.name || '옮긴 돈'}
+            {transaction.merchant || transaction.recurringRule?.name || transaction.category?.name || '옮긴 돈'}
           </span>
           <span className={styles.transactionrow__meta}>
             {formatDateLabel(transaction.date)}

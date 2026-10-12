@@ -11,6 +11,8 @@ export interface TransactionListItemDto {
   paymentMethod: { id: string; name: string } | null;
   /** 이 돈이 쌓이는 자산. '옮긴 돈'에만 붙는다. */
   asset: { id: string; name: string; colorHex: string | null } | null;
+  /** 이 거래를 만든 반복 규칙. 직접 적은 거래와 대출 상환 기록은 null. */
+  recurringRule: { id: string; name: string } | null;
   splitMode: SplitMode;
   merchant: string | null;
   memo: string | null;

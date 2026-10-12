@@ -16,6 +16,8 @@ export interface TransactionListParams {
   minAmount?: number;
   maxAmount?: number;
   q?: string;
+  /** 반복 규칙이 만든 거래만. */
+  recurring?: boolean;
   sort?: string;
   page?: number;
   pageSize?: number;

@@ -39,6 +39,11 @@ export const transactionListQuerySchema = z
     minAmount: z.coerce.number().int().nonnegative().optional(),
     maxAmount: z.coerce.number().int().nonnegative().optional(),
     q: z.string().trim().max(100).optional(),
+    /** 'true' 면 반복 규칙이 만든 거래만 준다. 대출 상환 기록은 규칙이 없어 빠진다. */
+    recurring: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value === 'true'),
     sort: z.enum(['date.desc', 'date.asc', 'amount.desc', 'amount.asc', 'createdAt.desc']).default('date.desc'),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(200).default(50),

@@ -56,6 +56,7 @@ async function buildWhere(householdId: string, query: TransactionListQuery): Pro
     ...(categoryIds ? { categoryId: { in: [...categoryIds] } } : {}),
     ...(query.paymentMethodId ? { paymentMethodId: { in: [...query.paymentMethodId] } } : {}),
     ...(query.splitMode ? { splitMode: { in: [...query.splitMode] } } : {}),
+    ...(query.recurring ? { recurringRuleId: { not: null } } : {}),
     ...(query.q
       ? {
         OR: [
@@ -80,6 +81,7 @@ const LIST_SELECT = {
   member: { select: { id: true, displayName: true, colorHex: true } },
   category: { select: { id: true, name: true, colorHex: true, parent: { select: { name: true } } } },
   paymentMethod: { select: { id: true, name: true } },
+  recurringRule: { select: { id: true, name: true } },
 } satisfies Prisma.TransactionSelect;
 
 function toListItem(row: Prisma.TransactionGetPayload<{ select: typeof LIST_SELECT }>): TransactionListItemDto {
@@ -95,6 +97,7 @@ function toListItem(row: Prisma.TransactionGetPayload<{ select: typeof LIST_SELE
     paymentMethod: row.paymentMethod,
     splitMode: row.splitMode,
     asset: row.asset,
+    recurringRule: row.recurringRule,
     merchant: row.merchant,
     memo: row.memo,
     version: row.version,
