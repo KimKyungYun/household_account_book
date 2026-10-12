@@ -20,5 +20,5 @@ export function updateAsset(id: string, input: UpdateAssetInput) {
 
 /** 자산만 지운다. 이미 넣은 돈의 기록은 남는다. */
 export function deleteAsset(id: string) {
-  return http.del<{ keptTransactionCount: number }>(`/assets/${id}`);
+  return http.del<{ removedTransactionCount: number; keptTransactionCount: number }>(`/assets/${id}`);
 }

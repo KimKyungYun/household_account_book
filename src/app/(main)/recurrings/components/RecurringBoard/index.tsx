@@ -1,42 +1,24 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import Amount from '@/components/common/Amount';
-import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
-import CategoryIcon from '@/components/common/CategoryIcon';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import { SkeletonRows } from '@/components/common/Skeleton';
 import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
+import { PATH } from '@/routes/paths';
 import { deleteRecurringRule, getRecurringRules, runRecurring, setRecurringRuleActive } from '@/service/recurring';
-import { formatDateLabel } from '@/utils/ts/formatDate';
 import type { RecurringRuleDto } from '@/service/recurring/type';
 import LoanNotice from '../LoanNotice';
 import RecurringFormModal from '../RecurringFormModal';
+import RecurringRuleRow from '../RecurringRuleRow';
 import styles from './RecurringBoard.module.scss';
-
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
-
-function describeRule(rule: RecurringRuleDto): string {
-  const every = rule.interval > 1 ? `${rule.interval}` : '';
-
-  if (rule.freq === 'WEEKLY') {
-    return `${every ? `${every}주마다` : '매주'} ${WEEKDAY_LABELS[rule.weekday ?? 0]}요일`;
-  }
-  if (rule.freq === 'YEARLY') {
-    return `${every ? `${every}년마다` : '매년'} ${rule.monthOfYear}월 ${rule.dayOfMonth}일`;
-  }
-  // 31일은 말일을 겸한다 — 그대로 보여주면 2월에 왜 28일인지 알 수 없다.
-  const day = rule.dayOfMonth === 31 ? '말일' : `${rule.dayOfMonth}일`;
-
-  return `${every ? `${every}개월마다` : '매월'} ${day}`;
-}
 
 export default function RecurringBoard() {
   const [editing, setEditing] = useState<RecurringRuleDto | null>(null);
@@ -49,10 +31,17 @@ export default function RecurringBoard() {
     queryFn: getRecurringRules,
   });
 
+  // 자산에 쌓이는 규칙은 자산 화면의 '자동으로 넣기' 표시와 잔액에도 걸린다.
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.RECURRING.ALL });
     void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ASSET.ALL });
   };
+
+  // 자산에 쌓이는 규칙은 따로 모아 보여 준다. 매달 나가고 들어오는 돈과 성격이 다르다.
+  const rules = data ?? [];
+  const plainRules = rules.filter((rule) => !rule.asset);
+  const assetRules = rules.filter((rule) => rule.asset);
 
   // 중지는 되돌릴 수 있어 확인을 받지 않는다. 삭제만 확인 창을 띄운다.
   const toggle = useMutation({
@@ -100,6 +89,10 @@ export default function RecurringBoard() {
     onError: (error) => toast.error(isApiError(error) ? error.message : '만들지 못했어요.'),
   });
 
+  const toggleRule = (rule: RecurringRuleDto) => toggle.mutate({ id: rule.id, isActive: !rule.isActive });
+  // 누른 줄의 단추만 돈다. 다른 줄까지 돌면 무엇을 바꿨는지 헷갈린다.
+  const isToggling = (rule: RecurringRuleDto) => toggle.isPending && toggle.variables?.id === rule.id;
+
   return (
     <>
       <LoanNotice />
@@ -135,7 +128,7 @@ export default function RecurringBoard() {
       >
         {isPending ? (
           <SkeletonRows count={3} />
-        ) : (data?.length ?? 0) === 0 ? (
+        ) : plainRules.length === 0 ? (
           <EmptyState
             title="등록한 항목이 없어요"
             description="월급, 월세, 통신비처럼 매달 같은 날 오가는 돈을 등록해 보세요."
@@ -150,67 +143,49 @@ export default function RecurringBoard() {
           />
         ) : (
           <ul className={styles.recurringboard__list}>
-            {data?.map((rule) => (
-              <li
+            {plainRules.map((rule) => (
+              <RecurringRuleRow
                 key={rule.id}
-                className={styles.recurringboard__item}
-              >
-                <button
-                  type="button"
-                  className={styles.recurringboard__main}
-                  onClick={() => setEditing(rule)}
-                >
-                  {/* 분류가 없는 '옮긴 돈'은 계좌 이동 아이콘으로 선다. */}
-                  <CategoryIcon
-                    name={rule.category?.name ?? '계좌이동'}
-                    parent={rule.category?.parentName ? { name: rule.category.parentName } : null}
-                  />
-                  <span className={styles.recurringboard__text}>
-                    <span className={styles.recurringboard__name}>
-                      {rule.name}
-                      {!rule.isActive && <Badge tone="neutral">중지</Badge>}
-                      {rule.splitMode === 'PERSONAL' && rule.type !== 'TRANSFER' && <Badge tone="neutral">개인</Badge>}
-                    </span>
-                    <span className={styles.recurringboard__meta}>
-                      {describeRule(rule)}
-                      {rule.category && ` · ${rule.category.parentName ?? ''} ${rule.category.name}`}
-                      {` · ${rule.member.displayName}`}
-                      {rule.nextOccurrenceDate ? ` · 다음 ${formatDateLabel(rule.nextOccurrenceDate)}` : ''}
-                    </span>
-                  </span>
-                </button>
-
-                <div className={styles.recurringboard__side}>
-                  <Amount
-                    value={rule.amount}
-                    tone={rule.type === 'INCOME' ? 'income' : rule.type === 'EXPENSE' ? 'expense' : 'transfer'}
-                  />
-
-                  <div className={styles.recurringboard__actions}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      isLoading={toggle.isPending}
-                      onClick={() => toggle.mutate({ id: rule.id, isActive: !rule.isActive })}
-                      title={rule.isActive ? '자동으로 적는 걸 잠시 멈춰요' : '자동으로 적는 걸 다시 시작해요'}
-                    >
-                      {rule.isActive ? '중지' : '다시 시작'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDeleteTarget(rule)}
-                      title="반복 거래를 완전히 지워요"
-                    >
-                      삭제
-                    </Button>
-                  </div>
-                </div>
-              </li>
+                rule={rule}
+                isToggling={isToggling(rule)}
+                onEdit={setEditing}
+                onToggle={toggleRule}
+                onDelete={setDeleteTarget}
+              />
             ))}
           </ul>
         )}
       </Card>
+
+      {assetRules.length > 0 && (
+        <Card
+          isFlush
+          title="자산에 모으는 돈"
+          icon="🐷"
+          description="정한 날마다 자산에 자동으로 쌓이는 돈이에요. 자산 화면에서 '매달 자동으로 넣기'를 켜면 여기에 모여요."
+          action={
+            <Link
+              className={styles.recurringboard__link}
+              href={PATH.ASSETS}
+            >
+              자산 보러 가기
+            </Link>
+          }
+        >
+          <ul className={styles.recurringboard__list}>
+            {assetRules.map((rule) => (
+              <RecurringRuleRow
+                key={rule.id}
+                rule={rule}
+                isToggling={isToggling(rule)}
+                onEdit={setEditing}
+                onToggle={toggleRule}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <RecurringFormModal
         key={isCreating ? 'create' : `edit:${editing?.id ?? 'none'}`}

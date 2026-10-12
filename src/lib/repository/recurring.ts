@@ -135,14 +135,22 @@ export async function createRecurringRule(householdId: string, input: CreateRecu
 }
 
 export async function updateRecurringRule(householdId: string, id: string, input: UpdateRecurringInput) {
-  const current = await prisma.recurringRule.findFirst({ where: { id, householdId }, select: { id: true } });
+  const current = await prisma.recurringRule.findFirst({
+    where: { id, householdId },
+    select: { id: true, categoryId: true, category: { select: { kind: true } } },
+  });
   if (!current) throw notFound('반복 거래를 찾을 수 없어요.');
   await assertReferences(householdId, input);
+
+  const data = toData(input);
+  // '옮긴 돈' 폼은 분류를 묻지 않는다. 자산 자동 적립 규칙에 서버가 붙인 이체 분류(예적금)가
+  // 반복 거래 화면에서 고칠 때마다 지워지지 않게 둔다.
+  if (input.type === 'TRANSFER' && current.category?.kind === 'TRANSFER') data.categoryId = current.categoryId;
 
   // 규칙을 고쳐도 이미 만들어진 거래는 그대로 둔다. 미래 회차만 새 규칙을 따른다.
   return prisma.recurringRule.update({
     where: { id },
-    data: { ...toData(input), isActive: input.isActive },
+    data: { ...data, isActive: input.isActive },
     select: { id: true },
   });
 }

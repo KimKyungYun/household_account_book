@@ -59,14 +59,16 @@ export default function AssetBoard() {
 
   const removal = useMutation({
     mutationFn: (id: string) => deleteAsset(id),
-    onSuccess: ({ keptTransactionCount }) => {
-      toast.success(
-        keptTransactionCount > 0
-          ? `지웠어요. 이미 넣은 ${keptTransactionCount}건은 거래에 그대로 남아 있어요.`
-          : '지웠어요.',
-      );
+    onSuccess: ({ removedTransactionCount, keptTransactionCount }) => {
+      const notes = [
+        removedTransactionCount > 0 ? `이번 달에 자동으로 넣은 ${removedTransactionCount}건도 함께 지웠어요.` : '',
+        keptTransactionCount > 0 ? `이미 넣은 ${keptTransactionCount}건은 거래에 그대로 남아 있어요.` : '',
+      ].filter(Boolean);
+      toast.success(['지웠어요.', ...notes].join(' '));
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.ASSET.ALL });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY.TRANSACTION.ALL });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY.RECURRING.ALL });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY.STATS.ALL });
       setDeleteTarget(null);
     },
     onError: (error) => toast.error(isApiError(error) ? error.message : '지우지 못했어요.'),
@@ -312,11 +314,12 @@ export default function AssetBoard() {
         urlKey="asset-delete"
         isOpen={Boolean(deleteTarget)}
         title={`'${deleteTarget?.name ?? ''}'을(를) 지울까요?`}
-        description={
+        description={[
+          deleteTarget?.autoDeposit ? '매달 자동으로 넣던 설정도 함께 지워요.' : '',
           (deleteTarget?.transactionCount ?? 0) > 0
-            ? `이미 넣은 ${deleteTarget?.transactionCount}건은 거래에 그대로 남아요. 실제로 나간 돈이라, 지우면 지난 달 합계가 달라지거든요.`
-            : '되돌릴 수 없어요.'
-        }
+            ? '이번 달에 자동으로 넣은 거래는 지우고, 그 밖에 이미 넣은 기록은 거래에 그대로 남겨요. 실제로 나간 돈이라, 지우면 지난 달 합계가 달라지거든요.'
+            : '되돌릴 수 없어요.',
+        ].filter(Boolean).join(' ')}
         confirmLabel="지우기"
         isLoading={removal.isPending}
         onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}

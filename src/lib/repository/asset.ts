@@ -359,19 +359,38 @@ export async function updateAsset(householdId: string, memberId: string, id: str
 /**
  * 자산을 지운다.
  *
- * **거래는 남긴다.** 적금에 넣은 돈은 실제로 통장에서 나간 기록이라, 자산을 지운다고
- * 함께 지우면 지난 달 합계가 통째로 바뀐다. 거래의 `assetId` 만 SetNull 로 끊긴다.
+ *  - **자동으로 넣던 반복 규칙도 함께 지운다.** 남겨 두면 자산 연결만 끊긴 채 켜져 있어서
+ *    어디에도 쌓이지 않는 이체가 매달 계속 적힌다.
+ *  - 그 규칙이 **이번 달에** 만든 거래(예정 포함)도 지운다. 자산을 지운 달에 넣은 적 없는 돈이
+ *    거래 목록·달력에 남지 않게 한다.
+ *  - 지난 달까지의 거래와 직접 적은 거래는 남긴다. 실제로 통장에서 나간 기록이라 함께 지우면
+ *    지난 달 합계가 통째로 바뀐다. 거래의 `assetId` 만 SetNull 로 끊긴다.
  */
 export async function deleteAsset(householdId: string, id: string) {
   const current = await prisma.asset.findFirst({
     where: { id, householdId },
-    select: { id: true, _count: { select: { transactions: true } } },
+    select: { id: true, recurringRules: { select: { id: true } } },
   });
   if (!current) throw notFound('자산을 찾을 수 없어요.');
 
-  await prisma.asset.delete({ where: { id } });
+  const ruleIds = current.recurringRules.map((rule) => rule.id);
+  const { from, toExclusive } = monthRange(currentYearMonth());
 
-  return { keptTransactionCount: current._count.transactions };
+  return prisma.$transaction(async (tx) => {
+    // 규칙을 먼저 지우면 거래의 recurringRuleId 가 끊겨 이번 달 회차를 골라낼 수 없다.
+    const removed = await tx.transaction.deleteMany({
+      where: {
+        householdId,
+        recurringRuleId: { in: ruleIds },
+        date: { gte: new Date(from), lt: new Date(toExclusive) },
+      },
+    });
+    await tx.recurringRule.deleteMany({ where: { householdId, id: { in: ruleIds } } });
+    const kept = await tx.transaction.count({ where: { householdId, assetId: id } });
+    await tx.asset.delete({ where: { id } });
+
+    return { removedTransactionCount: removed.count, keptTransactionCount: kept };
+  });
 }
 
 async function assertOwnerUsable(householdId: string, ownerMemberId: string | null | undefined) {
