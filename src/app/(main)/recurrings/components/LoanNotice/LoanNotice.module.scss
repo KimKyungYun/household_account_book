@@ -1,6 +1,6 @@
+@use "styles/patterns/link";
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
-@use "styles/utils/media" as media;
 
 .loannotice {
   &__text {
@@ -16,14 +16,6 @@
   }
 
   &__link {
-    color: var(--text-link);
-
-    @include t.label-small;
-
-    @include media.hover-supported {
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+    @include link.text;
   }
 }

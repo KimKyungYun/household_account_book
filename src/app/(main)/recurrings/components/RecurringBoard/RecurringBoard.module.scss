@@ -1,5 +1,4 @@
-@use "styles/tokens/typography" as t;
-@use "styles/utils/media" as media;
+@use "styles/patterns/link";
 @use "styles/utils/motion" as motion;
 
 .recurringboard {
@@ -12,14 +11,6 @@
   }
 
   &__link {
-    color: var(--text-link);
-
-    @include t.label-small;
-
-    @include media.hover-supported {
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+    @include link.text;
   }
 }

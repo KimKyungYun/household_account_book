@@ -1,0 +1,21 @@
+@use "styles/tokens/typography" as t;
+@use "styles/utils/media" as media;
+
+// 카드 머리나 본문 끝에 붙는 '보러 가기' 같은 글자 링크.
+// 화면마다 같은 모양을 따로 적다 보니 한 벌로 모은다. <a> 든 <button> 이든 같은 모양이 된다.
+@mixin text {
+  color: var(--text-link);
+  cursor: pointer;
+
+  @include t.label-small;
+
+  &:focus-visible {
+    box-shadow: var(--focus-ring);
+  }
+
+  @include media.hover-supported {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

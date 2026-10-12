@@ -1,3 +1,4 @@
+@use "styles/patterns/link";
 @use "styles/tokens/motion" as m;
 @use "styles/tokens/spacing" as s;
 @use "styles/tokens/typography" as t;
@@ -131,20 +132,8 @@
     padding: 0;
     border: 0;
     background-color: transparent;
-    color: var(--text-link);
-    cursor: pointer;
 
-    @include t.label-small;
-
-    &:focus-visible {
-      box-shadow: var(--focus-ring);
-    }
-
-    @include media.hover-supported {
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+    @include link.text;
 
     @include media.tablet-up {
       margin-inline: s.$gap-6;
