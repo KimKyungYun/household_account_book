@@ -58,6 +58,7 @@ function clearStaleModalQuery() {
  * 모달을 페이지처럼 방문 기록에 올린다.
  *
  *  - 열리면 `?modal=<urlKey>` 를 붙인 기록을 하나 쌓는다.
+ *  - 맨 위 모달이 닫히는 그 틱에 열리면 쌓지 않고 그 칸을 물려받는다(고치기 창 → 삭제 확인).
  *  - **뒤로가기는 맨 위 모달만 닫는다.** 페이지는 그대로다. 겹친 모달은 한 겹씩 닫힌다.
  *  - 닫기 단추·Esc·바깥 누르기·저장으로 닫히면 쌓았던 기록을 걷어 낸다.
  *    그래서 앞으로가기로 닫힌 모달 주소가 되살아나지 않는다.
@@ -68,7 +69,6 @@ function clearStaleModalQuery() {
  */
 export function useModalHistory(isOpen: boolean, urlKey: string, onClose: () => void) {
   const closeRef = useRef(onClose);
-  const entryRef = useRef<{ id: string; depth: number } | null>(null);
 
   useEffect(() => {
     closeRef.current = onClose;
@@ -81,21 +81,23 @@ export function useModalHistory(isOpen: boolean, urlKey: string, onClose: () => 
   useEffect(() => {
     if (!isOpen) return;
 
-    let entry = entryRef.current;
-    if (entry && pendingCloses.has(entry.id) && topEntry().__modalId === entry.id) {
-      // 닫히자마자 같은 틱에 다시 열렸다(Strict 모드의 효과 재실행 등). 쌓아 둔 기록을 그대로 쓴다.
-      pendingCloses.delete(entry.id);
-    } else {
-      const depth = (topEntry().__modalDepth ?? 0) + 1;
-      entry = { id: crypto.randomUUID(), depth };
-      entryRef.current = entry;
+    /*
+      맨 위 창이 같은 틱에 닫히는 중이면 그 칸을 물려받는다. 위에 쌓으면 걷어 내는 쪽이
+      아래 깊이까지 되돌리면서 이 창의 기록도 같이 걷고, 이 창은 뒤로가기로 알고 바로 닫힌다.
+      Strict 모드가 효과를 다시 돌려 같은 창이 닫혔다 열릴 때도 이 길로 온다.
+    */
+    const top = topEntry();
+    const closingId = top.__modalId !== undefined && pendingCloses.has(top.__modalId) ? top.__modalId : null;
+    if (closingId) pendingCloses.delete(closingId);
 
-      const url = new URL(window.location.href);
-      url.searchParams.set(MODAL_QUERY, urlKey);
-      window.history.pushState({ __modalId: entry.id, __modalDepth: depth } satisfies ModalHistoryState, '', url);
-    }
+    const current = { id: crypto.randomUUID(), depth: (top.__modalDepth ?? 0) + (closingId ? 0 : 1) };
+    const state = { __modalId: current.id, __modalDepth: current.depth } satisfies ModalHistoryState;
+    const url = new URL(window.location.href);
+    url.searchParams.set(MODAL_QUERY, urlKey);
 
-    const current = entry;
+    if (closingId) window.history.replaceState(state, '', url);
+    else window.history.pushState(state, '', url);
+
     let isPopped = false;
 
     // 뒤로가기로 내 기록보다 아래로 내려왔으면 닫는다. 위 겹이 닫힐 때 아래 겹은 그대로 둔다.
@@ -103,7 +105,6 @@ export function useModalHistory(isOpen: boolean, urlKey: string, onClose: () => 
       if ((topEntry().__modalDepth ?? 0) >= current.depth) return;
 
       isPopped = true;
-      entryRef.current = null;
       closeRef.current();
     };
     window.addEventListener('popstate', handlePopState);

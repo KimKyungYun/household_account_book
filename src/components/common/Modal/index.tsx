@@ -41,8 +41,13 @@ const FOCUSABLE =
   Esc 와 Tab 은 document 에서 받는데, 창이 겹치면 두 리스너가 같은 노드에 나란히 서서
   stopPropagation() 으로는 서로를 막지 못한다 — 거래 편집 창 위에 삭제 확인 창을 띄우고
   Esc 를 누르면 뒤의 편집 창까지 닫혀 적던 값이 날아간다. 맨 위 한 겹만 키를 먹게 한다.
+
+  배경 스크롤 잠금도 이 스택으로 건다 — 첫 창이 열릴 때 잠그고 마지막 창이 닫힐 때 푼다.
+  창마다 '열 때 값'을 되돌리면 겹친 두 창이 함께 닫힐 때 아래 창이 먼저 풀고 위 창이
+  'hidden' 으로 다시 덮어 써서, 거래를 지운 뒤 페이지가 스크롤되지 않는다.
 */
 const OPENED: object[] = [];
+let overflowBeforeLock = '';
 
 /**
  * 접근성 모달. 열려 있는 동안 배경 스크롤을 막고 포커스를 안에 가둔다.
@@ -83,11 +88,13 @@ export function Modal({
     if (!isOpen) return;
 
     const token = tokenRef.current;
+    if (OPENED.length === 0) {
+      overflowBeforeLock = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
     OPENED.push(token);
 
     returnFocusRef.current = document.activeElement as HTMLElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     const focusTimer = window.setTimeout(() => {
       const first = panelRef.current?.querySelector<HTMLElement>(FOCUSABLE);
@@ -128,8 +135,8 @@ export function Modal({
 
     return () => {
       OPENED.splice(OPENED.indexOf(token), 1);
+      if (OPENED.length === 0) document.body.style.overflow = overflowBeforeLock;
       window.clearTimeout(focusTimer);
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
       returnFocusRef.current?.focus();
     };
