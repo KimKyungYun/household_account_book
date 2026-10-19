@@ -1,13 +1,10 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
-import CountUpAmount from '@/components/common/CountUpAmount';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EmptyState from '@/components/common/EmptyState';
 import Icon from '@/components/common/Icon';
 import FormField from '@/components/common/FormField';
@@ -15,23 +12,24 @@ import Input from '@/components/common/Input';
 import Modal from '@/components/common/Modal';
 import Pagination from '@/components/common/Pagination';
 import Select from '@/components/common/Select';
-import Skeleton, { SkeletonRows } from '@/components/common/Skeleton';
+import { SkeletonRows } from '@/components/common/Skeleton';
 import TransactionForm, { useIsTransactionFormSaving } from '@/components/transaction/TransactionForm';
 import TransactionRow from '@/components/transaction/TransactionRow';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useExcelDownload } from '@/hooks/useExcelDownload';
-import { isApiError } from '@/interface/errorType';
 import { QUERY_KEY } from '@/interface/key/queryKey';
-import { deleteTransaction, getTransactions } from '@/service/transaction';
+import { getTransactions } from '@/service/transaction';
 import { cn } from '@/utils/ts/cn';
-import { currentYearMonth, formatYearMonthLabel, monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
+import { monthRange, shiftYearMonth } from '@/utils/ts/formatDate';
 import { useHouseholdRule } from '@/hooks/useHouseholdRule';
 import { useMe } from '@/hooks/useMe';
 import { PATH, TRANSACTIONS_QUERY } from '@/routes/paths';
 import type { CategoryKind } from '@/generated/prisma/enums';
-import type { TransactionListDto, TransactionListItemDto } from '@/service/transaction/type';
+import type { TransactionListItemDto } from '@/service/transaction/type';
 import CategoryFilter from '../CategoryFilter';
-import RecurringTransactions from '../RecurringTransactions';
+import MonthNavigator from '../MonthNavigator';
+import SummaryStats from '../SummaryStats';
+import TransactionEditModal from '../TransactionEditModal';
 import styles from './TransactionBoard.module.scss';
 import type { CategoryFilterValue } from '../CategoryFilter';
 
@@ -41,6 +39,18 @@ const TYPE_FILTERS = [
   { value: 'INCOME', label: '번 돈만' },
   // 이체는 기본 목록에서 빠져 있다 — 계좌 이동·카드대금 납부는 쓴 돈이 아니다.
   { value: 'TRANSFER', label: '옮긴 돈만' },
+];
+
+/**
+ * 목록 순서. 합계는 순서와 무관하다.
+ * 등록일자는 앱에 적은 시각, 소비일자는 거래 날짜다. 둘 다 최근 것부터, 금액은 큰 것부터 둔다.
+ * 기본은 등록일자순 — 방금 적은 거래가 맨 위에 보인다.
+ */
+const SORT_OPTIONS = [
+  { value: 'createdAt.desc', label: '등록일자순' },
+  { value: 'date.desc', label: '소비일자순' },
+  { value: 'amount.desc', label: '금액순' },
+  { value: 'category.asc', label: '분류순' },
 ];
 
 /** 종류 필터마다 고를 수 있는 분류 종류. '쓴 돈·번 돈'이면 둘 다 보여 준다. */
@@ -54,59 +64,39 @@ const CATEGORY_KINDS_OF: Record<string, readonly CategoryKind[]> = {
 const PAGE_SIZE = 30;
 
 const CREATE_FORM_ID = 'transaction-create-form';
-const EDIT_FORM_ID = 'transaction-edit-form';
-
-/** 목록 캐시에서 한 건을 빼고 합계를 맞춘다. 서버 응답을 기다리지 않고 지운 것처럼 보이게 한다. */
-function withoutTransaction(list: TransactionListDto, id: string): TransactionListDto {
-  const target = list.items.find((item) => item.id === id);
-  if (!target) return list;
-
-  const incomeTotal = list.summary.incomeTotal - (target.type === 'INCOME' ? target.amount : 0);
-  const expenseTotal = list.summary.expenseTotal - (target.type === 'EXPENSE' ? target.amount : 0);
-
-  return {
-    ...list,
-    items: list.items.filter((item) => item.id !== id),
-    summary: {
-      ...list.summary,
-      incomeTotal,
-      expenseTotal,
-      transferTotal: list.summary.transferTotal - (target.type === 'TRANSFER' ? target.amount : 0),
-      net: incomeTotal - expenseTotal,
-      count: list.summary.count - 1,
-    },
-  };
-}
 
 /** 주소에 실려 온 필터(대시보드의 '전체 보기'·분류 줄). 이상한 값은 버린다. */
 function initialFilterOf(search: URLSearchParams) {
   const type = search.get(TRANSACTIONS_QUERY.TYPE) ?? '';
-  const month = search.get(TRANSACTIONS_QUERY.MONTH) ?? '';
   const categoryId = search.get(TRANSACTIONS_QUERY.CATEGORY);
   const validType = TYPE_FILTERS.some((option) => option.value === type) ? type : '';
 
   return {
     type: validType,
-    yearMonth: /^\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : currentYearMonth(),
     // 대시보드는 종류를 함께 실어 보낸다. 분류의 종류는 그걸로 짐작한다.
     category: categoryId ? { id: categoryId, kind: (validType || null) as CategoryKind | null } : null,
   };
 }
 
-export default function TransactionBoard() {
+interface TransactionBoardProps {
+  /** 반복 거래 탭과 함께 쓰는 달. 탭을 오가도 보던 달이 남는다. */
+  yearMonth: string;
+  onMonthChange: (yearMonth: string) => void;
+}
+
+export default function TransactionBoard({ yearMonth, onMonthChange }: TransactionBoardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // 처음 열릴 때 한 번만 주소를 읽는다. 그 뒤로는 화면의 필터가 주인이다.
   const [initial] = useState(() => initialFilterOf(searchParams));
-  const [yearMonth, setYearMonth] = useState(initial.yearMonth);
   const [typeFilter, setTypeFilter] = useState(initial.type);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue | null>(initial.category);
   const [memberFilter, setMemberFilter] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [sort, setSort] = useState('createdAt.desc');
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<TransactionListItemDto | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<TransactionListItemDto | null>(null);
 
   const debouncedKeyword = useDebounce(keyword, 300);
   const queryClient = useQueryClient();
@@ -118,6 +108,7 @@ export default function TransactionBoard() {
     yearMonth,
     page,
     pageSize: PAGE_SIZE,
+    sort,
     ...(typeFilter ? { type: [typeFilter] } : {}),
     ...(memberFilter ? { memberId: [memberFilter] } : {}),
     // 대분류를 고르면 서버가 그 아래 소분류까지 함께 센다.
@@ -165,34 +156,10 @@ export default function TransactionBoard() {
     }
   }, [paramsKey, pageCount, queryClient]);
 
-  // 지우는 즉시 목록에서 뺀다. 실패하면 되돌리고 알린다.
-  const removal = useMutation({
-    mutationFn: (id: string) => deleteTransaction(id),
-    onMutate: async (id) => {
-      setDeleteTarget(null);
-      setEditing(null);
-
-      const listKey = [...QUERY_KEY.TRANSACTION.ALL, 'list'];
-      await queryClient.cancelQueries({ queryKey: listKey });
-      const snapshots = queryClient.getQueriesData<TransactionListDto>({ queryKey: listKey });
-      queryClient.setQueriesData<TransactionListDto>(
-        { queryKey: listKey },
-        (list) => (list ? withoutTransaction(list, id) : list),
-      );
-
-      return { snapshots };
-    },
-    onSuccess: () => toast.success('삭제했어요.'),
-    onError: (error, _id, context) => {
-      for (const [key, snapshot] of context?.snapshots ?? []) queryClient.setQueryData(key, snapshot);
-      toast.error(isApiError(error) ? error.message : '삭제하지 못했어요.');
-    },
-  });
   const isCreateSaving = useIsTransactionFormSaving(CREATE_FORM_ID);
-  const isEditSaving = useIsTransactionFormSaving(EDIT_FORM_ID);
 
   const changeMonth = (months: number) => {
-    setYearMonth((current) => shiftYearMonth(current, months));
+    onMonthChange(shiftYearMonth(yearMonth, months));
     setPage(1);
   };
 
@@ -209,33 +176,10 @@ export default function TransactionBoard() {
         description="아래 조건에 맞는 거래를 모두 더한 금액이에요"
       >
         <div className={styles.transactionboard__filters}>
-          <div className={styles.transactionboard__month}>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => changeMonth(-1)}
-              aria-label="지난 달"
-              iconLeft={<Icon
-                name="chevronLeft"
-                size={16}
-              />}
-            >
-              지난 달
-            </Button>
-            <span className={styles.transactionboard__monthlabel}>{formatYearMonthLabel(yearMonth)}</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => changeMonth(1)}
-              aria-label="다음 달"
-              iconRight={<Icon
-                name="chevronRight"
-                size={16}
-              />}
-            >
-              다음 달
-            </Button>
-          </div>
+          <MonthNavigator
+            yearMonth={yearMonth}
+            onShift={changeMonth}
+          />
 
           <div className={styles.transactionboard__controls}>
             <FormField label="종류">
@@ -275,6 +219,20 @@ export default function TransactionBoard() {
               </FormField>
             )}
 
+            <FormField label="정렬">
+              {({ id }) => (
+                <Select
+                  id={id}
+                  options={SORT_OPTIONS}
+                  value={sort}
+                  onChange={(event) => {
+                    setSort(event.target.value);
+                    setPage(1);
+                  }}
+                />
+              )}
+            </FormField>
+
             <FormField label="검색">
               {({ id }) => (
                 <Input
@@ -297,59 +255,17 @@ export default function TransactionBoard() {
         </div>
 
         {/* 합계는 페이지 합계가 아니라 지금 필터 전체 기준이다. */}
-        <dl
-          className={cn(styles.transactionboard__summary, { [styles['transactionboard__summary--stale']]: isPlaceholderData })}
-          aria-busy={isPending || isPlaceholderData}
-        >
-          <div className={styles.transactionboard__stat}>
-            <dt>수입</dt>
-            <dd>
-              {isPending ? <SummarySkeleton /> : (
-                <CountUpAmount
-                  value={data?.summary.incomeTotal ?? 0}
-                  tone="income"
-                  size="large"
-                  isFit
-                />
-              )}
-            </dd>
-          </div>
-          <div className={styles.transactionboard__stat}>
-            <dt>지출</dt>
-            <dd>
-              {isPending ? <SummarySkeleton /> : (
-                <CountUpAmount
-                  value={data?.summary.expenseTotal ?? 0}
-                  tone="expense"
-                  size="large"
-                  isFit
-                />
-              )}
-            </dd>
-          </div>
-          <div className={styles.transactionboard__stat}>
-            <dt>남은 돈</dt>
-            <dd>
-              {isPending ? <SummarySkeleton /> : (
-                <CountUpAmount
-                  value={data?.summary.net ?? 0}
-                  size="large"
-                  isFit
-                />
-              )}
-            </dd>
-          </div>
-          <div className={styles.transactionboard__stat}>
-            <dt>건수</dt>
-            <dd className={styles.transactionboard__count}>{isPending ? <SummarySkeleton /> : `${data?.summary.count ?? 0}건`}</dd>
-          </div>
-        </dl>
+        <SummaryStats
+          stats={[
+            { label: '수입', value: data?.summary.incomeTotal ?? 0, tone: 'income' },
+            { label: '지출', value: data?.summary.expenseTotal ?? 0, tone: 'expense' },
+            { label: '남은 돈', value: data?.summary.net ?? 0 },
+          ]}
+          count={data?.summary.count ?? 0}
+          isPending={isPending}
+          isStale={isPlaceholderData}
+        />
       </Card>
-
-      <RecurringTransactions
-        yearMonth={yearMonth}
-        onSelect={setEditing}
-      />
 
       <Card
         isFlush
@@ -463,71 +379,10 @@ export default function TransactionBoard() {
         />
       </Modal>
 
-      <Modal
-        urlKey="transaction-edit"
-        key={editing?.id ?? 'none'}
-        isOpen={Boolean(editing)}
+      <TransactionEditModal
+        transaction={editing}
         onClose={() => setEditing(null)}
-        title="거래 수정"
-        footer={
-          <div className={styles.transactionboard__actions}>
-            <Button
-              variant="danger"
-              onClick={() => editing && setDeleteTarget(editing)}
-            >
-              삭제
-            </Button>
-            <span className={styles.transactionboard__spacer} />
-            <Button
-              variant="secondary"
-              onClick={() => setEditing(null)}
-            >
-              닫기
-            </Button>
-            <Button
-              type="submit"
-              form={EDIT_FORM_ID}
-              isLoading={isEditSaving}
-            >
-              저장
-            </Button>
-          </div>
-        }
-      >
-        {editing && (
-          <TransactionForm
-            mode="edit"
-            transaction={editing}
-            formId={EDIT_FORM_ID}
-            onSuccess={() => {
-              refresh();
-              setEditing(null);
-            }}
-          />
-        )}
-      </Modal>
-
-      <ConfirmDialog
-        urlKey="transaction-delete"
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => deleteTarget && removal.mutate(deleteTarget.id)}
-        title="거래 삭제"
-        description="되돌릴 수 없어요. 이번 달 합계도 함께 바뀌어요."
-        confirmLabel="삭제"
-        isDestructive
-        isLoading={removal.isPending}
       />
     </>
-  );
-}
-
-/** 합계 숫자 자리. 불러오는 동안 0원을 띄우면 진짜 0원처럼 읽힌다. */
-function SummarySkeleton() {
-  return (
-    <Skeleton
-      width={96}
-      height={26}
-    />
   );
 }

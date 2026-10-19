@@ -1,0 +1,15 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.monthnavigator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$gap-3;
+
+  &__label {
+    color: var(--text-primary);
+
+    @include t.label-large;
+  }
+}

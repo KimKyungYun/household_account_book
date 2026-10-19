@@ -1,8 +1,5 @@
 @use "styles/tokens/spacing" as s;
-@use "styles/tokens/typography" as t;
-@use "styles/utils/amount" as a;
 @use "styles/utils/loading" as loading;
-@use "styles/utils/media" as media;
 @use "styles/utils/motion" as motion;
 
 .transactionboard {
@@ -12,20 +9,7 @@
     gap: s.$gap-4;
   }
 
-  &__month {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: s.$gap-3;
-  }
-
-  &__monthlabel {
-    color: var(--text-primary);
-
-    @include t.label-large;
-  }
-
-  // 종류·분류·결제한 사람·검색. 혼자 쓰는 장부면 결제한 사람이 빠진다.
+  // 종류·분류·결제한 사람·정렬·검색. 혼자 쓰는 장부면 결제한 사람이 빠진다.
   // 몇 칸이든 폭에 맞춰 줄을 바꾸고, 줄이 넘어간 검색칸은 남은 폭을 다 쓴다.
   &__controls {
     display: flex;
@@ -41,46 +25,6 @@
     > :last-child {
       flex: 2 1 240px;
     }
-  }
-
-  &__summary {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: s.$gap-4;
-    margin: s.$gap-5 0 0;
-    padding-top: s.$gap-5;
-
-    @include media.tablet-up {
-      grid-template-columns: repeat(4, 1fr);
-    }
-
-    @include loading.fades;
-
-    &--stale {
-      @include loading.stale;
-    }
-  }
-
-  &__stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-    dt {
-      color: var(--text-tertiary);
-
-      @include t.label-small;
-    }
-
-    dd {
-      margin: 0;
-    }
-  }
-
-  &__count {
-    color: var(--text-primary);
-
-    @include a.amount-large;
   }
 
   &__list {
@@ -110,9 +54,5 @@
     align-items: center;
     justify-content: flex-end;
     gap: s.$gap-3;
-  }
-
-  &__spacer {
-    flex: 1;
   }
 }

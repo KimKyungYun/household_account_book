@@ -44,7 +44,9 @@ export const transactionListQuerySchema = z
       .enum(['true', 'false'])
       .optional()
       .transform((value) => value === 'true'),
-    sort: z.enum(['date.desc', 'date.asc', 'amount.desc', 'amount.asc', 'createdAt.desc']).default('date.desc'),
+    sort: z
+      .enum(['date.desc', 'date.asc', 'amount.desc', 'amount.asc', 'category.asc', 'createdAt.desc'])
+      .default('date.desc'),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(200).default(50),
   })

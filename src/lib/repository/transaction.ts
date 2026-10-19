@@ -22,6 +22,17 @@ const ORDER_BY: Record<TransactionListQuery['sort'], Prisma.TransactionOrderByWi
   'date.asc': [{ date: 'asc' }, { id: 'asc' }],
   'amount.desc': [{ amount: 'desc' }, { id: 'desc' }],
   'amount.asc': [{ amount: 'asc' }, { id: 'asc' }],
+  // 분류 화면에 정해 둔 순서를 따른다 — 종류(enum 선언 순: 번 돈 → 쓴 돈 → 옮긴 돈) → 대분류 →
+  // 세부 분류. 순서값이 같은 분류끼리도 섞이지 않게 categoryId 로 한 번 더 묶는다.
+  // 분류가 없는 옮긴 돈은 NULL 이라 맨 뒤로 간다.
+  'category.asc': [
+    { type: 'asc' },
+    { category: { parent: { sortOrder: 'asc' } } },
+    { category: { sortOrder: 'asc' } },
+    { categoryId: 'asc' },
+    { date: 'desc' },
+    { id: 'desc' },
+  ],
   'createdAt.desc': [{ createdAt: 'desc' }, { id: 'desc' }],
 };
 

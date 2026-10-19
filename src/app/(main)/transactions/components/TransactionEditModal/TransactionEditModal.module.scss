@@ -1,0 +1,14 @@
+@use "styles/tokens/spacing" as s;
+
+.transactioneditmodal {
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: s.$gap-3;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+}

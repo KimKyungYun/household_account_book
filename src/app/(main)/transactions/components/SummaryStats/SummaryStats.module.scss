@@ -1,0 +1,45 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+@use "styles/utils/amount" as a;
+@use "styles/utils/loading" as loading;
+@use "styles/utils/media" as media;
+
+.summarystats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: s.$gap-4;
+  margin: s.$gap-5 0 0;
+  padding-top: s.$gap-5;
+
+  @include media.tablet-up {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include loading.fades;
+
+  &--stale {
+    @include loading.stale;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    dt {
+      color: var(--text-tertiary);
+
+      @include t.label-small;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__count {
+    color: var(--text-primary);
+
+    @include a.amount-large;
+  }
+}

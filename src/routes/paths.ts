@@ -21,6 +21,8 @@ export const TRANSACTIONS_QUERY = {
   TYPE: 'type',
   CATEGORY: 'category',
   MONTH: 'month',
+  /** 'recurring' 이면 반복 거래 탭을 연다. 없으면 거래 내역 탭. */
+  TAB: 'tab',
 } as const;
 
 export interface TransactionsFilter {
