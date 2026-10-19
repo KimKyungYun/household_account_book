@@ -205,11 +205,12 @@ export async function createLoan(householdId: string, input: CreateLoanInput) {
   if (input.paymentMethodId) await assertPaymentMethodUsable(householdId, input.paymentMethodId);
   await assertCategoriesUsable(householdId, input.interestCategoryId, input.principalCategoryId);
 
+  const gracePeriodMonths = graceOf(input.repaymentType, input.gracePeriodMonths);
   const schedule = buildSchedule({
     principal: input.principal,
     annualRateBp: input.annualRateBp,
     termMonths: input.termMonths,
-    gracePeriodMonths: input.gracePeriodMonths,
+    gracePeriodMonths,
     repaymentType: input.repaymentType,
     firstPaymentDate: input.firstPaymentDate,
   });
@@ -223,7 +224,7 @@ export async function createLoan(householdId: string, input: CreateLoanInput) {
       annualRateBp: input.annualRateBp,
       repaymentType: input.repaymentType,
       termMonths: input.termMonths,
-      gracePeriodMonths: input.gracePeriodMonths,
+      gracePeriodMonths,
       firstPaymentDate: toDateOnly(input.firstPaymentDate),
       memberId: input.memberId,
       paymentMethodId: input.paymentMethodId ?? null,
@@ -244,6 +245,11 @@ export async function createLoan(householdId: string, input: CreateLoanInput) {
     },
     select: { id: true },
   });
+}
+
+/** 만기일시는 매달 내는 돈이 없어 거치가 뜻이 없다. 남겨 두면 상세 화면에 엉뚱한 숫자가 보인다. */
+function graceOf(repaymentType: LoanTerms['repaymentType'], gracePeriodMonths: number): number {
+  return repaymentType === 'BULLET' ? 0 : gracePeriodMonths;
 }
 
 /** 스케줄을 다시 계산해야 하는 필드. 이름·메모·색만 고치면 스케줄은 건드리지 않는다. */
@@ -297,7 +303,9 @@ export async function updateLoan(householdId: string, id: string, input: UpdateL
         ...(input.annualRateBp !== undefined ? { annualRateBp: input.annualRateBp } : {}),
         ...(input.repaymentType !== undefined ? { repaymentType: input.repaymentType } : {}),
         ...(input.termMonths !== undefined ? { termMonths: input.termMonths } : {}),
-        ...(input.gracePeriodMonths !== undefined ? { gracePeriodMonths: input.gracePeriodMonths } : {}),
+        ...(input.gracePeriodMonths !== undefined || input.repaymentType === 'BULLET'
+          ? { gracePeriodMonths: graceOf(input.repaymentType ?? current.repaymentType, input.gracePeriodMonths ?? 0) }
+          : {}),
         ...(input.firstPaymentDate !== undefined
           ? { firstPaymentDate: toDateOnly(input.firstPaymentDate) }
           : {}),

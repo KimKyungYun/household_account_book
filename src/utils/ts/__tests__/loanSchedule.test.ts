@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSchedule, monthlyPayment } from '@/utils/ts/loanSchedule';
+import { buildSchedule, bulletInterest, monthlyPayment, totalInterest } from '@/utils/ts/loanSchedule';
 import type { LoanTerms } from '@/utils/ts/loanSchedule';
 
 const terms = (overrides: Partial<LoanTerms> = {}): LoanTerms => ({
@@ -87,7 +87,7 @@ describe('buildSchedule — 원금균등', () => {
   });
 });
 
-describe('buildSchedule — 만기일시', () => {
+describe('buildSchedule — 이자만', () => {
   const interestOnly = terms({ repaymentType: 'INTEREST_ONLY', termMonths: 24, principal: 50_000_000 });
 
   it('마지막 회차 전에는 원금을 갚지 않는다', () => {
@@ -107,6 +107,56 @@ describe('buildSchedule — 만기일시', () => {
     const schedule = buildSchedule(interestOnly);
 
     expect(new Set(schedule.map((row) => row.interestAmount)).size).toBe(1);
+  });
+});
+
+describe('buildSchedule — 만기일시 (원금·이자 만기에 한 번에)', () => {
+  // 3천만 원 / 연 5% / 24개월, 2028-03-31 만기
+  const bullet = terms({
+    repaymentType: 'BULLET',
+    termMonths: 24,
+    principal: 30_000_000,
+    annualRateBp: 500,
+    firstPaymentDate: '2028-03-31',
+  });
+
+  it('회차가 만기 한 번뿐이다', () => {
+    expect(buildSchedule(bullet)).toHaveLength(1);
+  });
+
+  it('만기일에 원금 전액을 갚고 잔액이 0 이 된다', () => {
+    const [only] = buildSchedule(bullet);
+
+    expect(only?.dueDate).toBe('2028-03-31');
+    expect(only?.principalAmount).toBe(30_000_000);
+    expect(only?.balanceAfter).toBe(0);
+  });
+
+  it('이자는 단리다 — 원금 × 연이율 × 개월 ÷ 12', () => {
+    // 3천만 × 5% × 24 / 12 = 3,000,000
+    expect(buildSchedule(bullet)[0]?.interestAmount).toBe(3_000_000);
+    expect(bulletInterest(30_000_000, 500, 24)).toBe(3_000_000);
+  });
+
+  it('총 이자가 같은 조건의 이자만 방식과 반올림 차이 안에서 같다', () => {
+    const interestOnly = buildSchedule({ ...bullet, repaymentType: 'INTEREST_ONLY' });
+
+    expect(Math.abs(totalInterest(buildSchedule(bullet)) - totalInterest(interestOnly))).toBeLessThanOrEqual(24);
+  });
+
+  it('회차 번호가 만기 달(termMonths)이라 앞 회차 번호와 겹치지 않는다', () => {
+    expect(buildSchedule(bullet)[0]?.installmentNo).toBe(24);
+  });
+
+  it('거치 기간을 넣어도 무시한다', () => {
+    expect(buildSchedule({ ...bullet, gracePeriodMonths: 12 })).toEqual(buildSchedule(bullet));
+  });
+
+  it('무이자면 이자 0 원, 원금만 한 번에 갚는다', () => {
+    const [only] = buildSchedule({ ...bullet, annualRateBp: 0 });
+
+    expect(only?.interestAmount).toBe(0);
+    expect(only?.principalAmount).toBe(30_000_000);
   });
 });
 

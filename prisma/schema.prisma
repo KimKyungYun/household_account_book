@@ -525,6 +525,7 @@ model Loan {
   /// 이자만 내는 앞 구간. termMonths 에 포함된다.
   gracePeriodMonths Int @default(0)
   /// 첫 상환일. 이 날짜의 '일' 이 매달 되풀이된다(31 은 말일을 겸한다).
+  /// 만기일시(BULLET)는 상환이 한 번뿐이라 이 날짜가 곧 만기일이다.
   firstPaymentDate  DateTime @db.Date
 
   /// 상환을 맡은 구성원. 생성되는 거래의 결제자가 된다.
@@ -609,6 +610,8 @@ enum RepaymentType {
   EQUAL_PAYMENT
   /// 원금균등 — 매달 갚는 원금이 같고 총액은 줄어든다.
   EQUAL_PRINCIPAL
-  /// 만기일시 — 매달 이자만 내고 만기에 원금을 한 번에 갚는다.
+  /// 이자만 — 매달 이자만 내고 만기에 원금을 한 번에 갚는다.
   INTEREST_ONLY
+  /// 만기일시 — 원금과 이자를 만기에 한 번에 갚는다. 이자는 단리(원금 × 연이율 × 개월 ÷ 12)다.
+  BULLET
 }

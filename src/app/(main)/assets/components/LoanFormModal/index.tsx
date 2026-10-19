@@ -33,7 +33,8 @@ const KIND_OPTIONS: { value: LoanKind; label: string }[] = [
 const REPAYMENT_OPTIONS: { value: RepaymentType; label: string }[] = [
   { value: 'EQUAL_PAYMENT', label: '원리금균등 — 매달 같은 금액' },
   { value: 'EQUAL_PRINCIPAL', label: '원금균등 — 갈수록 줄어듦' },
-  { value: 'INTEREST_ONLY', label: '만기일시 — 이자만 내다 만기에 원금' },
+  { value: 'INTEREST_ONLY', label: '이자만 — 매달 이자만 내다 만기에 원금' },
+  { value: 'BULLET', label: '만기일시 — 원금과 이자를 만기에 한 번에' },
 ];
 
 /** 소분류까지 평평하게 편다. 대출 이자·원금은 늘 소분류에 붙는다. */
@@ -92,10 +93,14 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
   const annualRateBp = Math.round(Number(ratePercent || 0) * 100);
   const months = Number(termMonths || 0);
-  const grace = Number(gracePeriodMonths || 0);
+  /** 만기일시는 상환이 만기 한 번뿐이라 날짜 칸이 곧 만기일이다. */
+  const isBullet = repaymentType === 'BULLET';
+  /** 거치는 원금을 나눠 갚는 방식에만 뜻이 있다. 이자만·만기일시는 처음부터 원금을 갚지 않는다. */
+  const hasGrace = repaymentType === 'EQUAL_PAYMENT' || repaymentType === 'EQUAL_PRINCIPAL';
+  const grace = hasGrace ? Number(gracePeriodMonths || 0) : 0;
 
   /**
-   * 조건이 다 차면 그 자리에서 월 납입액을 보여 준다.
+   * 조건이 다 차면 그 자리에서 월 납입액(만기일시면 만기에 낼 돈)을 보여 준다.
    *
    * 저장할 스케줄을 만드는 것과 **같은 함수**(`@/utils/ts/loanSchedule`)를 부른다.
    * 화면용 계산을 따로 두면 미리보기 숫자와 실제 저장분이 어긋난다.
@@ -113,16 +118,28 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
       });
       const first = schedule[0];
       const last = schedule[schedule.length - 1];
+      const interest = totalInterest(schedule);
 
-      return {
-        monthly:
-            repaymentType === 'EQUAL_PAYMENT' && months > grace
-              ? monthlyPayment(principal ?? 0, annualRateBp, months - grace)
-              : (first?.principalAmount ?? 0) + (first?.interestAmount ?? 0),
-        firstInterest: first?.interestAmount ?? 0,
-        interest: totalInterest(schedule),
-        lastDueDate: last?.dueDate ?? '',
-      };
+      if (isBullet) {
+        return [
+          { label: '만기에 내는 돈', value: `${((principal ?? 0) + interest).toLocaleString('ko-KR')}원` },
+          { label: '그중 이자', value: `${interest.toLocaleString('ko-KR')}원` },
+          { label: '매달 내는 돈', value: '0원' },
+          { label: '만기일', value: last?.dueDate ?? '' },
+        ];
+      }
+
+      const monthly =
+        repaymentType === 'EQUAL_PAYMENT' && months > grace
+          ? monthlyPayment(principal ?? 0, annualRateBp, months - grace)
+          : (first?.principalAmount ?? 0) + (first?.interestAmount ?? 0);
+
+      return [
+        { label: '매달 내는 돈', value: `${monthly.toLocaleString('ko-KR')}원` },
+        { label: '첫 달 이자', value: `${(first?.interestAmount ?? 0).toLocaleString('ko-KR')}원` },
+        { label: '만기까지 이자', value: `${interest.toLocaleString('ko-KR')}원` },
+        { label: '마지막 상환일', value: last?.dueDate ?? '' },
+      ];
     })()
     : null;
 
@@ -184,13 +201,31 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
     onSaved();
   };
 
+  // 만기일시는 상환이 한 번뿐이라 같은 칸이 곧 만기일이다.
+  const paymentDateField = (
+    <FormField
+      label={isBullet ? '만기일' : '첫 상환일'}
+      hint={isBullet ? '이날 원금과 이자를 한 번에 갚아요.' : '매달 이 날짜와 같은 날에 갚아요.'}
+      error={errors.firstPaymentDate}
+    >
+      {({ id }) => (
+        <Input
+          id={id}
+          type="date"
+          value={firstPaymentDate}
+          onChange={(event) => setFirstPaymentDate(event.target.value)}
+        />
+      )}
+    </FormField>
+  );
+
   return (
     <Modal
       urlKey="loan-form"
       isOpen={isOpen}
       onClose={onClose}
       title={loan ? '대출 고치기' : '대출 등록'}
-      description="조건을 넣어 두면 만기까지 상환 계획을 세우고, 매달 갚는 날에 이자와 원금을 자동으로 적어 드려요."
+      description="조건을 넣어 두면 만기까지 상환 계획을 세우고, 갚는 날에 이자와 원금을 자동으로 적어 드려요."
       footer={
         <div className={styles.loanformmodal__actions}>
           {loan && (
@@ -282,7 +317,7 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
 
           <FormField
             label="상환 기간 (개월)"
-            hint="30년이면 360"
+            hint={isBullet ? '이자를 셀 기간이에요. 2년이면 24' : '30년이면 360'}
             error={errors.termMonths}
           >
             {({ id }) => (
@@ -313,58 +348,39 @@ export default function LoanFormModal({ isOpen, loan, onClose, onSaved, onDelete
           )}
         </FormField>
 
-        <div className={styles.loanformmodal__pair}>
-          <FormField
-            label="거치 기간 (개월)"
-            hint="이자만 내는 기간이에요. 없으면 0으로 두세요."
-            error={errors.gracePeriodMonths}
-          >
-            {({ id }) => (
-              <Input
-                id={id}
-                type="number"
-                inputMode="numeric"
-                min="0"
-                value={gracePeriodMonths}
-                onChange={(event) => setGracePeriodMonths(event.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField
-            label="첫 상환일"
-            hint="매달 이 날짜와 같은 날에 갚아요."
-            error={errors.firstPaymentDate}
-          >
-            {({ id }) => (
-              <Input
-                id={id}
-                type="date"
-                value={firstPaymentDate}
-                onChange={(event) => setFirstPaymentDate(event.target.value)}
-              />
-            )}
-          </FormField>
-        </div>
+        {hasGrace ? (
+          <div className={styles.loanformmodal__pair}>
+            <FormField
+              label="거치 기간 (개월)"
+              hint="이자만 내는 기간이에요. 없으면 0으로 두세요."
+              error={errors.gracePeriodMonths}
+            >
+              {({ id }) => (
+                <Input
+                  id={id}
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={gracePeriodMonths}
+                  onChange={(event) => setGracePeriodMonths(event.target.value)}
+                />
+              )}
+            </FormField>
+            {paymentDateField}
+          </div>
+        ) : paymentDateField}
 
         {preview && (
           <dl className={styles.loanformmodal__preview}>
-            <div className={styles.loanformmodal__previewitem}>
-              <dt>매달 내는 돈</dt>
-              <dd>{preview.monthly.toLocaleString('ko-KR')}원</dd>
-            </div>
-            <div className={styles.loanformmodal__previewitem}>
-              <dt>첫 달 이자</dt>
-              <dd>{preview.firstInterest.toLocaleString('ko-KR')}원</dd>
-            </div>
-            <div className={styles.loanformmodal__previewitem}>
-              <dt>만기까지 이자</dt>
-              <dd>{preview.interest.toLocaleString('ko-KR')}원</dd>
-            </div>
-            <div className={styles.loanformmodal__previewitem}>
-              <dt>마지막 상환일</dt>
-              <dd>{preview.lastDueDate}</dd>
-            </div>
+            {preview.map((item) => (
+              <div
+                key={item.label}
+                className={styles.loanformmodal__previewitem}
+              >
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
           </dl>
         )}
 

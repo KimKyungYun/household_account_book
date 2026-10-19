@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const loanKindSchema = z.enum(['MORTGAGE', 'JEONSE', 'CREDIT', 'CAR', 'STUDENT', 'OTHER']);
-export const repaymentTypeSchema = z.enum(['EQUAL_PAYMENT', 'EQUAL_PRINCIPAL', 'INTEREST_ONLY']);
+export const repaymentTypeSchema = z.enum(['EQUAL_PAYMENT', 'EQUAL_PRINCIPAL', 'INTEREST_ONLY', 'BULLET']);
 
 /**
  * 상한 40 년. 국내 정책 주담대가 최장 40 년(480 개월)이고, 상한이 없으면 오타 하나로
@@ -30,7 +30,8 @@ const loanFields = {
     .positive('상환 기간을 입력해 주세요.')
     .max(MAX_TERM_MONTHS, '상환 기간은 40년(480개월)까지 넣을 수 있어요.'),
   gracePeriodMonths: z.number().int().min(0, '거치 기간은 0개월 이상이어야 해요.').default(0),
-  firstPaymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '첫 상환일은 YYYY-MM-DD 형식이어야 해요.'),
+  /** 첫 상환일. 만기일시는 상환이 한 번뿐이라 만기일이다. */
+  firstPaymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '상환일은 YYYY-MM-DD 형식이어야 해요.'),
   memberId: z.string().min(1, '상환하는 사람을 골라 주세요.'),
   paymentMethodId: z.string().min(1).nullable().optional(),
   interestCategoryId: z.string().min(1, '이자를 기록할 분류를 골라 주세요.'),

@@ -19,8 +19,10 @@ export type RepaymentType =
   | 'EQUAL_PAYMENT'
   /** 원금균등 — 매달 갚는 원금이 같다. 총액은 갈수록 준다. */
   | 'EQUAL_PRINCIPAL'
-  /** 만기일시 — 매달 이자만 내고 만기에 원금을 한 번에 갚는다. */
-  | 'INTEREST_ONLY';
+  /** 이자만 — 매달 이자만 내고 만기에 원금을 한 번에 갚는다. */
+  | 'INTEREST_ONLY'
+  /** 만기일시 — 원금과 이자를 만기에 한 번에 갚는다. */
+  | 'BULLET';
 
 export interface LoanTerms {
   /** 최초 원금 (원). */
@@ -30,9 +32,9 @@ export interface LoanTerms {
   /** 거치를 포함한 전체 상환 개월. */
   termMonths: number;
   repaymentType: RepaymentType;
-  /** 이자만 내는 앞 구간. 전체 기간에 포함된다. */
+  /** 이자만 내는 앞 구간. 전체 기간에 포함된다. 만기일시는 쓰지 않는다. */
   gracePeriodMonths?: number;
-  /** 첫 상환일. 이 날짜의 '일' 이 매달 되풀이된다. */
+  /** 첫 상환일. 이 날짜의 '일' 이 매달 되풀이된다. 만기일시는 이 날짜가 곧 만기일이다. */
   firstPaymentDate: DateString;
 }
 
@@ -81,7 +83,20 @@ function dueDateOf(firstPaymentDate: DateString, offsetMonths: number): DateStri
 }
 
 /**
+ * 만기일시의 이자 — 단리다. `원금 × 연이율 × 개월 ÷ 12`.
+ *
+ * 만기에 한 번에 내는 대출(사내대출·지인 대출)은 이자에 이자가 붙지 않는 단리가 보통이다.
+ * 매달 이자만 내는 방식과 총 이자가 (반올림을 빼면) 같다.
+ */
+export function bulletInterest(principal: number, annualRateBp: number, termMonths: number): number {
+  return Math.round((principal * annualRateBp * termMonths) / 10_000 / 12);
+}
+
+/**
  * 만기까지의 전 회차.
+ *
+ * 만기일시는 회차가 만기 한 번뿐이다. 회차 번호를 1 이 아니라 `termMonths` 로 두어, 다른 방식에서
+ * 바꿨을 때 이미 갚아 남겨 둔 앞 회차(1, 2, …)와 번호가 겹치지 않게 한다.
  *
  * 마지막 회차의 원금은 계산값이 아니라 **남은 잔액 그대로** 넣는다. 회차마다 원 단위로
  * 반올림하므로 그러지 않으면 다 갚고도 몇십 원이 남거나 모자란다.
@@ -89,6 +104,16 @@ function dueDateOf(firstPaymentDate: DateString, offsetMonths: number): DateStri
 export function buildSchedule(terms: LoanTerms): LoanInstallment[] {
   const { principal, annualRateBp, termMonths, repaymentType, firstPaymentDate } = terms;
   if (termMonths <= 0 || principal <= 0) return [];
+
+  if (repaymentType === 'BULLET') {
+    return [{
+      installmentNo: termMonths,
+      dueDate: firstPaymentDate,
+      principalAmount: principal,
+      interestAmount: bulletInterest(principal, annualRateBp, termMonths),
+      balanceAfter: 0,
+    }];
+  }
 
   const rate = monthlyRate(annualRateBp);
   const grace = Math.min(terms.gracePeriodMonths ?? 0, termMonths);

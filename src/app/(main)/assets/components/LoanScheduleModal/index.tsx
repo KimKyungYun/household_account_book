@@ -34,7 +34,11 @@ export default function LoanScheduleModal({ isOpen, loan, onClose }: LoanSchedul
       isOpen={isOpen}
       onClose={onClose}
       title={`${loan.name} 상환 계획`}
-      description="회차마다 원금과 이자를 얼마씩 갚는지 보여 드려요."
+      description={
+        loan.repaymentType === 'BULLET'
+          ? '만기에 원금과 이자를 한 번에 갚아요.'
+          : '회차마다 원금과 이자를 얼마씩 갚는지 보여 드려요.'
+      }
       size="lg"
     >
       {isPending ? (
@@ -63,7 +67,8 @@ export default function LoanScheduleModal({ isOpen, loan, onClose }: LoanSchedul
                 data-paid={row.paid ? 'true' : undefined}
                 data-next={!row.paid && row.dueDate >= today ? 'true' : undefined}
               >
-                <span>{row.installmentNo}</span>
+                {/* 만기일시는 한 번뿐이라 회차 번호(만기 달) 대신 '만기'라고 적는다. */}
+                <span>{loan.repaymentType === 'BULLET' ? '만기' : row.installmentNo}</span>
                 <span>{row.dueDate}</span>
                 <span>{row.principalAmount.toLocaleString('ko-KR')}</span>
                 <span>{row.interestAmount.toLocaleString('ko-KR')}</span>

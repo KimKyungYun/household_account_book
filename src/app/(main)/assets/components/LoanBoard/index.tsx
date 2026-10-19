@@ -33,7 +33,8 @@ const KIND_LABEL: Record<LoanDto['kind'], string> = {
 const REPAYMENT_LABEL: Record<LoanDto['repaymentType'], string> = {
   EQUAL_PAYMENT: '원리금균등',
   EQUAL_PRINCIPAL: '원금균등',
-  INTEREST_ONLY: '만기일시',
+  INTEREST_ONLY: '이자만',
+  BULLET: '만기일시',
 };
 
 /** 425 → '4.25%'. 끝자리 0 은 떼어 4.5% / 4% 로 읽히게 한다. */
@@ -144,8 +145,11 @@ export default function LoanBoard() {
                         ratio={loan.progress}
                         ariaLabel={`${loan.name} 상환 진행률`}
                       />
+                      {/* 만기일시는 회차가 한 번뿐이라 'n/24회' 대신 만기일을 보여 준다. */}
                       <span className={styles.loanboard__progresstext}>
-                        {loan.paidInstallments}/{loan.termMonths}회 ·{' '}
+                        {loan.repaymentType === 'BULLET'
+                          ? `만기 ${formatDateLabel(loan.firstPaymentDate)}`
+                          : `${loan.paidInstallments}/${loan.termMonths}회`} ·{' '}
                         {Math.round(loan.progress * 100)}% 갚음
                       </span>
                     </span>
@@ -159,7 +163,7 @@ export default function LoanBoard() {
                     />
                     <span className={styles.loanboard__sub}>
                       {loan.nextPayment
-                        ? `매달 ${(
+                        ? `${loan.repaymentType === 'BULLET' ? '만기에' : '매달'} ${(
                           loan.nextPayment.principalAmount + loan.nextPayment.interestAmount
                         ).toLocaleString('ko-KR')}원`
                         : '상환 완료'}
