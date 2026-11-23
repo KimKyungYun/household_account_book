@@ -1,6 +1,7 @@
 import AccountSection from './components/AccountSection';
 import HouseholdSection from './components/HouseholdSection';
 import MembersSection from './components/MembersSection';
+import ResetSection from './components/ResetSection';
 import ThemeSection from './components/ThemeSection';
 import styles from './Settings.module.scss';
 
@@ -11,6 +12,7 @@ export default function SettingsPage() {
       <HouseholdSection />
       <ThemeSection />
       <AccountSection />
+      <ResetSection />
     </div>
   );
 }

@@ -1,0 +1,28 @@
+@use "styles/tokens/spacing" as s;
+@use "styles/tokens/typography" as t;
+
+.resetsection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$gap-4;
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    color: var(--text-primary);
+
+    @include t.label-medium;
+  }
+
+  &__note {
+    color: var(--text-tertiary);
+
+    @include t.body-small;
+  }
+}

@@ -17,3 +17,11 @@ export const updateHouseholdSchema = z.object({
     .optional(),
 });
 export type UpdateHouseholdInput = z.infer<typeof updateHouseholdSchema>;
+
+/** 초기화 확인 문구. 화면에서 이 글자를 그대로 입력해야 실행 버튼이 켜지고, 서버도 같은 값을 다시 확인한다. */
+export const RESET_CONFIRM_TEXT = '초기화';
+
+export const resetHouseholdSchema = z.object({
+  confirm: z.literal(RESET_CONFIRM_TEXT, { error: `'${RESET_CONFIRM_TEXT}'를 입력해 주세요.` }),
+});
+export type ResetHouseholdInput = z.infer<typeof resetHouseholdSchema>;

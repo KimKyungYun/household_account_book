@@ -11,6 +11,7 @@ export const QUERY_KEY = {
   HOUSEHOLD: {
     ALL: ['household'] as const,
     INFO: () => [...QUERY_KEY.HOUSEHOLD.ALL, 'info'] as const,
+    RESET_SUMMARY: () => [...QUERY_KEY.HOUSEHOLD.ALL, 'reset-summary'] as const,
   },
   CATEGORY: {
     ALL: ['category'] as const,

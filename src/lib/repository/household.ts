@@ -3,6 +3,7 @@ import { badRequest, conflict, notFound } from '@/lib/api/httpError';
 import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS } from '@/lib/seed/defaults';
 import { HOUSEHOLD_KIND_RULES, isRelationAllowed, memberColorOf, RELATION_LABEL, relationForKind } from '@/service/household/kind';
 import type { HouseholdKind, MemberRelation } from '@/generated/prisma/enums';
+import type { ResetCountsDto, ResetSummaryDto } from '@/service/household/type';
 
 function assertRelation(kind: HouseholdKind, relation: MemberRelation) {
   if (!isRelationAllowed(kind, relation)) {
@@ -186,4 +187,49 @@ export async function changeHouseholdKind(householdId: string, kind: HouseholdKi
 export async function assertMemberRelations(householdId: string, relations: MemberRelation[]) {
   const household = await prisma.household.findUniqueOrThrow({ where: { id: householdId }, select: { kind: true } });
   for (const relation of relations) assertRelation(household.kind, relation);
+}
+
+/** 초기화 확인 창에 표시할 건수와 거래 기간. */
+export async function getResetSummary(householdId: string): Promise<ResetSummaryDto> {
+  const [transactions, assets, loans, recurringRules, range] = await Promise.all([
+    prisma.transaction.count({ where: { householdId } }),
+    prisma.asset.count({ where: { householdId } }),
+    prisma.loan.count({ where: { householdId } }),
+    prisma.recurringRule.count({ where: { householdId } }),
+    prisma.transaction.aggregate({ where: { householdId }, _min: { date: true }, _max: { date: true } }),
+  ]);
+
+  return {
+    transactions,
+    assets,
+    loans,
+    recurringRules,
+    firstDate: range._min.date?.toISOString().slice(0, 10) ?? null,
+    lastDate: range._max.date?.toISOString().slice(0, 10) ?? null,
+  };
+}
+
+/**
+ * 거래·자산·대출·반복 거래를 모두 지운다. 분류·결제수단·예산·구성원·장부 설정은 남긴다.
+ *
+ * 한 트랜잭션으로 지워 중간에 실패하면 아무것도 지워지지 않는다. 순서는 다음과 같다.
+ *  1. 거래 — 대출 회차·반복 회차의 거래 연결은 SetNull 로 끊긴다
+ *  2. 반복 거래 — 회차 기록은 Cascade 로 함께 지워진다. 남기면 다음 접속 때 이번 달 거래를 다시 만든다
+ *  3. 대출 — 상환 회차는 Cascade 로 함께 지워진다. 남기면 거래가 없는 지난 회차를 다시 적는다
+ *  4. 자산
+ */
+export async function resetHouseholdData(householdId: string): Promise<ResetCountsDto> {
+  return prisma.$transaction(async (tx) => {
+    const transactions = await tx.transaction.deleteMany({ where: { householdId } });
+    const recurringRules = await tx.recurringRule.deleteMany({ where: { householdId } });
+    const loans = await tx.loan.deleteMany({ where: { householdId } });
+    const assets = await tx.asset.deleteMany({ where: { householdId } });
+
+    return {
+      transactions: transactions.count,
+      assets: assets.count,
+      loans: loans.count,
+      recurringRules: recurringRules.count,
+    };
+  });
 }
